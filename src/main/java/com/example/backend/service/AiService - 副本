@@ -1,0 +1,58 @@
+package com.example.backend.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class AiService {
+
+    // LM Studio 默认地址
+    private static final String LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
+
+    public String callAiReview(String paperContent) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        // 1. 构造 Prompt (提示词)
+        String systemPrompt = "你是一个资深的学术评审专家。请对以下论文片段进行简要评审。请从‘创新点’、‘方法论’和‘改进建议’三个维度进行分析，输出格式清晰。如果内容看起来不是论文，请提示用户。";
+
+        // 2. 构造请求体 (符合 OpenAI 接口标准)
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "local-model"); // LM Studio 不强制模型名，随便填
+        requestBody.put("temperature", 0.7);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content", systemPrompt));
+        messages.add(Map.of("role", "user", "content", "论文内容如下:\n" + paperContent));
+
+        requestBody.put("messages", messages);
+
+        // 3. 发送请求
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            // 发送 POST
+            ResponseEntity<Map> response = restTemplate.postForEntity(LM_STUDIO_URL, entity, Map.class);
+
+            // 4. 解析返回的 JSON (结构比较深: choices[0].message.content)
+            Map<String, Object> body = response.getBody();
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) body.get("choices");
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+            return (String) message.get("content");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "AI 服务连接失败，请确认 LM Studio 已启动 (Error: " + e.getMessage() + ")";
+        }
+    }
+}

@@ -1,0 +1,108 @@
+package com.example.backend.service;
+
+import com.example.backend.entity.User;
+import com.example.backend.entity.Friendship;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.FriendshipRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.stream.Collectors;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private FriendshipRepository friendshipRepository;
+
+    @Value("${file.upload.dir}")
+    private String uploadDir;
+
+    public User register(User user) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
+            throw new RuntimeException("用户名已存在");
+        }
+        // 默认昵称 = 用户名
+        if (user.getNickname() == null || user.getNickname().isEmpty()) {
+            user.setNickname(user.getUsername());
+        }
+        return userRepository.save(user);
+    }
+
+    public User login(String username, String password) {
+        User user = userRepository.findByUsername(username);
+        if (user != null && user.getPassword().equals(password)) {
+            return user;
+        }
+        return null;
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    // 修改资料 (增加昵称参数)
+    public User updateProfile(Long userId, String nickname, String bio, MultipartFile avatarFile) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+
+        if (bio != null) user.setBio(bio);
+        if (nickname != null && !nickname.trim().isEmpty()) user.setNickname(nickname); // 更新昵称
+
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            String newFileName = UUID.randomUUID().toString() + "_" + avatarFile.getOriginalFilename();
+            File dest = new File(uploadDir + newFileName);
+            if (!dest.getParentFile().exists()) dest.getParentFile().mkdirs();
+            avatarFile.transferTo(dest);
+            user.setAvatar(newFileName);
+        }
+        return userRepository.save(user);
+    }
+
+    // 搜索用户
+    public List<User> searchUsers(String keyword) {
+        // 两个参数都传 keyword，表示“用户名包含它”或者“昵称包含它”
+        return userRepository.findByUsernameContainingOrNicknameContaining(keyword, keyword);
+    }
+
+    // 关注用户
+    public void followUser(Long followerId, Long targetUserId) {
+        if (followerId.equals(targetUserId)) {
+            throw new RuntimeException("不能关注自己");
+        }
+        if (friendshipRepository.existsByFollowerIdAndFollowingId(followerId, targetUserId)) {
+            throw new RuntimeException("已经关注过了");
+        }
+
+        User follower = userRepository.findById(followerId).orElseThrow();
+        User target = userRepository.findById(targetUserId).orElseThrow(() -> new RuntimeException("目标用户不存在"));
+
+        Friendship friendship = new Friendship();
+        friendship.setFollower(follower);
+        friendship.setFollowing(target);
+        friendship.setCreateTime(LocalDateTime.now());
+
+        friendshipRepository.save(friendship);
+    }
+
+    // 获取我的关注列表
+    public List<User> getMyFollowing(Long userId) {
+        // 1. 查出所有的关注记录
+        List<Friendship> friendships = friendshipRepository.findAllByFollowerId(userId);
+
+        // 2. 提取出每一条记录里的 "Following" (我关注的人)
+        return friendships.stream()
+                .map(Friendship::getFollowing)
+                .collect(Collectors.toList());
+    }
+}

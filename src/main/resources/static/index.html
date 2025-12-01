@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">广场 - Twieeetter</span>
+        <span class="en">Plaza - Twieeetter</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 60px; }
+        .navbar {   position: fixed; top: 0; width: 100%; background: white; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;
+            box-sizing: border-box; }
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .brand { color: #1da1f2; font-weight: 900; font-size: 24px; text-decoration: none; }
+
+        /* === 跳转按钮 === */
+        .nav-publish-btn {
+            background-color: #1da1f2; color: white; border: none;
+            padding: 8px 20px; border-radius: 20px; text-decoration: none;
+            font-weight: bold; font-size: 14px;
+            box-shadow: 0 2px 5px rgba(29, 161, 242, 0.3);
+            transition: background 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+        .nav-publish-btn:hover { background-color: #0d8ddb; }
+
+        .nav-links { display: flex; align-items: center; gap: 20px;  flex-shrink: 0;}
+        .nav-item { text-decoration: none; color: #555; font-weight: bold; font-size: 15px;
+            white-space: nowrap; }
+        .nav-item:hover { color: #1da1f2; }
+        .logout-btn { color: #dc3545; cursor: pointer; text-decoration: none;
+            font-weight: bold; border: 1px solid #dc3545;
+            padding: 5px 18px;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.2s; }
+        .logout-btn:hover { background-color: #dc3545; color: white; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        /* 推文列表样式 */
+        .tweet { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e1e8ed; }
+        .tweet-header { display: flex; align-items: flex-start; margin-bottom: 12px; }
+        .avatar-img { width: 48px; height: 48px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 1px solid #eee; }
+        .author-info { display: flex; flex-direction: column; }
+        .nickname { font-weight: bold; color: #0f1419; font-size: 16px; }
+        .username { color: #536471; font-size: 14px; margin-top: 2px; }
+        .time { margin-left: auto; color: #536471; font-size: 13px; }
+        .content { font-size: 16px; line-height: 1.6; color: #0f1419; white-space: pre-wrap; margin-left: 60px; }
+        .attachment-card { margin-top: 15px; margin-left: 60px; background-color: #f7f9f9; border: 1px solid #cfd9de; border-radius: 10px; padding: 12px 15px; display: flex; align-items: center; color: #536471; }
+        .file-icon { font-size: 24px; margin-right: 12px; }
+        .file-name { font-weight: bold; color: #1da1f2; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 350px;}
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-left">
+        <a href="index.html" class="brand">Twieeetter 🎓</a>
+        <a href="dashboard.html" class="nav-publish-btn">
+            <span>⚡</span>
+            <span class="cn">进入创作中心</span>
+            <span class="en">Enter Creator Center</span>
+        </a>
+    </div>
+
+    <div class="nav-links">
+        <a href="search.html" class="nav-item">🔍
+            <span class="cn">找朋友</span>
+            <span class="en">Find Friends</span>
+        </a>
+        <a href="friends.html" class="nav-item">👥
+            <span class="cn">好友列表</span>
+            <span class="en">Friends List</span>
+        </a>
+        <a href="profile.html" class="nav-item">👤
+            <span id="currentUser">
+                <span class="cn">我的主页</span>
+                <span class="en">My Profile</span>
+            </span>
+        </a>
+        <a class="logout-btn" onclick="logout()">
+            <span class="cn">退出</span>
+            <span class="en">Logout</span>
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div id="feed">
+        <div style="text-align:center; color:#999; margin-top: 50px;">
+            <span class="cn">正在加载最新的研究...</span>
+            <span class="en">Loading latest research...</span>
+        </div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    if (!userId) {
+        window.location.href = "login.html";
+    } else {
+        initUser(); // 初始化用户信息
+        loadTweets();
+    }
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        // 刷新推文列表和相关文本
+        loadTweets();
+        updateNavText();
+    });
+
+    // 更新导航栏静态文本（语言切换时调用）
+    function updateNavText() {
+        const publishBtn = document.querySelector('.nav-publish-btn');
+        publishBtn.innerHTML = `
+            <span>⚡</span>
+            <span class="cn">进入创作中心</span>
+            <span class="en">Enter Creator Center</span>
+        `;
+
+        const findFriendsLink = document.querySelectorAll('.nav-item')[0];
+        findFriendsLink.innerHTML = `
+            🔍
+            <span class="cn">找朋友</span>
+            <span class="en">Find Friends</span>
+        `;
+
+        const friendsListLink = document.querySelectorAll('.nav-item')[1];
+        friendsListLink.innerHTML = `
+            👥
+            <span class="cn">好友列表</span>
+            <span class="en">Friends List</span>
+        `;
+
+        const logoutBtn = document.querySelector('.logout-btn');
+        logoutBtn.innerHTML = `
+            <span class="cn">退出</span>
+            <span class="en">Logout</span>
+        `;
+    }
+
+    // 新增：获取用户详情来显示昵称
+    async function initUser() {
+        try {
+            const res = await fetch(`/api/users/${userId}`);
+            const user = await res.json();
+            // 优先显示昵称，没有则显示用户名（保持原逻辑，不影响语言切换）
+            const userName = user.nickname || user.username;
+            document.getElementById("currentUser").innerText = userName;
+        } catch (e) {
+            console.error(currentLang === 'cn' ? "获取用户信息失败" : "Failed to get user info", e);
+            // 降级方案：显示 localStorage 里的缓存
+            const cachedName = localStorage.getItem("username") || (currentLang === 'cn' ? "我的主页" : "My Profile");
+            document.getElementById("currentUser").innerText = cachedName;
+        }
+    }
+
+    async function loadTweets() {
+        try {
+            const response = await fetch('/api/tweets');
+            if (!response.ok) throw new Error(currentLang === 'cn' ? "加载失败" : "Loading failed");
+            const tweets = await response.json();
+            const feedDiv = document.getElementById("feed");
+            feedDiv.innerHTML = "";
+
+            const noContentText = currentLang === 'cn' ? '暂时还没有内容，快去创作中心发布第一条吧！' : 'No content yet, go to Creator Center to publish your first research!';
+            const attachmentText = currentLang === 'cn' ? '附件文档' : 'Attachment Document';
+
+            if (tweets.length === 0) {
+                feedDiv.innerHTML = `<div style="text-align:center; color:#999; margin-top:50px;"><span class="cn">${noContentText}</span><span class="en">${noContentText}</span></div>`;
+                return;
+            }
+
+            tweets.forEach(tweet => {
+                const timeStr = tweet.createTime ? tweet.createTime.replace('T', ' ').split('.')[0] : (currentLang === 'cn' ? '刚刚' : 'Just now');
+                const nickname = tweet.author.nickname || tweet.author.username;
+                const username = tweet.author.username;
+                const avatarUrl = tweet.author && tweet.author.avatar ? '/uploads/' + tweet.author.avatar : 'https://via.placeholder.com/50';
+                const fileName = tweet.originalFilename || null;
+
+                let attachmentHtml = '';
+                if (fileName) {
+                    attachmentHtml = `
+                        <div class="attachment-card">
+                            <span class="file-icon">📄</span>
+                            <div>
+                                <span style="font-size:12px;display:block;">${attachmentText}</span>
+                                <span class="file-name">${fileName}</span>
+                            </div>
+                        </div>`;
+                }
+
+                const html = `
+    <div class="tweet">
+        <div class="tweet-header">
+            <!-- 给头像加链接 -->
+            <img src="${avatarUrl}" class="avatar-img"
+                 onclick="location.href='user_profile.html?id=${tweet.author.id}'"
+                 style="cursor:pointer">
+
+            <div class="author-info">
+                <!-- 给名字加链接 -->
+                <span class="nickname"
+                      onclick="location.href='user_profile.html?id=${tweet.author.id}'"
+                      style="cursor:pointer">${nickname}</span>
+                <span class="username">@${username}</span>
+            </div>
+            <span class="time">${timeStr}</span>
+        </div>
+        <!-- ... 下面内容保持不变 ... -->
+        <div class="content" onclick="location.href='detail.html?id=${tweet.id}'" style="cursor:pointer">${tweet.content}</div>
+        ${attachmentHtml}
+    </div>
+`;
+                feedDiv.innerHTML += html;
+            });
+        } catch (e) {
+            console.error(e);
+            const errorText = currentLang === 'cn' ? '加载内容失败，请重试' : 'Failed to load content, please try again';
+            document.getElementById("feed").innerHTML = `<div style="text-align:center; color:red; margin-top:50px;">${errorText}</div>`;
+        }
+    }
+
+    function logout() {
+        const confirmText = currentLang === 'cn' ? '确定要退出吗？' : 'Are you sure you want to logout?';
+        if(confirm(confirmText)) {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+    }
+</script>
+</body>
+</html>

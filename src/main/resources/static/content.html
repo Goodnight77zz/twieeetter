@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">稿件管理 - 创作中心</span>
+        <span class="en">Manuscript Management - Creator Center</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        /* 复用布局 CSS */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; display: flex; height: 100vh; overflow: hidden; }
+        /* 左侧侧边栏 */
+        .sidebar { width: 240px; background: white; border-right: 1px solid #e7e7e7; display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0; }
+        .logo-area { padding: 0 24px 20px; font-size: 20px; font-weight: 900; color: #00a1d6; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+        .post-btn-wrapper { padding: 0 20px; margin-bottom: 20px; }
+        .big-post-btn { display: flex; justify-content: center; align-items: center; width: 100%; background-color: #00a1d6; color: white; padding: 12px; border-radius: 4px; font-size: 16px; font-weight: bold; text-decoration: none; box-sizing: border-box; transition: 0.2s; }
+        .big-post-btn:hover { background-color: #00b5e5; }
+
+        .menu-item { padding: 12px 24px; color: #505050; text-decoration: none; font-size: 15px; display: flex; align-items: center; transition: background 0.2s; }
+        .menu-item:hover { background-color: #f4f5f7; color: #00a1d6; }
+        .menu-item.active { color: #00a1d6; background-color: #eefaff; border-left: 3px solid #00a1d6; }
+        .menu-icon { margin-right: 10px; font-size: 18px; width: 20px; text-align: center;}
+
+        /* === 右侧内容区 === */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .page-header { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+
+        /* 列表样式 */
+        .content-list { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .list-item { display: flex; padding: 20px; border-bottom: 1px solid #f0f0f0; transition: background 0.1s; align-items: flex-start; }
+        .list-item:hover { background-color: #fafafa; }
+        .list-item:last-child { border-bottom: none; }
+
+        .item-icon { font-size: 24px; margin-right: 15px; background: #f0f5ff; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #00a1d6; flex-shrink: 0; }
+
+        .item-info { flex: 1; overflow: hidden; }
+        .item-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .item-title:hover { color: #00a1d6; }
+
+        .item-meta { font-size: 13px; color: #999; display: flex; gap: 20px; }
+
+        .item-actions { margin-left: 20px; }
+        .btn-view { padding: 6px 15px; border: 1px solid #ddd; border-radius: 4px; color: #666; text-decoration: none; font-size: 13px; transition: 0.2s; }
+        .btn-view:hover { border-color: #00a1d6; color: #00a1d6; }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+    <a href="index.html" class="logo-area">🎓
+        <span class="cn">创作中心</span>
+        <span class="en">Creator Center</span>
+    </a>
+
+    <div class="post-btn-wrapper">
+        <a href="publish.html" class="big-post-btn">📝
+            <span class="cn">发布新研究</span>
+            <span class="en">Publish New Research</span>
+        </a>
+    </div>
+
+    <a href="dashboard.html" class="menu-item">
+        <span class="menu-icon">🏠</span>
+        <span class="cn">首页概览</span>
+        <span class="en">Home Overview</span>
+    </a>
+    <!-- 这个是当前页，加了 active 类 -->
+    <a href="content.html" class="menu-item active">
+        <span class="menu-icon">📂</span>
+        <span class="cn">稿件管理</span>
+        <span class="en">Manuscript Management</span>
+    </a>
+    <a href="index.html" class="menu-item">
+        <span class="menu-icon">🌍</span>
+        <span class="cn">返回广场</span>
+        <span class="en">Return to Plaza</span>
+    </a>
+</div>
+
+<!-- 主内容 -->
+<div class="main-content">
+    <div class="page-header">
+        <span class="cn">我的稿件</span>
+        <span class="en">My Manuscripts</span>
+    </div>
+
+    <div class="content-list" id="contentList">
+        <div style="padding: 40px; text-align: center; color: #999;">
+            <span class="cn">加载中...</span>
+            <span class="en">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    if(!userId) window.location.href = "login.html";
+
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    // 监听语言切换事件，重新加载列表更新文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        loadMyContents();
+    });
+
+    async function loadMyContents() {
+        // 调用新写的接口
+        const res = await fetch(`/api/tweets/user/${userId}`);
+        const list = await res.json();
+
+        const container = document.getElementById("contentList");
+        container.innerHTML = "";
+
+        if(list.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #999;">
+                    <span class="cn">暂无发布记录</span>
+                    <span class="en">No published records</span>
+                </div>
+            `;
+            return;
+        }
+
+        const publishTimeText = currentLang === 'cn' ? '发布时间' : 'Publish Time';
+        const attachmentText = currentLang === 'cn' ? '附件' : 'Attachment';
+        const noAttachmentText = currentLang === 'cn' ? '无' : 'None';
+        const viewDetailText = currentLang === 'cn' ? '查看详情' : 'View Details';
+
+        list.forEach(item => {
+            const timeStr = item.createTime ? item.createTime.replace('T', ' ').split('.')[0] :
+                (currentLang === 'cn' ? '未知时间' : 'Unknown Time');
+            // 截取一部分内容作为标题
+            const titlePreview = item.content.length > 30 ? item.content.substring(0, 30) + "..." : item.content;
+
+            container.innerHTML += `
+                    <div class="list-item">
+                        <div class="item-icon">📄</div>
+                        <div class="item-info">
+                            <!-- 点击标题跳转到详情页，带上 ID -->
+                            <div class="item-title" onclick="location.href='detail.html?id=${item.id}'">${titlePreview}</div>
+                            <div class="item-meta">
+                                <span>${publishTimeText}: ${timeStr}</span>
+                                <span>${attachmentText}: ${item.originalFilename || noAttachmentText}</span>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="detail.html?id=${item.id}" class="btn-view">
+                                <span class="cn">${viewDetailText}</span>
+                                <span class="en">${viewDetailText}</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+        });
+    }
+
+    loadMyContents();
+</script>
+</body>
+</html>

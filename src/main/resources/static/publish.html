@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">发布研究 - 创作中心</span>
+        <span class="en">Publish Research - Creator Center</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        /* 复用基础布局 CSS */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 240px; background: white; border-right: 1px solid #e7e7e7; display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
+        .logo { padding: 0 24px 20px; font-size: 22px; font-weight: 900; color: #00a1d6; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
+        .post-btn-container { padding: 0 20px; margin-bottom: 20px; }
+        .big-post-btn { width: 100%; background-color: #00a1d6; color: white; border: none; padding: 12px; border-radius: 4px; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; text-decoration: none; box-sizing: border-box;}
+        .menu-item { padding: 12px 24px; color: #505050; text-decoration: none; font-size: 15px; display: flex; align-items: center; transition: background 0.2s; }
+        .menu-item:hover { background-color: #f4f5f7; color: #00a1d6; }
+        .menu-icon { margin-right: 10px; font-size: 18px; width: 20px; text-align: center;}
+
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; background-color: #f4f5f7; }
+
+        /* === 发布表单区域 === */
+        .editor-container { background: white; max-width: 800px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 40px; }
+        .page-header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+        .page-header h2 { margin: 0; color: #333; font-size: 24px; }
+
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; }
+
+        textarea { width: 100%; height: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 15px; font-size: 16px; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; transition: border 0.2s;}
+        textarea:focus { border-color: #00a1d6; }
+
+        .file-upload-box { border: 2px dashed #ddd; border-radius: 4px; padding: 40px; text-align: center; background-color: #fafafa; cursor: pointer; transition: all 0.2s; }
+        .file-upload-box:hover { border-color: #00a1d6; background-color: #f0faff; }
+        .upload-icon { font-size: 40px; color: #999; margin-bottom: 10px; display: block; }
+        .upload-text { color: #666; }
+        #fileNameDisplay { margin-top: 10px; color: #00a1d6; font-weight: bold; }
+
+        .action-bar { margin-top: 40px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
+        .submit-btn { background-color: #00a1d6; color: white; border: none; padding: 12px 40px; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .submit-btn:hover { background-color: #00b5e5; }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏 (保持一致) -->
+<div class="sidebar">
+    <div class="logo">🌊
+        <span class="cn">创作中心</span>
+        <span class="en">Creator Center</span>
+    </div>
+
+    <div class="post-btn-container">
+        <!-- 当前页面是发布页，按钮稍微变一下样式或者禁用，这里保持链接方便刷新 -->
+        <a href="publish.html" class="big-post-btn" style="background-color:#00b5e5;">
+            📝
+            <span class="cn">发布新研究</span>
+            <span class="en">Publish New Research</span>
+        </a>
+    </div>
+
+    <a href="dashboard.html" class="menu-item">
+        <span class="menu-icon">🏠</span>
+        <span class="cn">首页</span>
+        <span class="en">Home</span>
+    </a>
+    <a href="index.html" class="menu-item">
+        <span class="menu-icon">🌍</span>
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+    <!-- 其他菜单省略... -->
+</div>
+
+<!-- 主编辑区 -->
+<div class="main-content">
+    <div class="editor-container">
+        <div class="page-header">
+            <h2>
+                <span class="cn">发布研究成果</span>
+                <span class="en">Publish Research Achievement</span>
+            </h2>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span class="cn">研究描述 / 摘要</span>
+                <span class="en">Research Description / Abstract</span>
+            </label>
+            <textarea id="tweetContent" placeholder="请输入论文的标题、摘要或主要研究成果说明..." data-placeholder-en="Please enter the paper's title, abstract or main research achievements..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span class="cn">上传附件 (论文/文档)</span>
+                <span class="en">Upload Attachment (Paper/Document)</span>
+            </label>
+            <!-- 点击这个大框框触发文件选择 -->
+            <div class="file-upload-box" onclick="document.getElementById('paperFile').click()">
+                <span class="upload-icon">☁️</span>
+                <div class="upload-text">
+                    <span class="cn">点击此处上传文件 (支持 PDF, Word)</span>
+                    <span class="en">Click here to upload files (Supports PDF, Word)</span>
+                </div>
+                <div id="fileNameDisplay"></div>
+            </div>
+            <!-- 隐藏的 input -->
+            <input type="file" id="paperFile" accept=".pdf,.doc,.docx" style="display: none;" onchange="showFileName()">
+        </div>
+
+        <div class="action-bar">
+            <button class="submit-btn" onclick="postTweet()">
+                <span class="cn">立即发布</span>
+                <span class="en">Publish Now</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    if(!userId) window.location.href = "login.html";
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updateFormText();
+    });
+
+    // 更新表单文本（语言切换时调用）
+    function updateFormText() {
+        // 研究描述输入框占位符
+        const contentInput = document.getElementById("tweetContent");
+        const cnPlaceholder = contentInput.getAttribute("placeholder");
+        const enPlaceholder = contentInput.getAttribute("data-placeholder-en");
+        contentInput.placeholder = currentLang === 'cn' ? cnPlaceholder : enPlaceholder;
+
+        // 上传区域文本
+        const uploadText = document.querySelector(".upload-text");
+        uploadText.innerHTML = `
+            <span class="cn">点击此处上传文件 (支持 PDF, Word)</span>
+            <span class="en">Click here to upload files (Supports PDF, Word)</span>
+        `;
+
+        // 已选择文件文本（如果有文件）
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        if (fileNameDisplay.innerText) {
+            const originalText = fileNameDisplay.innerText.replace(/^已选择: /, '').replace(/^Selected: /, '');
+            fileNameDisplay.innerText = currentLang === 'cn' ? `已选择: ${originalText}` : `Selected: ${originalText}`;
+        }
+
+        // 提交按钮文本
+        const submitBtn = document.querySelector(".submit-btn");
+        submitBtn.innerHTML = `
+            <span class="cn">立即发布</span>
+            <span class="en">Publish Now</span>
+        `;
+    }
+
+    function showFileName() {
+        const fileInput = document.getElementById("paperFile");
+        const display = document.getElementById("fileNameDisplay");
+        if(fileInput.files.length > 0) {
+            const fileName = fileInput.files[0].name;
+            // 根据当前语言显示已选择文本
+            display.innerText = currentLang === 'cn' ? `已选择: ${fileName}` : `Selected: ${fileName}`;
+        } else {
+            display.innerText = "";
+        }
+    }
+
+    async function postTweet() {
+        const content = document.getElementById("tweetContent").value;
+        const fileInput = document.getElementById("paperFile");
+
+        const emptyTip = currentLang === 'cn' ? "请填写描述内容！" : "Please fill in the description!";
+        if (!content.trim()) { alert(emptyTip); return; }
+
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("userId", userId);
+        if (fileInput.files[0]) {
+            formData.append("file", fileInput.files[0]);
+        }
+
+        try {
+            const response = await fetch('/api/tweets', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.text();
+
+            const successText = currentLang === 'cn' ? '成功' : 'success';
+            const publishSuccessTip = currentLang === 'cn' ? '发布成功！要去‘我的内容’查看吗？(点击取消留在本页)' : 'Published successfully! Do you want to go to "My Content" to check? (Click Cancel to stay on this page)';
+            const publishFailTip = currentLang === 'cn' ? '发布失败：' : 'Publish failed: ';
+            const networkErrorTip = currentLang === 'cn' ? '网络错误' : 'Network error';
+
+            if (result.includes(successText)) {
+                if(confirm(publishSuccessTip)) {
+                    window.location.href = "dashboard.html"; // 或者跳转到内容管理页
+                } else {
+                    // 清空表单
+                    document.getElementById("tweetContent").value = "";
+                    document.getElementById("paperFile").value = "";
+                    document.getElementById("fileNameDisplay").innerText = "";
+                }
+            } else {
+                alert(`${publishFailTip}${result}`);
+            }
+        } catch (e) {
+            alert(networkErrorTip);
+        }
+    }
+
+    // 初始化表单文本（根据当前语言）
+    updateFormText();
+</script>
+</body>
+</html>

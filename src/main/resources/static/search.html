@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">查找用户</span>
+        <span class="en">Search Users</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 60px; }
+        .navbar { position: fixed; top: 0; width: 100%; background: white; height: 60px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);  box-sizing: border-box;z-index: 1000;}
+        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; }
+
+        .container { max-width: 600px; margin: 20px auto; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
+        button.search-btn { padding: 10px 25px; border-radius: 25px; border: none; background: #1da1f2; color: white; font-weight: bold; cursor: pointer; }
+
+        .user-card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .user-info { display: flex; align-items: center; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; }
+        .name { font-weight: bold; font-size: 16px; }
+        .handle { color: #777; font-size: 13px; }
+
+        /* 正常关注按钮 */
+        .follow-btn { background: white; border: 1px solid #1da1f2; color: #1da1f2; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;}
+        .follow-btn:hover { background: #e8f5fe; }
+
+        /* 已关注按钮 (灰色) */
+        .followed-btn { background: #fff;
+            border: 1px solid #cfd9de;
+            color: #0f1419;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 100px; /* 固定宽度，防止文字变化时按钮抖动 */
+            transition: all 0.2s;}
+        .followed-btn:hover {
+            border-color: #f4212e;
+            color: #f4212e;
+            background-color: #fef2f2;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <a href="index.html" class="nav-link">⬅
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+    <a href="friends.html" class="nav-link">👥
+        <span class="cn">我的好友</span>
+        <span class="en">My Friends</span>
+    </a> <!-- 这里加个入口 -->
+    <span style="font-weight: bold; font-size: 18px; margin-left: auto;">🔍
+        <span class="cn">查找用户</span>
+        <span class="en">Search Users</span>
+    </span>
+</div>
+
+<div class="container">
+    <div class="search-box">
+        <input type="text" id="keyword" placeholder="输入昵称或账号查找..." data-placeholder-en="Enter nickname or account to search...">
+        <button class="search-btn" onclick="search()">
+            <span class="cn">搜索</span>
+            <span class="en">Search</span>
+        </button>
+    </div>
+    <div id="resultList"></div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const currentUserId = localStorage.getItem("userId");
+    // 用来存我所有好友的ID
+    let myFollowingIds = [];
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updatePageText();
+    });
+
+    // 更新页面文本（语言切换时调用）
+    function updatePageText() {
+        // 搜索输入框占位符
+        const keywordInput = document.getElementById("keyword");
+        keywordInput.placeholder = currentLang === 'cn' ?
+            keywordInput.getAttribute("placeholder") :
+            keywordInput.getAttribute("data-placeholder-en");
+
+        // 搜索按钮文本
+        const searchBtn = document.querySelector(".search-btn");
+        searchBtn.innerHTML = `
+            <span class="cn">搜索</span>
+            <span class="en">Search</span>
+        `;
+
+        // 重新搜索以更新按钮文本（如果已有搜索结果）
+        const keyword = keywordInput.value.trim();
+        if (keyword) {
+            search();
+        }
+    }
+
+    // 1. 页面加载时，先把我的好友列表拉下来，只存ID
+    async function loadMyFollowingIds() {
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/following`);
+            const users = await res.json();
+            // 把好友对象变成 ID 数组，例如: [2, 5, 8]
+            myFollowingIds = users.map(u => u.id);
+        } catch (e) {
+            const errorTip = currentLang === 'cn' ? "获取好友列表失败" : "Failed to get friends list";
+            console.error(errorTip, e);
+        }
+    }
+    loadMyFollowingIds(); // 执行
+
+    // 2. 搜索逻辑
+    async function search() {
+        const keyword = document.getElementById("keyword").value;
+        if (!keyword) return;
+
+        const res = await fetch(`/api/users/search?keyword=${keyword}`);
+        const users = await res.json();
+
+        const list = document.getElementById("resultList");
+        list.innerHTML = "";
+
+        const noResultTip = currentLang === 'cn' ? '没有找到相关用户' : 'No related users found';
+        if (users.length === 0) {
+            list.innerHTML = `<div style='text-align:center; color:#777;'><span class="cn">${noResultTip}</span><span class="en">${noResultTip}</span></div>`;
+            return;
+        }
+
+        // 按钮文本（双语言）
+        const followedText = currentLang === 'cn' ? '已关注' : 'Followed';
+        const unfollowText = currentLang === 'cn' ? '取消关注' : 'Unfollow';
+        const followText = currentLang === 'cn' ? '关注' : 'Follow';
+
+        users.forEach(user => {
+            if (user.id == currentUserId) return;
+
+            const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/50';
+            const nickname = user.nickname || user.username;
+
+            let buttonHtml = '';
+
+            if (myFollowingIds.includes(user.id)) {
+                // === 重点修改部分 Start ===
+                // 如果已关注：鼠标放上去(onmouseover)变字，移开(onmouseout)变回，点击(onclick)执行取关
+                buttonHtml = `
+            <button class="followed-btn"
+                onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'"
+                onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'"
+                onclick="unfollow(${user.id})">
+                <span class="cn">${followedText}</span>
+                <span class="en">${followedText}</span>
+            </button>`;
+                // === 重点修改部分 End ===
+            } else {
+                // 未关注状态保持不变
+                buttonHtml = `<button class="follow-btn" onclick="follow(${user.id})">
+                    <span class="cn">${followText}</span>
+                    <span class="en">${followText}</span>
+                </button>`;
+            }
+
+            list.innerHTML += `
+    <div class="user-card">
+        <!-- 重点修改：给 user-info 加 onclick 和 style -->
+        <div class="user-info"
+             onclick="location.href='user_profile.html?id=${user.id}'"
+             style="cursor: pointer;">
+
+            <img src="${avatar}" class="avatar">
+            <div>
+                <div class="name">${nickname}</div>
+                <div class="handle">@${user.username}</div>
+            </div>
+        </div>
+        ${buttonHtml}
+    </div>
+    `;
+        });
+    }
+
+    async function follow(targetId) {
+        const res = await fetch(`/api/users/${currentUserId}/follow?targetUserId=${targetId}`, { method: 'POST' });
+        const msg = await res.text();
+
+        const successText = currentLang === 'cn' ? '成功' : 'success';
+        if (msg.includes(successText)) {
+            // 关注成功后，重新拉取一下好友列表，并自动刷新搜索结果
+            await loadMyFollowingIds();
+            search();
+        } else {
+            alert(msg);
+        }
+    }
+
+    // 取消关注函数
+    async function unfollow(targetId) {
+        const confirmText = currentLang === 'cn' ? '确定要取消关注吗？' : 'Are you sure you want to unfollow?';
+        if(!confirm(confirmText)) return; // 防止手滑，加个确认框（可选）
+
+        const res = await fetch(`/api/users/${currentUserId}/unfollow?targetUserId=${targetId}`, { method: 'POST' });
+        const msg = await res.text();
+
+        const cancelText = currentLang === 'cn' ? '已取消' : 'cancelled';
+        if (msg.includes(cancelText)) {
+            // 刷新状态
+            await loadMyFollowingIds();
+            search(); // 重新搜索刷新列表
+        } else {
+            alert(msg);
+        }
+    }
+
+    // 初始化页面文本（根据当前语言）
+    updatePageText();
+</script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <!-- 新增：响应式视口标签 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>
+        <span class="cn">文献详情 & AI 评审</span>
+        <span class="en">Literature Details & AI Review</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding-top: 60px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+        .navbar { position: fixed; top: 0; width: 100%; background: white; height: 60px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; justify-content: space-between; } /* 新增：justify-content: space-between 让返回按钮靠右 */
+        .brand { color: #1da1f2; font-weight: 900; font-size: 24px; text-decoration: none; margin-right: 30px;}
+        .back-link { color: #555; text-decoration: none; font-weight: bold; }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+        /* 增加了 padding-bottom 以容纳评论区 */
+        .left-panel { flex: 2; background: white; border-radius: 10px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; }
+        .right-panel { flex: 1; background: white; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; }
+
+        .header { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .title-label { background: #eefaff; color: #00a1d6; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .meta-info { color: #777; font-size: 13px; margin-top: 8px; display: flex; gap: 10px; align-items: center; }
+        .avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover;}
+
+        .content-body { font-size: 15px; line-height: 1.6; color: #333; white-space: pre-wrap; margin-bottom: 20px; }
+
+        /* === 新增：互动区域样式 === */
+        .interaction-bar { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; gap: 20px; }
+        .btn-like {
+            display: flex; align-items: center; gap: 5px; cursor: pointer;
+            color: #536471; font-size: 14px; transition: 0.2s; border: none; background: none;
+        }
+        .btn-like:hover { color: #f91880; }
+        .btn-like.liked { color: #f91880; font-weight: bold; }
+        .btn-like svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* 评论区样式 */
+        .comment-section { margin-top: 30px; }
+        .comment-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #0f1419; }
+
+        .comment-input-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .comment-input {
+            flex: 1; padding: 10px; border: 1px solid #cfd9de; border-radius: 20px;
+            outline: none; font-size: 14px; transition: 0.2s;
+        }
+        .comment-input:focus { border-color: #1da1f2; background: #f8fbff; }
+        .btn-submit {
+            background: #1da1f2; color: white; border: none; padding: 0 20px;
+            border-radius: 20px; font-weight: bold; cursor: pointer;
+        }
+        .btn-submit:hover { background: #0d8ddb; }
+
+        .comment-list { display: flex; flex-direction: column; gap: 15px; }
+        .comment-item { display: flex; gap: 10px; font-size: 14px; }
+        .c-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .c-content { background: #f7f9f9; padding: 10px 15px; border-radius: 0 12px 12px 12px; flex: 1; }
+        .c-name { font-weight: bold; color: #0f1419; margin-right: 5px; cursor: pointer;}
+        .c-time { color: #536471; font-size: 12px; }
+        .c-text { margin-top: 5px; color: #333; line-height: 1.4; }
+
+        /* 右侧 AI 样式保持不变 */
+        .ai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .ai-btn { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); transition: 0.2s; }
+        .ai-btn:hover { transform: scale(1.05); }
+        .ai-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+        .ai-result-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155; border: 1px dashed #cbd5e1; }
+        .loader { display: none; text-align: center; margin-top: 20px; }
+        .spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        iframe { width: 100%; height: 600px; border: 1px solid #eee; border-radius: 4px; }
+        .file-card { background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; text-align: center; margin-top: 10px; }
+        .file-icon { font-size: 48px; margin-bottom: 10px; display: block; }
+        .file-name { font-weight: bold; color: #333; font-size: 16px; }
+        .file-tip { color: #666; font-size: 13px; margin: 10px 0 20px 0; }
+        .download-btn { background: #0f1419; color: white; text-decoration: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block; transition: 0.2s; }
+        .download-btn:hover { background: #333; }
+
+        /* ========== 新增：响应式媒体查询 ========== */
+        /* 平板/手机横屏（≤992px） */
+        @media (max-width: 992px) {
+            .main-layout {
+                flex-direction: column; /* 横排变竖排 */
+                gap: 15px;
+                padding: 15px;
+            }
+            .left-panel, .right-panel {
+                flex: none; /* 取消弹性占比，自适应高度 */
+                width: 100%;
+                padding: 20px;
+            }
+            iframe {
+                height: 400px; /* 降低iframe高度，适配平板 */
+            }
+        }
+
+        /* 手机竖屏（≤576px） */
+        @media (max-width: 576px) {
+            .navbar {
+                padding: 0 10px;
+            }
+            .brand {
+                font-size: 20px; /* 缩小品牌名字号 */
+                margin-right: 10px;
+            }
+            .main-layout {
+                padding: 10px;
+                gap: 10px;
+            }
+            .left-panel {
+                padding: 15px;
+            }
+            .right-panel {
+                padding: 15px;
+            }
+            iframe {
+                height: 300px; /* 进一步降低iframe高度，适配手机 */
+            }
+            /* 评论区适配：输入框加高、按钮占满宽度 */
+            .comment-input-box {
+                flex-direction: column; /* 输入框和按钮竖排 */
+                gap: 8px;
+            }
+            .comment-input {
+                min-height: 90px;
+                font-size: 16px;
+                padding: 12px;
+                border-radius: 12px;
+            }
+            .btn-submit {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+            /* 评论项：加大间距，头像放大 */
+            .comment-item {
+                gap: 12px;
+            }
+            .c-avatar {
+                width: 40px;
+                height: 40px;
+            }
+            .c-content {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+            .c-text {
+                line-height: 1.6;
+            }
+            /* AI按钮占满宽度，方便点击 */
+            .ai-btn {
+                width: 100%;
+                padding: 10px;
+            }
+            .ai-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            /* 文件卡片适配：缩小内边距 */
+            .file-card {
+                padding: 20px 10px;
+            }
+            .file-icon {
+                font-size: 40px;
+            }
+            .file-name {
+                font-size: 15px;
+            }
+            .download-btn {
+                padding: 8px 20px;
+                font-size: 13px;
+            }
+            /* 隐藏PC端语言选择器，显示移动端下拉 */
+            .lang-selector {
+                display: none !important; /* 隐藏原有拖拽语言选择器 */
+            }
+            .lang-selector-mobile {
+                display: block; /* 显示移动端下拉菜单 */
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #cfd9de;
+                border-radius: 8px;
+                font-size: 16px;
+                background: white;
+            }
+        }
+
+        /* 移动端语言选择器默认隐藏（仅手机端显示） */
+        .lang-selector-mobile {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div style="display:flex; align-items:center;">
+        <a href="index.html" class="brand">Twieeetter</a>
+        <span style="color:#999; font-size:14px;">
+            <span class="cn">| 智能科研平台</span>
+            <span class="en">| Intelligent Research Platform</span>
+        </span>
+    </div>
+    <a href="javascript:history.back()" class="back-link">⬅
+        <span class="cn">返回</span>
+        <span class="en">Back</span>
+    </a>
+</div>
+
+<div class="main-layout">
+    <!-- 左侧 -->
+    <div class="left-panel">
+        <!-- 新增：移动端语言选择器（仅手机端显示） -->
+        <select class="lang-selector-mobile" id="langMobile">
+            <option value="cn">中文</option>
+            <option value="en">English</option>
+        </select>
+
+        <div class="header">
+            <span class="title-label">
+                <span class="cn">研究成果</span>
+                <span class="en">Research Achievement</span>
+            </span>
+            <div class="meta-info">
+                <img id="authorAvatar" src="" class="avatar">
+                <span id="authorName">
+                    <span class="cn">作者...</span>
+                    <span class="en">Author...</span>
+                </span>
+                <span id="publishTime">
+                    <span class="cn">时间...</span>
+                    <span class="en">Time...</span>
+                </span>
+            </div>
+        </div>
+        <div class="content-body" id="mainContent">
+            <span class="cn">加载中...</span>
+            <span class="en">Loading...</span>
+        </div>
+
+        <h4 style="margin-bottom:10px;">
+            <span class="cn">📄 附件内容</span>
+            <span class="en">📄 Attachment Content</span>
+        </h4>
+        <iframe id="pdfViewer" src="" style="display:none;"></iframe>
+        <div id="docCard" class="file-card" style="display: none;">
+            <span class="file-icon">📝</span>
+            <div class="file-name" id="docName">filename.doc</div>
+            <div class="file-tip">
+                <span class="cn">该文件格式暂不支持在线预览，但 AI 仍可读取内容。</span>
+                <span class="en">This file format does not support online preview, but AI can still read the content.</span>
+            </div>
+            <a href="#" id="docDownload" class="download-btn" target="_blank">
+                <span class="cn">⬇️ 下载文件</span>
+                <span class="en">⬇️ Download File</span>
+            </a>
+        </div>
+        <div id="noFileTip" style="display:none; color:#999; padding:20px; text-align:center; background:#fafafa;">
+            <span class="cn">无附件文档</span>
+            <span class="en">No Attachment Documents</span>
+        </div>
+
+        <!-- === 新增：互动栏 (点赞) === -->
+        <div class="interaction-bar">
+            <button id="likeBtn" class="btn-like" onclick="toggleLike()">
+                <!-- 爱心 SVG 图标 -->
+                <svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg>
+                <span id="likeCount">0</span>
+            </button>
+        </div>
+
+        <!-- === 新增：评论区 === -->
+        <div class="comment-section">
+            <div class="comment-title">
+                <span class="cn">评论</span>
+                <span class="en">Comments</span>
+            </div>
+            <div class="comment-input-box">
+                <input type="text" id="commentInput" class="comment-input" placeholder="写下你的看法..." data-placeholder-en="Share your thoughts...">
+                <button class="btn-submit" onclick="submitComment()">
+                    <span class="cn">发送</span>
+                    <span class="en">Send</span>
+                </button>
+            </div>
+            <div id="commentList" class="comment-list">
+                <!-- 评论加载在这里 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧 -->
+    <div class="right-panel">
+        <div class="ai-header">
+            <h3 style="margin:0; color:#1e293b;">🤖
+                <span class="cn">AI 智能评审</span>
+                <span class="en">AI Intelligent Review</span>
+            </h3>
+            <button id="aiBtn" class="ai-btn" onclick="startAiReview()">
+                <span class="cn">✨ 开始评估</span>
+                <span class="en">✨ Start Evaluation</span>
+            </button>
+        </div>
+        <div class="ai-result-box" id="aiOutput">
+            <p style="color:#94a3b8; text-align:center; margin-top:50px;">
+                <span class="cn">点击上方按钮，<br>AI 将自动阅读左侧论文并生成评审报告。</span>
+                <span class="en">Click the button above,<br>AI will automatically read the paper and generate a review report.</span>
+            </p>
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <div style="margin-top:10px; color:#6366f1;">
+                    <span class="cn">AI 正在阅读论文并思考中...<br>(本地模型速度取决于电脑配置)</span>
+                    <span class="en">AI is reading the paper and thinking...<br>(Local model speed depends on computer configuration)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML（PC端用，手机端隐藏） -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const tweetId = params.get("id");
+    const currentUserId = localStorage.getItem("userId");
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    // 新增：移动端语言选择器逻辑
+    const langMobile = document.getElementById('langMobile');
+    // 初始化：同步本地存储的语言
+    window.onload = function() {
+        const savedLang = localStorage.getItem('appLang') || 'cn';
+        langMobile.value = savedLang;
+    };
+    // 绑定下拉菜单切换事件
+    langMobile.addEventListener('change', (e) => {
+        switchLang(e.target.value); // 复用原有切换逻辑
+        localStorage.setItem('appLang', e.target.value); // 保存到本地
+        // 触发语言切换事件，更新页面文本
+        window.dispatchEvent(new Event('languageChange'));
+    });
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        // 刷新评论区和相关静态文本
+        updateStaticText();
+        loadComments();
+        // 同步下拉菜单选中状态
+        langMobile.value = currentLang;
+    });
+
+    // 更新页面静态文本（语言切换时调用）
+    function updateStaticText() {
+        const noFileTip = document.getElementById("noFileTip");
+        noFileTip.innerHTML = `
+            <span class="cn">无附件文档</span>
+            <span class="en">No Attachment Documents</span>
+        `;
+
+        const docCardTip = document.querySelector('.file-tip');
+        if (docCardTip) {
+            docCardTip.innerHTML = `
+                <span class="cn">该文件格式暂不支持在线预览，但 AI 仍可读取内容。</span>
+                <span class="en">This file format does not support online preview, but AI can still read the content.</span>
+            `;
+        }
+
+        const downloadBtn = document.getElementById("docDownload");
+        if (downloadBtn) {
+            downloadBtn.innerHTML = `
+                <span class="cn">⬇️ 下载文件</span>
+                <span class="en">⬇️ Download File</span>
+            `;
+        }
+
+        const aiBtn = document.getElementById("aiBtn");
+        if (aiBtn && aiBtn.innerText.includes("评估")) {
+            aiBtn.innerHTML = `
+                <span class="cn">✨ 开始评估</span>
+                <span class="en">✨ Start Evaluation</span>
+            `;
+        } else if (aiBtn && aiBtn.innerText.includes("分析中")) {
+            aiBtn.innerHTML = `
+                <span class="cn">分析中...</span>
+                <span class="en">Analyzing...</span>
+            `;
+        } else if (aiBtn && aiBtn.innerText.includes("无文件")) {
+            aiBtn.innerHTML = `
+                <span class="cn">无文件可分析</span>
+                <span class="en">No File to Analyze</span>
+            `;
+        } else if (aiBtn && aiBtn.innerText.includes("重试")) {
+            aiBtn.innerHTML = `
+                <span class="cn">✨ 重试评估</span>
+                <span class="en">✨ Retry Evaluation</span>
+            `;
+        }
+
+        // 同步评论输入框占位符
+        const commentInput = document.getElementById('commentInput');
+        commentInput.placeholder = currentLang === 'cn' ? '写下你的看法...' : 'Share your thoughts...';
+    }
+
+    // 1. 加载详情
+    async function loadDetail() {
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}`);
+            if(!res.ok) throw new Error(currentLang === 'cn' ? "未找到" : "Not found");
+            const data = await res.json();
+
+            const user = data.author;
+            document.getElementById("authorName").innerText = user.nickname || user.username;
+            document.getElementById("authorAvatar").src = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/30';
+            document.getElementById("publishTime").innerText = data.createTime.replace('T', ' ').split('.')[0];
+            document.getElementById("mainContent").innerText = data.content;
+
+            if(data.filePath && data.originalFilename) {
+                const pathParts = data.filePath.split(/[\\/]/);
+                const realFileName = pathParts[pathParts.length - 1];
+                const fileUrl = `/uploads/${realFileName}`;
+                const lowerName = data.originalFilename.toLowerCase();
+
+                if (lowerName.endsWith(".pdf")) {
+                    const viewer = document.getElementById("pdfViewer");
+                    viewer.src = fileUrl;
+                    viewer.style.display = "block";
+                } else {
+                    const card = document.getElementById("docCard");
+                    card.style.display = "block";
+                    document.getElementById("docName").innerText = data.originalFilename;
+                    document.getElementById("docDownload").href = fileUrl;
+                    document.getElementById("pdfViewer").style.display = "none";
+                    document.getElementById("pdfViewer").src = "";
+                }
+            } else {
+                document.getElementById("noFileTip").style.display = "block";
+                document.getElementById("aiBtn").disabled = true;
+                document.getElementById("aiBtn").innerHTML = `
+                    <span class="cn">无文件可分析</span>
+                    <span class="en">No File to Analyze</span>
+                `;
+            }
+
+            // 加载完详情后，加载点赞状态和评论，更新静态文本
+            loadLikeStatus();
+            loadComments();
+            updateStaticText();
+
+        } catch (e) {
+            console.error(e);
+            alert(`${currentLang === 'cn' ? "加载失败: " : "Loading failed: "}${e.message}`);
+        }
+    }
+
+    // 2. 加载点赞状态
+    async function loadLikeStatus() {
+        const res = await fetch(`/api/tweets/${tweetId}/like-status?userId=${currentUserId}`);
+        const data = await res.json();
+
+        const btn = document.getElementById("likeBtn");
+        document.getElementById("likeCount").innerText = data.count;
+
+        if (data.isLiked) {
+            btn.classList.add("liked");
+            // 换成实心爱心图标
+            btn.querySelector("svg").innerHTML = `<path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
+        } else {
+            btn.classList.remove("liked");
+            // 换回空心爱心
+            btn.querySelector("svg").innerHTML = `<path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
+        }
+    }
+
+    // 3. 点赞操作
+    async function toggleLike() {
+        const res = await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
+        const msg = await res.text();
+        const successText = currentLang === 'cn' ? '成功' : 'success';
+        const cancelText = currentLang === 'cn' ? '取消' : 'cancel';
+        if(msg.includes(successText) || msg.includes(cancelText)) {
+            loadLikeStatus(); // 刷新状态
+        }
+    }
+
+    // 4. 加载评论列表
+    async function loadComments() {
+        const res = await fetch(`/api/tweets/${tweetId}/comments`);
+        const list = await res.json();
+        const container = document.getElementById("commentList");
+        container.innerHTML = "";
+
+        const noCommentText = currentLang === 'cn' ? '暂无评论，快来抢沙发~' : 'No comments yet, be the first to comment!';
+
+        if(list.length === 0) {
+            container.innerHTML = `<div style='color:#999; font-size:13px;'>${noCommentText}</div>`;
+            return;
+        }
+
+        list.forEach(c => {
+            const avatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/36';
+            const time = c.createTime.replace('T', ' ').split('.')[0];
+            const name = c.user.nickname || c.user.username;
+
+            container.innerHTML += `
+                <div class="comment-item">
+                    <img src="${avatar}" class="c-avatar" onclick="location.href='user_profile.html?id=${c.user.id}'" style="cursor:pointer">
+                    <div class="c-content">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span class="c-name" onclick="location.href='user_profile.html?id=${c.user.id}'">${name}</span>
+                            <span class="c-time">${time}</span>
+                        </div>
+                        <div class="c-text">${c.content}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 5. 发送评论
+    async function submitComment() {
+        const content = document.getElementById("commentInput").value;
+        const emptyTip = currentLang === 'cn' ? '评论不能为空' : 'Comment cannot be empty';
+        if(!content.trim()) { alert(emptyTip); return; }
+
+        const formData = new FormData();
+        formData.append("userId", currentUserId);
+        formData.append("content", content);
+
+        const res = await fetch(`/api/tweets/${tweetId}/comments`, { method: 'POST', body: formData });
+        const msg = await res.text();
+        const successText = currentLang === 'cn' ? '成功' : 'success';
+        if(msg.includes(successText)) {
+            document.getElementById("commentInput").value = ""; // 清空输入框
+            loadComments(); // 刷新列表
+        } else {
+            alert(msg);
+        }
+    }
+
+    // AI 评审双语言适配
+    async function startAiReview() {
+        const btn = document.getElementById("aiBtn");
+        const output = document.getElementById("aiOutput");
+        const loader = document.getElementById("loader");
+        btn.disabled = true;
+        btn.innerHTML = `
+            <span class="cn">分析中...</span>
+            <span class="en">Analyzing...</span>
+        `;
+        output.innerHTML = "";
+        output.appendChild(loader);
+        loader.style.display = "block";
+
+        try {
+            const res = await fetch(`/api/ai/evaluate/${tweetId}`, { method: 'POST' });
+            const data = await res.json();
+            let formatted = data.result.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            output.innerHTML = `
+                <div style="color:#333; font-weight:bold; margin-bottom:10px;">
+                    <span class="cn">分析完成：</span>
+                    <span class="en">Analysis Completed：</span>
+                </div>
+                <div style="line-height:1.8;">${formatted}</div>
+            `;
+        } catch (e) {
+            output.innerHTML = `
+                <div style="color:red;">
+                    <span class="cn">分析出错: </span>
+                    <span class="en">Analysis Error: </span>${e.message}
+                </div>
+            `;
+            btn.disabled = false;
+            btn.innerHTML = `
+                <span class="cn">✨ 重试评估</span>
+                <span class="en">✨ Retry Evaluation</span>
+            `;
+        }
+    }
+
+    loadDetail();
+</script>
+</body>
+</html>
