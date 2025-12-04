@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">注册 - Twieeetter</span>
+        <span class="en">Register - Twieeetter</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; }
+        h2 { text-align: center; color: #1da1f2; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 10px; background-color: #1da1f2; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0d8ddb; }
+        .link { text-align: center; margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>
+        <span class="cn">加入 Twieeetter</span>
+        <span class="en">Join Twieeetter</span>
+    </h2>
+    <input type="text" id="username" placeholder="用户名" data-placeholder-en="Username">
+    <input type="password" id="password" placeholder="密码" data-placeholder-en="Password">
+    <input type="email" id="email" placeholder="邮箱" data-placeholder-en="Email">
+    <button onclick="doRegister()">
+        <span class="cn">注 册</span>
+        <span class="en">Register</span>
+    </button>
+    <div class="link">
+        <span class="cn">已有账号？</span>
+        <span class="en">Already have an account?</span>
+        <a href="login.html">
+            <span class="cn">去登录</span>
+            <span class="en">Go to Login</span>
+        </a>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updateFormText();
+    });
+
+    // 更新表单文本（语言切换时调用）
+    function updateFormText() {
+        // 用户名输入框
+        const usernameInput = document.getElementById("username");
+        usernameInput.placeholder = currentLang === 'cn' ?
+            usernameInput.getAttribute("placeholder") :
+            usernameInput.getAttribute("data-placeholder-en");
+
+        // 密码输入框
+        const passwordInput = document.getElementById("password");
+        passwordInput.placeholder = currentLang === 'cn' ?
+            passwordInput.getAttribute("placeholder") :
+            passwordInput.getAttribute("data-placeholder-en");
+
+        // 邮箱输入框
+        const emailInput = document.getElementById("email");
+        emailInput.placeholder = currentLang === 'cn' ?
+            emailInput.getAttribute("placeholder") :
+            emailInput.getAttribute("data-placeholder-en");
+
+        // 注册按钮
+        const registerBtn = document.querySelector("button");
+        registerBtn.innerHTML = `
+            <span class="cn">注 册</span>
+            <span class="en">Register</span>
+        `;
+
+        // 已有账号提示
+        const linkText = document.querySelector(".link");
+        linkText.innerHTML = `
+            <span class="cn">已有账号？</span>
+            <span class="en">Already have an account?</span>
+            <a href="login.html">
+                <span class="cn">去登录</span>
+                <span class="en">Go to Login</span>
+            </a>
+        `;
+    }
+
+    async function doRegister() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+
+        // 输入校验提示（双语言）
+        let emptyTip = "";
+        if (!username.trim()) {
+            emptyTip = currentLang === 'cn' ? "请输入用户名！" : "Please enter username!";
+        } else if (!password.trim()) {
+            emptyTip = currentLang === 'cn' ? "请输入密码！" : "Please enter password!";
+        } else if (!email.trim()) {
+            emptyTip = currentLang === 'cn' ? "请输入邮箱！" : "Please enter email!";
+        }
+
+        if (emptyTip) {
+            alert(emptyTip);
+            return;
+        }
+
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, email })
+        });
+
+        const result = await response.text();
+        const successText = currentLang === 'cn' ? '成功' : 'success';
+        const successAlert = currentLang === 'cn' ? '注册成功，请登录！' : 'Registration successful, please log in!';
+
+        if (result.includes(successText)) {
+            alert(successAlert);
+            window.location.href = "login.html";
+        } else {
+            alert(result);
+        }
+    }
+
+    // 初始化表单文本（根据当前语言）
+    updateFormText();
+</script>
+</body>
+</html>

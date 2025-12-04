@@ -1,0 +1,18 @@
+package com.example.backend.repository;
+
+import com.example.backend.entity.Friendship;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
+    // 检查是否已关注
+    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
+
+    // 查找某人的所有关注记录
+    List<Friendship> findAllByFollowerId(Long followerId);
+
+    Optional<Friendship> findByFollowerIdAndFollowingId(Long followerId, Long followingId);
+}

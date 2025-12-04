@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">发布研究 - 创作中心</span>
+        <span class="en">Publish Research - Creator Center</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        /* 复用基础布局 CSS */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 240px; background: white; border-right: 1px solid #e7e7e7; display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
+        .logo { padding: 0 24px 20px; font-size: 22px; font-weight: 900; color: #00a1d6; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
+        .post-btn-container { padding: 0 20px; margin-bottom: 20px; }
+        .big-post-btn { width: 100%; background-color: #00a1d6; color: white; border: none; padding: 12px; border-radius: 4px; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; text-decoration: none; box-sizing: border-box;}
+
+        .menu-item { padding: 12px 24px; color: #505050; text-decoration: none; font-size: 15px; display: flex; align-items: center; transition: background 0.2s; }
+        .menu-item:hover { background-color: #f4f5f7; color: #00a1d6; }
+        .menu-icon { margin-right: 10px; font-size: 18px; width: 20px; text-align: center;}
+
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; background-color: #f4f5f7; }
+
+        /* === 发布表单区域 === */
+        .editor-container { background: white; max-width: 800px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 40px; }
+        .page-header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+        .page-header h2 { margin: 0; color: #333; font-size: 24px; font-weight: 800; }
+
+        .form-group { margin-bottom: 30px; }
+        .form-label { display: block; margin-bottom: 12px; font-weight: 700; color: #2c3e50; font-size: 15px; }
+
+        textarea { width: 100%; height: 200px; border: 1px solid #e1e8ed; border-radius: 8px; padding: 15px; font-size: 16px; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; transition: all 0.2s; background: #f8f9fa;}
+        textarea:focus { border-color: #00a1d6; background: white; box-shadow: 0 0 0 3px rgba(0, 161, 214, 0.1); }
+
+        /* 文件上传区域美化 */
+        .file-upload-box {
+            border: 2px dashed #cfd9de; border-radius: 12px; padding: 40px;
+            text-align: center; background-color: #f8f9fa; cursor: pointer;
+            transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .file-upload-box:hover { border-color: #00a1d6; background-color: #f0faff; }
+        .upload-icon { font-size: 48px; color: #aab8c2; margin-bottom: 15px; display: block; transition: transform 0.2s;}
+        .file-upload-box:hover .upload-icon { transform: scale(1.1); color: #00a1d6; }
+        .upload-text { color: #657786; font-size: 14px; }
+        #fileNameDisplay { margin-top: 15px; color: #00a1d6; font-weight: bold; font-size: 14px; background: rgba(0, 161, 214, 0.1); display: inline-block; padding: 5px 15px; border-radius: 20px; }
+
+        /* === 标签区域美化 (UI 升级重点) === */
+        .tag-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+
+        /* 胶囊按钮样式 */
+        .tag-btn {
+            padding: 8px 18px; font-size: 14px; border: 1px solid #e1e8ed;
+            background: white; color: #536471; border-radius: 50px; /* 圆角胶囊 */
+            cursor: pointer; transition: all 0.2s ease; font-weight: 500;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .tag-btn:hover {
+            background: #f7f9f9; border-color: #00a1d6; color: #00a1d6; transform: translateY(-1px);
+        }
+        .tag-btn.active {
+            background: #00a1d6; color: white; border-color: #00a1d6;
+            box-shadow: 0 4px 10px rgba(0, 161, 214, 0.3);
+        }
+
+        /* 自定义标签输入框美化 */
+        .form-control {
+            width: 100%; padding: 10px 15px; font-size: 14px;
+            border: 1px solid #e1e8ed; border-radius: 8px;
+            box-sizing: border-box; outline: none; transition: all 0.2s;
+            background: #f8f9fa;
+        }
+        .form-control:focus { border-color: #00a1d6; background: white; }
+
+        /* 已选标签展示区 */
+        #selectedTags { min-height: 30px; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .selected-tag-badge {
+            background: #e8f5fe; color: #00a1d6; padding: 5px 12px;
+            border-radius: 6px; font-size: 13px; font-weight: bold;
+            display: flex; align-items: center; gap: 8px; border: 1px solid #bce3ff;
+        }
+        .btn-close-tag {
+            cursor: pointer; font-size: 14px; opacity: 0.6; transition: 0.2s;
+        }
+        .btn-close-tag:hover { opacity: 1; color: #ff4d4f; }
+
+        .action-bar { margin-top: 40px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
+        .submit-btn {
+            background: linear-gradient(90deg, #00a1d6, #00b5e5);
+            color: white; border: none; padding: 12px 50px;
+            border-radius: 30px; font-size: 16px; cursor: pointer;
+            font-weight: bold; box-shadow: 0 4px 15px rgba(0, 161, 214, 0.3);
+            transition: all 0.2s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 161, 214, 0.4); }
+
+        /* 提示框 */
+        .toast {
+            position: fixed; top: 20px; right: 20px; padding: 15px 25px;
+            background: #dc3545; color: white; border-radius: 8px;
+            z-index: 10000; opacity: 0; transition: opacity 0.3s;
+            font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #10b981; }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+    <div class="logo">🌊
+        <span class="cn">创作中心</span>
+        <span class="en">Creator Center</span>
+    </div>
+
+    <div class="post-btn-container">
+        <a href="publish.html" class="big-post-btn" style="background-color:#00b5e5;">
+            📝
+            <span class="cn">发布新研究</span>
+            <span class="en">Publish New Research</span>
+        </a>
+    </div>
+
+    <!-- 侧边栏双语 -->
+    <a href="dashboard.html" class="menu-item">
+        <span class="menu-icon">🏠</span>
+        <span class="cn">首页概览</span>
+        <span class="en">Home Overview</span>
+    </a>
+    <a href="content.html" class="menu-item">
+        <span class="menu-icon">📂</span>
+        <span class="cn">稿件管理</span>
+        <span class="en">Manuscripts</span>
+    </a>
+    <a href="index.html" class="menu-item">
+        <span class="menu-icon">🌍</span>
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+</div>
+
+<!-- 主编辑区 -->
+<div class="main-content">
+    <div class="editor-container">
+        <div class="page-header">
+            <h2>
+                <span class="cn">发布研究成果</span>
+                <span class="en">Publish Research Achievement</span>
+            </h2>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span class="cn">研究描述 / 摘要</span>
+                <span class="en">Research Description / Abstract</span>
+            </label>
+            <textarea id="tweetContent" placeholder="请输入论文的标题、摘要或主要研究成果说明..." data-placeholder-en="Please enter the paper's title, abstract or main research achievements..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span class="cn">上传附件 (论文/文档)</span>
+                <span class="en">Upload Attachment (Paper/Document)</span>
+            </label>
+            <div class="file-upload-box" onclick="document.getElementById('paperFile').click()">
+                <span class="upload-icon">☁️</span>
+                <div class="upload-text">
+                    <span class="cn">点击此处上传文件 (支持 PDF, Word)</span>
+                    <span class="en">Click here to upload files (Supports PDF, Word)</span>
+                </div>
+                <div id="fileNameDisplay"></div>
+            </div>
+            <input type="file" id="paperFile" accept=".pdf,.doc,.docx" style="display: none;" onchange="showFileName()">
+        </div>
+
+        <!-- 标签选择区域 -->
+        <div class="form-group">
+            <label class="form-label tag-form-label">
+                <span class="cn">论文标签（可多选）</span>
+                <span class="en">Paper Tags (Multi-select)</span>
+            </label>
+
+            <div class="tag-container">
+                <!-- 注意：data-tag 存储的是发给后端的中文值，内部 span 用于显示 -->
+                <button type="button" class="tag-btn" data-tag="AI">
+                    AI
+                </button>
+                <button type="button" class="tag-btn" data-tag="生物医学">
+                    <span class="cn">生物医学</span><span class="en">Biomedical</span>
+                </button>
+                <button type="button" class="tag-btn" data-tag="计算机">
+                    <span class="cn">计算机</span><span class="en">Comp Sci</span>
+                </button>
+                <button type="button" class="tag-btn" data-tag="物理">
+                    <span class="cn">物理</span><span class="en">Physics</span>
+                </button>
+                <button type="button" class="tag-btn" data-tag="化学">
+                    <span class="cn">化学</span><span class="en">Chemistry</span>
+                </button>
+                <button type="button" class="tag-btn" data-tag="深度学习">
+                    <span class="cn">深度学习</span><span class="en">Deep Learning</span>
+                </button>
+                <button type="button" class="tag-btn" data-tag="数据分析">
+                    <span class="cn">数据分析</span><span class="en">Data Analysis</span>
+                </button>
+            </div>
+
+            <input type="text" class="form-control mb-2" id="customTag"
+                   placeholder="输入自定义标签，按回车添加"
+                   data-placeholder-en="Enter custom tag, press Enter to add">
+
+            <!-- 已选标签展示区 -->
+            <div id="selectedTags"></div>
+
+            <!-- 隐藏输入框：存储最终标签字符串 -->
+            <input type="hidden" id="finalTags" value="">
+        </div>
+
+        <div class="action-bar">
+            <button class="submit-btn" onclick="postTweet()">
+                <span class="cn">立即发布</span>
+                <span class="en">Publish Now</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 语言选择器 -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">English</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="common/lang-component.js"></script>
+
+<script>
+    // 标签的中英对照表 (用于在JS里渲染选中标签时翻译)
+    const tagTranslations = {
+        "AI": "AI",
+        "生物医学": "Biomedical",
+        "计算机": "Comp Sci",
+        "物理": "Physics",
+        "化学": "Chemistry",
+        "深度学习": "Deep Learning",
+        "数据分析": "Data Analysis"
+    };
+
+    function showToast(msg, type = 'error') {
+        const toast = document.createElement('div');
+        toast.className = `toast show ${type}`;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 2000);
+    }
+
+    const userId = localStorage.getItem("userId");
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+    let selectedTags = new Set(); // 存储选中的标签（值始终是中文，保证传给后端统一）
+
+    if(!userId) window.location.href = "login.html";
+
+    // 监听语言切换
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updateFormText();
+        updateSelectedTags(); // 重新渲染选中的标签以更新语言
+    });
+
+    function updateFormText() {
+        // 刷新 placeholder
+        const contentInput = document.getElementById("tweetContent");
+        contentInput.placeholder = currentLang === 'cn' ?
+            contentInput.getAttribute("placeholder") :
+            contentInput.getAttribute("data-placeholder-en");
+
+        const customTagInput = document.getElementById("customTag");
+        customTagInput.placeholder = currentLang === 'cn' ?
+            customTagInput.getAttribute("placeholder") :
+            customTagInput.getAttribute("data-placeholder-en");
+
+        // 刷新文件选中提示
+        const display = document.getElementById("fileNameDisplay");
+        if (display.innerText) {
+            const rawName = display.getAttribute('data-raw-name');
+            if(rawName) {
+                display.innerHTML = currentLang === 'cn' ?
+                    `已选择: ${rawName}` : `Selected: ${rawName}`;
+            }
+        }
+    }
+
+    function showFileName() {
+        const fileInput = document.getElementById("paperFile");
+        const display = document.getElementById("fileNameDisplay");
+        if(fileInput.files.length > 0) {
+            const fileName = fileInput.files[0].name;
+            display.setAttribute('data-raw-name', fileName); // 存原始名方便切换语言
+            display.innerHTML = currentLang === 'cn' ? `已选择: ${fileName}` : `Selected: ${fileName}`;
+        } else {
+            display.innerHTML = "";
+        }
+    }
+
+    // === 标签选择逻辑 ===
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tagVal = this.getAttribute('data-tag'); // 始终获取中文值
+            if (selectedTags.has(tagVal)) {
+                selectedTags.delete(tagVal);
+                this.classList.remove('active');
+            } else {
+                selectedTags.add(tagVal);
+                this.classList.add('active');
+            }
+            updateSelectedTags();
+        });
+    });
+
+    // 自定义标签输入
+    document.getElementById('customTag').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            e.preventDefault();
+            const tag = this.value.trim();
+            selectedTags.add(tag);
+            this.value = '';
+            updateSelectedTags();
+        }
+    });
+
+    // 渲染“已选标签” (支持双语显示)
+    function updateSelectedTags() {
+        const displayArea = document.getElementById('selectedTags');
+        const hiddenInput = document.getElementById('finalTags');
+        displayArea.innerHTML = '';
+
+        // 无论当前语言是啥，传给后端的 hiddenInput 始终存原始值（中文），保持数据库一致性
+        const tagsStr = Array.from(selectedTags).join(',');
+        hiddenInput.value = tagsStr;
+
+        selectedTags.forEach(tagVal => {
+            // 尝试翻译，如果是自定义标签则显示原样
+            const displayCn = tagVal;
+            const displayEn = tagTranslations[tagVal] || tagVal;
+
+            const tagEl = document.createElement('div');
+            tagEl.className = 'selected-tag-badge';
+
+            // 构建双语 HTML
+            tagEl.innerHTML = `
+                <span class="cn">${displayCn}</span>
+                <span class="en">${displayEn}</span>
+                <span class="btn-close-tag" data-tag="${tagVal}">✕</span>
+            `;
+            displayArea.appendChild(tagEl);
+
+            // 删除逻辑
+            tagEl.querySelector('.btn-close-tag').addEventListener('click', function() {
+                const delTag = this.getAttribute('data-tag');
+                selectedTags.delete(delTag);
+
+                // 取消按钮高亮
+                document.querySelectorAll('.tag-btn').forEach(btn => {
+                    if (btn.getAttribute('data-tag') === delTag) {
+                        btn.classList.remove('active');
+                    }
+                });
+                updateSelectedTags();
+            });
+        });
+
+        // 重新应用语言显隐规则 (关键步骤，否则新加的元素不遵循当前语言)
+        if(typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    async function postTweet() {
+        const content = document.getElementById("tweetContent").value;
+        const fileInput = document.getElementById("paperFile");
+        const tags = document.getElementById("finalTags").value;
+
+        if (!content.trim()) {
+            showToast(currentLang === 'cn' ? "请填写描述内容！" : "Please fill in the description!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("userId", userId);
+        formData.append("tags", tags); // 发送给后端
+        if (fileInput.files[0]) {
+            formData.append("file", fileInput.files[0]);
+        }
+
+        try {
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = currentLang === 'cn' ? '发布中...' : 'Publishing...';
+
+            const response = await fetch('/api/tweets', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.text();
+
+            if (result.includes("成功") || result.includes("success")) {
+                showToast(currentLang === 'cn' ? "发布成功！" : "Published successfully!", 'success');
+                setTimeout(() => {
+                    if(confirm(currentLang === 'cn' ? '发布成功！去查看管理页吗？' : 'Published! Go to manage page?')) {
+                        window.location.href = "content.html";
+                    } else {
+                        location.reload();
+                    }
+                }, 500);
+            } else {
+                showToast(currentLang === 'cn' ? "发布失败: " + result : "Failed: " + result);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        } catch (e) {
+            showToast(currentLang === 'cn' ? "网络错误" : "Network error");
+            document.querySelector('.submit-btn').disabled = false;
+        }
+    }
+
+    // 初始化
+    updateFormText();
+    // 如果有预设的 applyLang，立即执行一次确保初始状态正确
+    if(typeof applyLang === 'function') applyLang(currentLang);
+</script>
+</body>
+</html>

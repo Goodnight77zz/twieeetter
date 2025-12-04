@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">用户主页</span>
+        <span class="en">User Profile</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; }
+
+        .navbar {
+            position: fixed; top: 0; width: 100%; background: white; height: 60px;
+            display: flex; align-items: center; padding: 0 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box; z-index: 1000;
+        }
+        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; font-size: 16px; }
+
+        .container { max-width: 600px; margin: 20px auto; }
+
+        /* === 个人资料卡片 === */
+        .profile-card {
+            background: white;
+            border-radius: 16px; /* 更圆润 */
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .banner { height: 140px; background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); }
+
+        /* 内容区域 */
+        .profile-content {
+            padding: 0 20px 25px;
+            position: relative;
+        }
+
+        /* 头像 - 绝对定位 */
+        .avatar-container {
+            width: 110px; height: 110px; border-radius: 50%;
+            border: 4px solid white;
+            position: absolute;
+            top: -55px; /* 往上提一半 */
+            left: 20px;
+            background: white;
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 按钮区域 - 绝对定位在右侧 */
+        .action-area {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 15px; /* 给按钮一点顶部空间 */
+            margin-bottom: 10px;
+            height: 40px; /* 占位高度 */
+        }
+        .action-btn {
+            padding: 8px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px;
+        }
+        /* 关注按钮样式 */
+        .btn-follow { background: #0f1419; color: white; border: none; }
+        .btn-follow:hover { background: #272c30; }
+        /* 已关注按钮样式 */
+        .btn-followed { background: white; border: 1px solid #cfd9de; color: #0f1419; transition: all 0.2s; }
+        .btn-followed:hover { border-color: #f4212e; color: #f4212e; background-color: #fef2f2; }
+        .btn-edit { background: white; border: 1px solid #cfd9de; color: #0f1419; }
+
+        /* 文本信息区域 */
+        .info-section { margin-top: 10px; } /* 给头像下方留出一点空隙 */
+        .nickname { font-size: 22px; font-weight: 900; color: #0f1419; line-height: 1.2;}
+        .username { font-size: 15px; color: #536471; margin-bottom: 12px; display: block;}
+        .bio { font-size: 15px; color: #333; margin-bottom: 20px; line-height: 1.5; }
+
+        .stats { display: flex; gap: 20px; color: #536471; font-size: 15px; border-top: 1px solid #eee; padding-top: 15px;}
+        .stat-num { font-weight: bold; color: #0f1419; }
+
+        /* === 推文列表优化 === */
+        /* 标题独立出来，不要白底 */
+        .section-header {
+            font-weight: 900;
+            color: #333;
+            font-size: 19px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+            border-left: 4px solid #1da1f2; /* 蓝色竖条装饰 */
+            line-height: 1;
+        }
+
+        /* 列表不需要外层白底，直接裸奔卡片 */
+        .tweet {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e1e8ed;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .tweet:hover {
+            background-color: #fff;
+            border-color: #dbeafe;
+            transform: translateY(-2px); /* 悬停轻微上浮 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="javascript:history.back()" class="nav-link">⬅
+        <span class="cn">返回</span>
+        <span class="en">Back</span>
+    </a>
+    <a href="index.html" class="nav-link">🏠
+        <span class="cn">广场</span>
+        <span class="en">Plaza</span>
+    </a>
+</div>
+
+<div class="container">
+    <!-- 顶部个人卡片 -->
+    <div class="profile-card">
+        <div class="banner"></div>
+        <div class="profile-content">
+            <div class="avatar-container">
+                <img id="pAvatar" src="https://via.placeholder.com/100" class="avatar-img">
+            </div>
+
+            <!-- 按钮区域: 使用 Flex 布局靠右 -->
+            <div id="actionArea" class="action-area"></div>
+
+            <div class="info-section">
+                <div id="pNickname" class="nickname">
+                    <span class="cn">加载中...</span>
+                    <span class="en">Loading...</span>
+                </div>
+                <span id="pUsername" class="username">@...</span>
+                <div id="pBio" class="bio"></div>
+
+                <div class="stats">
+                    <span><span id="statTweet" class="stat-num">0</span>
+                        <span class="cn">研究</span>
+                        <span class="en">Research</span>
+                    </span>
+                    <span><span id="statFollower" class="stat-num">0</span>
+                        <span class="cn">粉丝</span>
+                        <span class="en">Followers</span>
+                    </span>
+                    <span><span id="statFollowing" class="stat-num">0</span>
+                        <span class="cn">关注</span>
+                        <span class="en">Following</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列表区域: 去掉了外层白底，改用标题+卡片流 -->
+    <div>
+        <div class="section-header">
+            <span class="cn">全部研究成果</span>
+            <span class="en">All Research Achievements</span>
+        </div>
+        <div id="tweetList"></div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const targetUserId = params.get("id");
+    const currentUserId = localStorage.getItem("userId");
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    if (!targetUserId) {
+        const errorTip = currentLang === 'cn' ? "参数错误" : "Parameter error";
+        alert(errorTip);
+        location.href = "index.html";
+    }
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updatePageText();
+        // 重新渲染按钮和统计文本
+        renderButton();
+        updateStatsText();
+    });
+
+    // 更新页面静态文本（语言切换时调用）
+    function updatePageText() {
+        // 页面标题
+        document.title = currentLang === 'cn' ? '用户主页' : 'User Profile';
+
+        // 导航栏文本
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks[0].innerHTML = `⬅
+            <span class="cn">返回</span>
+            <span class="en">Back</span>
+        `;
+        navLinks[1].innerHTML = `🏠
+            <span class="cn">广场</span>
+            <span class="en">Plaza</span>
+        `;
+
+        // 研究成果标题
+        const sectionHeader = document.querySelector(".section-header");
+        sectionHeader.innerHTML = `
+            <span class="cn">全部研究成果</span>
+            <span class="en">All Research Achievements</span>
+        `;
+
+        // 无发布记录提示（如果存在）
+        const tweetList = document.getElementById("tweetList");
+        if (tweetList.innerText.includes('暂无发布记录') || tweetList.innerText.includes('No publication records')) {
+            const noRecordTip = currentLang === 'cn' ? '暂无发布记录' : 'No publication records';
+            tweetList.innerHTML = `<div style='padding:40px; text-align:center; color:#999'><span class="cn">${noRecordTip}</span><span class="en">${noRecordTip}</span></div>`;
+        }
+
+        // 个人简介默认文本（如果未填写）
+        const bioElement = document.getElementById("pBio");
+        if (bioElement.innerText === '这个人很懒，什么都没写。' || bioElement.innerText === 'This person is lazy and hasn\'t written anything.') {
+            bioElement.innerText = currentLang === 'cn' ? '这个人很懒，什么都没写。' : 'This person is lazy and hasn\'t written anything.';
+        }
+    }
+
+    // 更新统计项文本（语言切换时调用）
+    function updateStatsText() {
+        const statsItems = document.querySelectorAll(".stats span");
+        const tweetText = currentLang === 'cn' ? '研究' : 'Research';
+        const followerText = currentLang === 'cn' ? '粉丝' : 'Followers';
+        const followingText = currentLang === 'cn' ? '关注' : 'Following';
+
+        statsItems[0].innerHTML = `<span id="statTweet" class="stat-num">${statsItems[0].querySelector('.stat-num').innerText}</span>
+            <span class="cn">${tweetText}</span>
+            <span class="en">${tweetText}</span>
+        `;
+        statsItems[1].innerHTML = `<span id="statFollower" class="stat-num">${statsItems[1].querySelector('.stat-num').innerText}</span>
+            <span class="cn">${followerText}</span>
+            <span class="en">${followerText}</span>
+        `;
+        statsItems[2].innerHTML = `<span id="statFollowing" class="stat-num">${statsItems[2].querySelector('.stat-num').innerText}</span>
+            <span class="cn">${followingText}</span>
+            <span class="en">${followingText}</span>
+        `;
+    }
+
+    async function loadProfile() {
+        const res = await fetch(`/api/users/${targetUserId}`);
+        const user = await res.json();
+
+        document.getElementById("pNickname").innerText = user.nickname || user.username;
+        document.getElementById("pUsername").innerText = "@" + user.username;
+        // 个人简介默认文本（双语言）
+        document.getElementById("pBio").innerText = user.bio || (currentLang === 'cn' ? '这个人很懒，什么都没写。' : 'This person is lazy and hasn\'t written anything.');
+        if(user.avatar) document.getElementById("pAvatar").src = "/uploads/" + user.avatar;
+
+        const statsRes = await fetch(`/api/users/${targetUserId}/stats`);
+        const stats = await statsRes.json();
+        document.getElementById("statTweet").innerText = stats.tweetCount;
+        document.getElementById("statFollower").innerText = stats.followerCount;
+        document.getElementById("statFollowing").innerText = stats.followingCount;
+
+        // 初始化页面文本
+        updatePageText();
+        updateStatsText();
+        renderButton();
+    }
+
+    async function renderButton() {
+        const area = document.getElementById("actionArea");
+
+        if (targetUserId == currentUserId) {
+            // 编辑资料按钮（双语言）
+            const editText = currentLang === 'cn' ? '编辑资料' : 'Edit Profile';
+            area.innerHTML = `<button class="action-btn btn-edit" onclick="location.href='profile.html'">${editText}</button>`;
+            return;
+        }
+
+        const res = await fetch(`/api/users/${currentUserId}/following`);
+        const myFriends = await res.json();
+        const isFollowing = myFriends.some(u => u.id == targetUserId);
+
+        // 按钮文本（双语言）
+        const followText = currentLang === 'cn' ? '关注' : 'Follow';
+        const followedText = currentLang === 'cn' ? '已关注' : 'Followed';
+        const unfollowText = currentLang === 'cn' ? '取消关注' : 'Unfollow';
+
+        if (isFollowing) {
+            area.innerHTML = `
+                <button class="action-btn btn-followed"
+                    onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'"
+                    onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'"
+                    onclick="toggleFollow(false)">
+                    <span class="cn">${followedText}</span>
+                    <span class="en">${followedText}</span>
+                </button>`;
+        } else {
+            area.innerHTML = `<button class="action-btn btn-follow" onclick="toggleFollow(true)">
+                <span class="cn">${followText}</span>
+                <span class="en">${followText}</span>
+            </button>`;
+        }
+    }
+
+    async function toggleFollow(doFollow) {
+        const confirmText = currentLang === 'cn' ? '确定取关吗？' : 'Are you sure you want to unfollow?';
+        if (!doFollow && !confirm(confirmText)) return;
+
+        const url = doFollow
+            ? `/api/users/${currentUserId}/follow?targetUserId=${targetUserId}`
+            : `/api/users/${currentUserId}/unfollow?targetUserId=${targetUserId}`;
+
+        const res = await fetch(url, { method: 'POST' });
+        const msg = await res.text();
+
+        const successText = currentLang === 'cn' ? '成功' : 'success';
+        const cancelText = currentLang === 'cn' ? '取消' : 'cancelled';
+        if(msg.includes(successText) || msg.includes(cancelText)) {
+            renderButton();
+            loadProfile();
+        }
+    }
+
+    async function loadTweets() {
+        const res = await fetch(`/api/tweets/user/${targetUserId}`);
+        const list = await res.json();
+        const container = document.getElementById("tweetList");
+
+        const noRecordTip = currentLang === 'cn' ? '暂无发布记录' : 'No publication records';
+        if (list.length === 0) {
+            container.innerHTML = `<div style='padding:40px; text-align:center; color:#999'><span class="cn">${noRecordTip}</span><span class="en">${noRecordTip}</span></div>`;
+            return;
+        }
+
+        list.forEach(t => {
+            const timeStr = t.createTime.replace('T', ' ').split('.')[0];
+            // 附件文本（双语言）
+            const fileLabel = currentLang === 'cn' ? '📎 ' : '📎 ';
+            let fileHtml = t.originalFilename ? `<div style="font-size:13px; color:#1da1f2; margin-top:8px; font-weight:bold;">${fileLabel}${t.originalFilename}</div>` : '';
+
+            container.innerHTML += `
+                <div class="tweet" onclick="location.href='detail.html?id=${t.id}'">
+                    <div style="color:#536471; font-size:13px; margin-bottom:8px;">${timeStr}</div>
+                    <div style="font-size:16px; line-height:1.6; color:#0f1419;">${t.content}</div>
+                    ${fileHtml}
+                </div>
+            `;
+        });
+    }
+
+    // 初始化加载
+    loadProfile();
+    loadTweets();
+</script>
+</body>
+</html>

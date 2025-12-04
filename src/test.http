@@ -1,0 +1,9 @@
+### 测试注册
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "student1",
+  "password": "123456",
+  "email": "test@nus.edu.sg"
+}

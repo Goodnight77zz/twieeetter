@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">全局搜索</span>
+        <span class="en">Global Search</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <!-- 引入Font Awesome图标（用于标签样式） -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 60px;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: white;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+        .nav-link {
+            margin-right: 20px;
+            text-decoration: none;
+            color: #555;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #1da1f2;
+        }
+        .nav-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1da1f2;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .search-header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .search-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+        .search-tab {
+            padding: 8px 20px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .search-tab.active {
+            color: #1da1f2;
+            border-bottom-color: #1da1f2;
+        }
+        .search-tab:hover:not(.active) {
+            color: #333;
+            border-bottom-color: #eee;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 30px;
+            border: 1px solid #e1e8ed;
+            outline: none;
+            font-size: 15px;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        input:focus {
+            border-color: #1da1f2;
+            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.1);
+        }
+        button.search-btn {
+            padding: 12px 28px;
+            border-radius: 30px;
+            border: none;
+            background: #1da1f2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button.search-btn:hover {
+            background: #1a91da;
+        }
+        .search-hint {
+            font-size: 13px;
+            color: #888;
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+
+        /* 结果列表通用样式 */
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .result-empty {
+            background: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: #777;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        .empty-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .empty-subtext {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* 用户卡片样式 */
+        .user-card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            margin-right: 18px;
+            object-fit: cover;
+            border: 2px solid #f5f8fa;
+        }
+        .user-meta {
+            display: flex;
+            flex-direction: column;
+        }
+        .name {
+            font-weight: 600;
+            font-size: 17px;
+            color: #14171a;
+        }
+        .handle {
+            color: #657786;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        /* 关注按钮样式 */
+        .follow-btn {
+            background: white;
+            border: 1px solid #1da1f2;
+            color: #1da1f2;
+            padding: 7px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 110px;
+        }
+        .follow-btn:hover {
+            background: #e8f5fe;
+            border-color: #1a91da;
+        }
+        .followed-btn {
+            background: #fff;
+            border: 1px solid #cfd9de;
+            color: #0f1419;
+            padding: 7px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 110px;
+            transition: all 0.2s;
+        }
+        .followed-btn:hover {
+            border-color: #f4212e;
+            color: #f4212e;
+            background-color: #fef2f2;
+        }
+
+        /* 文章卡片样式 */
+        .post-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .post-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+        .post-author {
+            display: flex;
+            flex-direction: column;
+        }
+        .post-author-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #14171a;
+        }
+        .post-time {
+            font-size: 13px;
+            color: #657786;
+            margin-top: 1px;
+        }
+        .post-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #14171a;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .post-excerpt {
+            font-size: 15px;
+            color: #657786;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .post-tag {
+            background: #f5f8fa;
+            color: #1da1f2;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #657786;
+        }
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 600px) {
+            .search-tabs {
+                justify-content: space-between;
+            }
+            .search-tab {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            .search-box {
+                flex-direction: column;
+            }
+            button.search-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .user-card {
+                padding: 15px;
+            }
+            .avatar {
+                width: 50px;
+                height: 50px;
+            }
+            .post-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <a href="index.html" class="nav-link">
+        <i class="fas fa-arrow-left"></i>
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+    <a href="friends.html" class="nav-link">
+        <i class="fas fa-users"></i>
+        <span class="cn">我的好友</span>
+        <span class="en">My Friends</span>
+    </a>
+    <div class="nav-title">
+        <i class="fas fa-search"></i>
+        <span class="cn">全局搜索</span>
+        <span class="en">Global Search</span>
+    </div>
+</div>
+
+<div class="container">
+    <div class="search-header">
+        <!-- 搜索类型切换标签 -->
+        <div class="search-tabs">
+            <div class="search-tab active" data-type="user">
+                <span class="cn">搜索用户</span>
+                <span class="en">Search Users</span>
+            </div>
+            <div class="search-tab" data-type="post">
+                <span class="cn">搜索文章</span>
+                <span class="en">Search Posts</span>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="keyword" placeholder="输入昵称或账号查找用户..." data-placeholder-en="Enter nickname or account to search users...">
+            <button class="search-btn" onclick="search()">
+                <i class="fas fa-search"></i>
+                <span class="cn">搜索</span>
+                <span class="en">Search</span>
+            </button>
+        </div>
+
+        <div class="search-hint" id="searchHint">
+            <span class="cn">提示：可搜索用户昵称、账号</span>
+            <span class="en">Hint: Search by user nickname or account</span>
+        </div>
+    </div>
+
+    <!-- 搜索结果列表 -->
+    <div class="result-list" id="resultList">
+        <!-- 初始空状态 -->
+        <div class="result-empty">
+            <div class="empty-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="empty-text">
+                <span class="cn">开始你的搜索</span>
+                <span class="en">Start your search</span>
+            </div>
+            <div class="empty-subtext">
+                <span class="cn">搜索用户、文章标题或标签</span>
+                <span class="en">Search users, post titles or tags</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入jQuery（用于语言切换时的选择器操作） -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const currentUserId = localStorage.getItem("userId");
+    let myFollowingIds = []; // 存储好友ID
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+    let currentSearchType = 'user'; // 当前搜索类型：user/post
+
+    // 监听语言切换事件
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updatePageText();
+    });
+
+    // 切换搜索类型
+    document.querySelectorAll('.search-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // 更新标签样式
+            document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // 更新当前搜索类型
+            currentSearchType = this.getAttribute('data-type');
+
+            // 更新输入框占位符和提示文本
+            updateInputPlaceholderAndHint();
+
+            // 清空搜索结果
+            const resultList = document.getElementById('resultList');
+            resultList.innerHTML = `
+                <div class="result-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="empty-text">
+                        <span class="cn">开始搜索${currentSearchType === 'user' ? '用户' : '文章'}</span>
+                        <span class="en">Start searching ${currentSearchType === 'user' ? 'users' : 'posts'}</span>
+                    </div>
+                    <div class="empty-subtext">
+                        <span class="cn">${currentSearchType === 'user' ? '搜索用户昵称、账号' : '搜索文章标题、标签'}</span>
+                        <span class="en">${currentSearchType === 'user' ? 'Search by nickname or account' : 'Search by title or tags'}</span>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    // 更新输入框占位符和提示文本
+    function updateInputPlaceholderAndHint() {
+        const keywordInput = document.getElementById("keyword");
+        const searchHint = document.getElementById("searchHint");
+
+        if (currentSearchType === 'user') {
+            keywordInput.placeholder = currentLang === 'cn' ?
+                '输入昵称或账号查找用户...' :
+                'Enter nickname or account to search users...';
+
+            searchHint.innerHTML = `
+                <span class="cn">提示：可搜索用户昵称、账号</span>
+                <span class="en">Hint: Search by user nickname or account</span>
+            `;
+        } else {
+            keywordInput.placeholder = currentLang === 'cn' ?
+                '输入标题或标签查找文章...' :
+                'Enter title or tags to search posts...';
+
+            searchHint.innerHTML = `
+                <span class="cn">提示：可搜索文章标题、标签（多个标签用逗号分隔）</span>
+                <span class="en">Hint: Search by post title or tags (separate multiple tags with commas)</span>
+            `;
+        }
+    }
+
+    // 更新页面文本（语言切换时）
+    function updatePageText() {
+        // 更新搜索按钮文本
+        const searchBtn = $('.search-btn');
+        searchBtn.html(`
+            <i class="fas fa-search"></i>
+            <span class="cn">搜索</span>
+            <span class="en">Search</span>
+        `);
+
+        // 更新标签文本
+        $('.search-tab[data-type="user"]').html(`
+            <span class="cn">搜索用户</span>
+            <span class="en">Search Users</span>
+        `);
+        $('.search-tab[data-type="post"]').html(`
+            <span class="cn">搜索文章</span>
+            <span class="en">Search Posts</span>
+        `);
+
+        // 更新输入框占位符和提示
+        updateInputPlaceholderAndHint();
+
+        // 重新搜索（如果已有关键词）
+        const keyword = document.getElementById("keyword").value.trim();
+        if (keyword) {
+            search();
+        }
+    }
+
+    // 加载好友ID列表
+    async function loadMyFollowingIds() {
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/following`);
+            const users = await res.json();
+            myFollowingIds = users.map(u => u.id);
+        } catch (e) {
+            const errorTip = currentLang === 'cn' ? "获取好友列表失败" : "Failed to get friends list";
+            console.error(errorTip, e);
+        }
+    }
+    loadMyFollowingIds();
+
+    // 格式化时间（相对时间）
+    function formatRelativeTime(timestamp) {
+        const now = new Date();
+        const postTime = new Date(timestamp);
+        const diff = now - postTime;
+
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(months / 12);
+
+        if (years > 0) return currentLang === 'cn' ? `${years}年前` : `${years}y ago`;
+        if (months > 0) return currentLang === 'cn' ? `${months}月前` : `${months}mo ago`;
+        if (days > 0) return currentLang === 'cn' ? `${days}天前` : `${days}d ago`;
+        if (hours > 0) return currentLang === 'cn' ? `${hours}小时前` : `${hours}h ago`;
+        if (minutes > 0) return currentLang === 'cn' ? `${minutes}分钟前` : `${minutes}m ago`;
+        return currentLang === 'cn' ? '刚刚' : 'Just now';
+    }
+
+    // 搜索核心逻辑
+    async function search() {
+        const keyword = document.getElementById("keyword").value.trim();
+        if (!keyword) {
+            alert(currentLang === 'cn' ? '请输入搜索关键词' : 'Please enter search keyword');
+            return;
+        }
+
+        const resultList = document.getElementById("resultList");
+        // 加载中状态
+        resultList.innerHTML = `
+            <div class="result-empty">
+                <div class="empty-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div class="empty-text">
+                    <span class="cn">搜索中...</span>
+                    <span class="en">Searching...</span>
+                </div>
+            </div>
+        `;
+
+        try {
+            if (currentSearchType === 'user') {
+                // 搜索用户（原有逻辑不变）
+                const res = await fetch(`/api/users/search?keyword=${encodeURIComponent(keyword)}`);
+                const users = await res.json();
+                renderUserResults(users);
+            } else {
+                // 搜索文章（关键修改：接口路径改为 /api/tweets/search）
+                const res = await fetch(`/api/tweets/search?keyword=${encodeURIComponent(keyword)}`);
+                const posts = await res.json();
+                renderPostResults(posts);
+            }
+        } catch (e) {
+            const errorText = currentLang === 'cn' ? '搜索失败，请重试' : 'Search failed, please try again';
+            resultList.innerHTML = `
+                <div class="result-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="empty-text">${errorText}</div>
+                </div>
+            `;
+            console.error('Search error:', e);
+        }
+    }
+
+    // 渲染用户搜索结果
+    function renderUserResults(users) {
+        const resultList = document.getElementById("resultList");
+        const noResultTip = currentLang === 'cn' ? '没有找到相关用户' : 'No related users found';
+
+        if (users.length === 0) {
+            resultList.innerHTML = `
+                <div class="result-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="empty-text">${noResultTip}</div>
+                </div>
+            `;
+            return;
+        }
+
+        // 按钮文本
+        const followedText = currentLang === 'cn' ? '已关注' : 'Followed';
+        const unfollowText = currentLang === 'cn' ? '取消关注' : 'Unfollow';
+        const followText = currentLang === 'cn' ? '关注' : 'Follow';
+
+        let html = '';
+        users.forEach(user => {
+            if (user.id == currentUserId) return;
+
+            const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/58';
+            const nickname = user.nickname || user.username;
+
+            let buttonHtml = '';
+            if (myFollowingIds.includes(user.id)) {
+                buttonHtml = `
+                    <button class="followed-btn"
+                        onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'"
+                        onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'"
+                        onclick="unfollow(${user.id})">
+                        <span class="cn">${followedText}</span>
+                        <span class="en">${followedText}</span>
+                    </button>
+                `;
+            } else {
+                buttonHtml = `
+                    <button class="follow-btn" onclick="follow(${user.id})">
+                        <span class="cn">${followText}</span>
+                        <span class="en">${followText}</span>
+                    </button>
+                `;
+            }
+
+            html += `
+                <div class="user-card">
+                    <div class="user-info" onclick="location.href='user_profile.html?id=${user.id}'">
+                        <img src="${avatar}" class="avatar">
+                        <div class="user-meta">
+                            <div class="name">${nickname}</div>
+                            <div class="handle">@${user.username}</div>
+                        </div>
+                    </div>
+                    ${buttonHtml}
+                </div>
+            `;
+        });
+
+        resultList.innerHTML = html;
+    }
+
+    // 渲染文章搜索结果
+    function renderPostResults(posts) {
+        const resultList = document.getElementById("resultList");
+        const noResultTip = currentLang === 'cn' ? '没有找到相关文章' : 'No related posts found';
+
+        if (posts.length === 0) {
+            resultList.innerHTML = `
+                <div class="result-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="empty-text">${noResultTip}</div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        posts.forEach(post => {
+            // 处理标签（假设post.tags是数组或逗号分隔的字符串）
+            let tags = [];
+            if (post.tags) {
+                tags = typeof post.tags === 'string' ? post.tags.split(',').map(tag => tag.trim()) : post.tags;
+            }
+
+            // 适配后端Tweet实体字段：content作为标题和摘要，createTime作为发布时间
+            const authorAvatar = post.authorAvatar ? `/uploads/${post.authorAvatar}` : 'https://via.placeholder.com/42';
+            const authorName = post.authorNickname || post.authorUsername || '未知作者';
+            const postTitle = post.title || post.content; // 优先用title，没有则用content
+            const postExcerpt = post.content || '';
+
+            // 适配后端时间字段（createTime → 前端需要的createdAt）
+            const postTime = post.createdAt || post.createTime;
+
+            html += `
+                <div class="post-card" onclick="location.href='post_detail.html?id=${post.id}'">
+                    <div class="post-header">
+                        <img src="${authorAvatar}" class="post-avatar">
+                        <div class="post-author">
+                            <div class="post-author-name">${authorName}</div>
+                            <div class="post-time">${formatRelativeTime(postTime)}</div>
+                        </div>
+                    </div>
+                    <div class="post-title">${postTitle}</div>
+                    <div class="post-excerpt">${postExcerpt}</div>
+                    <div class="post-tags">
+                        ${tags.map(tag => `
+                            <span class="post-tag">
+                                <i class="fas fa-hashtag"></i> ${tag}
+                            </span>
+                        `).join('')}
+                    </div>
+                    <div class="post-meta">
+                        <div class="post-meta-item">
+                            <i class="far fa-eye"></i> ${post.viewCount || 0}
+                        </div>
+                        <div class="post-meta-item">
+                            <i class="far fa-comment"></i> ${post.commentCount || 0}
+                        </div>
+                        <div class="post-meta-item">
+                            <i class="far fa-heart"></i> ${post.likeCount || 0}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        resultList.innerHTML = html;
+    }
+
+    // 关注功能
+    async function follow(targetId) {
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/follow?targetUserId=${targetId}`, { method: 'POST' });
+            const msg = await res.text();
+
+            const successText = currentLang === 'cn' ? '成功' : 'success';
+            if (msg.includes(successText)) {
+                await loadMyFollowingIds();
+                search(); // 刷新搜索结果
+            } else {
+                alert(msg);
+            }
+        } catch (e) {
+            alert(currentLang === 'cn' ? '关注失败，请重试' : 'Follow failed, please try again');
+            console.error('Follow error:', e);
+        }
+    }
+
+    // 取消关注功能
+    async function unfollow(targetId) {
+        const confirmText = currentLang === 'cn' ? '确定要取消关注吗？' : 'Are you sure you want to unfollow?';
+        if (!confirm(confirmText)) return;
+
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/unfollow?targetUserId=${targetId}`, { method: 'POST' });
+            const msg = await res.text();
+
+            const cancelText = currentLang === 'cn' ? '已取消' : 'cancelled';
+            if (msg.includes(cancelText)) {
+                await loadMyFollowingIds();
+                search(); // 刷新搜索结果
+            } else {
+                alert(msg);
+            }
+        } catch (e) {
+            alert(currentLang === 'cn' ? '取消关注失败，请重试' : 'Unfollow failed, please try again');
+            console.error('Unfollow error:', e);
+        }
+    }
+
+    // 初始化页面文本
+    updatePageText();
+
+    // 绑定回车搜索
+    document.getElementById("keyword").addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            search();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">编辑个人资料</span>
+        <span class="en">Edit Profile</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 80px;
+            display: flex;
+            justify-content: center;
+        }
+        .navbar {
+            position: fixed; top: 0; width: 100%; background: white; height: 60px;
+            display: flex; align-items: center; padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box; z-index: 1000;
+        }
+        .nav-link { color: #555; text-decoration: none; font-weight: bold; margin-right: 15px; display: flex; align-items: center; gap: 5px;}
+        .nav-link:hover { color: #1da1f2; }
+
+        /* 卡片容器 */
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            width: 450px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-title { font-size: 22px; font-weight: 900; color: #333; margin-bottom: 30px; }
+
+        /* === 头像交互核心样式 === */
+        .avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            group: hover; /* 用于触发子元素 */
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* 鼠标悬停时的效果：发光 + 变暗一点点 */
+        .avatar-wrapper:hover .avatar-img {
+            box-shadow: 0 0 20px rgba(29, 161, 242, 0.6); /* 蓝色发光 */
+            transform: scale(1.02);
+            filter: brightness(0.9);
+        }
+
+        /* 悬停时显示的提示图标/文字 (可选) */
+        .avatar-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: 0.3s;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        /* 表单样式 */
+        .form-group { width: 100%; margin-bottom: 20px; text-align: left; }
+        .label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 8px; display: block; }
+
+        input, textarea {
+            width: 100%; padding: 12px;
+            border: 1px solid #ddd; border-radius: 8px;
+            box-sizing: border-box; font-size: 15px; outline: none;
+            transition: border 0.2s;
+        }
+        input:focus, textarea:focus { border-color: #1da1f2; }
+
+        /* 只读输入框样式 */
+        input.readonly-input {
+            background-color: #f5f7f9;
+            color: #8899a6;
+            cursor: not-allowed;
+            border-color: #eee;
+        }
+
+        .save-btn {
+            background-color: #1da1f2; color: white;
+            border: none; padding: 12px 50px;
+            border-radius: 30px; cursor: pointer;
+            font-weight: bold; font-size: 16px;
+            transition: background 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(29, 161, 242, 0.3);
+        }
+        .save-btn:hover { background-color: #0d8ddb; }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <a href="index.html" class="nav-link">⬅
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+</div>
+
+<div class="card">
+    <div class="page-title">
+        <span class="cn">编辑个人资料</span>
+        <span class="en">Edit Profile</span>
+    </div>
+
+    <!-- 头像区域：点击触发 fileInput -->
+    <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+        <img id="avatarPreview" class="avatar-img" src="https://via.placeholder.com/120" alt="Avatar">
+        <!-- 悬停提示 -->
+        <div class="avatar-overlay">
+            <span class="cn">📷 更换头像</span>
+            <span class="en">📷 Change Avatar</span>
+        </div>
+    </div>
+    <!-- 隐藏的文件输入框 -->
+    <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
+
+    <div class="form-group">
+        <label class="label">
+            <span class="cn">账号 (不可修改)</span>
+            <span class="en">Account (Unmodifiable)</span>
+        </label>
+        <!-- readonly 属性禁止修改，特定样式变灰 -->
+        <input type="text" id="usernameInput" class="readonly-input" readonly>
+    </div>
+
+    <div class="form-group">
+        <label class="label">
+            <span class="cn">昵称</span>
+            <span class="en">Nickname</span>
+        </label>
+        <input type="text" id="nicknameInput" placeholder="给自己起个好听的名字" data-placeholder-en="Choose a nice nickname">
+    </div>
+
+    <div class="form-group">
+        <label class="label">
+            <span class="cn">个人简介</span>
+            <span class="en">Bio</span>
+        </label>
+        <textarea id="bioInput" rows="4" placeholder="介绍一下你的研究方向..." data-placeholder-en="Introduce your research direction..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveProfile()">
+        <span class="cn">保存修改</span>
+        <span class="en">Save Changes</span>
+    </button>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    if (!userId) window.location.href = "login.html";
+
+    // 监听语言切换事件，更新页面文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updateFormText();
+    });
+
+    // 更新表单文本（语言切换时调用）
+    function updateFormText() {
+        // 昵称输入框占位符
+        const nicknameInput = document.getElementById("nicknameInput");
+        const cnNicknamePlaceholder = nicknameInput.getAttribute("placeholder");
+        const enNicknamePlaceholder = nicknameInput.getAttribute("data-placeholder-en");
+        nicknameInput.placeholder = currentLang === 'cn' ? cnNicknamePlaceholder : enNicknamePlaceholder;
+
+        // 个人简介输入框占位符
+        const bioInput = document.getElementById("bioInput");
+        const cnBioPlaceholder = bioInput.getAttribute("placeholder");
+        const enBioPlaceholder = bioInput.getAttribute("data-placeholder-en");
+        bioInput.placeholder = currentLang === 'cn' ? cnBioPlaceholder : enBioPlaceholder;
+
+        // 头像悬停提示
+        const avatarOverlay = document.querySelector(".avatar-overlay");
+        avatarOverlay.innerHTML = `
+            <span class="cn">📷 更换头像</span>
+            <span class="en">📷 Change Avatar</span>
+        `;
+
+        // 保存按钮文本
+        const saveBtn = document.querySelector(".save-btn");
+        saveBtn.innerHTML = `
+            <span class="cn">保存修改</span>
+            <span class="en">Save Changes</span>
+        `;
+    }
+
+    // 1. 加载数据
+    async function loadProfile() {
+        try {
+            const res = await fetch(`/api/users/${userId}`);
+            const user = await res.json();
+
+            // 填充数据
+            document.getElementById("usernameInput").value = "@" + user.username; // 加个@更有感觉
+            document.getElementById("nicknameInput").value = user.nickname || user.username;
+            document.getElementById("bioInput").value = user.bio || "";
+            if (user.avatar) {
+                document.getElementById("avatarPreview").src = "/uploads/" + user.avatar;
+            }
+
+            // 初始化表单文本（根据当前语言）
+            updateFormText();
+        } catch (e) {
+            const errorTip = currentLang === 'cn' ? "加载用户信息失败" : "Failed to load user info";
+            alert(errorTip);
+        }
+    }
+
+    // 2. 头像选择后的即时预览 (不刷新页面就能看到效果)
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 3. 保存数据
+    async function saveProfile() {
+        const nickname = document.getElementById("nicknameInput").value;
+        const bio = document.getElementById("bioInput").value;
+        const fileInput = document.getElementById("avatarInput");
+
+        const formData = new FormData();
+        formData.append("nickname", nickname);
+        formData.append("bio", bio);
+        // 只有当用户真的选了新文件时，才传 avatar
+        if (fileInput.files[0]) {
+            formData.append("avatar", fileInput.files[0]);
+        }
+
+        try {
+            const res = await fetch(`/api/users/${userId}`, { method: 'POST', body: formData });
+            const result = await res.text();
+
+            const successText = currentLang === 'cn' ? '成功' : 'success';
+            const saveSuccessText = currentLang === 'cn' ? '保存成功！' : 'Saved successfully!';
+            const originalBtnText = `
+                <span class="cn">保存修改</span>
+                <span class="en">Save Changes</span>
+            `;
+
+            if (result.includes(successText)) {
+                // 稍微友好的提示
+                const btn = document.querySelector(".save-btn");
+                btn.innerHTML = saveSuccessText;
+                btn.style.backgroundColor = "#17bf63"; // 变绿
+
+                setTimeout(() => {
+                    btn.innerHTML = originalBtnText;
+                    btn.style.backgroundColor = "#1da1f2";
+                    location.reload(); // 刷新页面更新状态
+                }, 1000);
+            } else {
+                alert(result);
+            }
+        } catch (e) {
+            const errorTip = currentLang === 'cn' ? "保存失败，网络错误" : "Save failed, network error";
+            alert(errorTip);
+        }
+    }
+
+    loadProfile();
+</script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">创作中心 - Twieeetter</span>
+        <span class="en">Creator Center - Twieeetter</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        /* 全局布局 CSS */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; display: flex; height: 100vh; overflow: hidden; }
+
+        /* 左侧侧边栏 */
+        .sidebar { width: 240px; background: white; border-right: 1px solid #e7e7e7; display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0; }
+        .logo-area { padding: 0 24px 20px; font-size: 20px; font-weight: 900; color: #00a1d6; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        /* 大大的投稿按钮 */
+        .post-btn-container { padding: 0 20px; margin-bottom: 20px; }
+        .big-post-btn { width: 100%; background-color: #00a1d6; color: white; border: none; padding: 12px; border-radius: 4px; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; text-decoration: none; box-sizing: border-box;}
+        .big-post-btn:hover { background-color: #00b5e5; }
+
+        /* 菜单项 */
+        .menu-item { padding: 12px 24px; color: #505050; text-decoration: none; font-size: 15px; display: flex; align-items: center; transition: background 0.2s; }
+        .menu-item:hover { background-color: #f4f5f7; color: #00a1d6; }
+        .menu-item.active { color: #00a1d6; background-color: #eefaff; border-left: 3px solid #00a1d6; }
+        .menu-icon { margin-right: 10px; font-size: 18px; width: 20px; text-align: center;}
+
+        /* 右侧主内容区 */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        /* 顶部个人栏 */
+        .header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 30px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;}
+        .username { font-weight: bold; color: #333; font-size: 14px; }
+
+        /* === 数据卡片区域 (仿B站) === */
+        .section-title { font-size: 18px; font-weight: bold; color: #222; margin-bottom: 15px; border-left: 4px solid #00a1d6; padding-left: 10px; }
+
+        .data-cards { display: flex; gap: 20px; margin-bottom: 30px; }
+        .card { background: white; flex: 1; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        .card-label { color: #999; font-size: 14px; margin-bottom: 10px; }
+        .card-value { font-size: 32px; font-weight: bold; color: #222; }
+        .card-value.highlight { color: #00a1d6; }
+
+        .welcome-banner { background: linear-gradient(90deg, #00a1d6, #5cdbd3); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between;}
+        .welcome-text h2 { margin: 0 0 10px 0; }
+        .welcome-text p { margin: 0; opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+    <a href="index.html" class="logo-area">🎓
+        <span class="cn">创作中心</span>
+        <span class="en">Creator Center</span>
+    </a>
+
+    <div class="post-btn-container">
+        <a href="publish.html" class="big-post-btn">📝
+            <span class="cn">发布新研究</span>
+            <span class="en">Publish New Research</span>
+        </a>
+    </div>
+
+    <a href="dashboard.html" class="menu-item active">
+        <span class="menu-icon">🏠</span>
+        <span class="cn">首页概览</span>
+        <span class="en">Home Overview</span>
+    </a>
+    <a href="content.html" class="menu-item">
+        <span class="menu-icon">📂</span>
+        <span class="cn">稿件管理</span>
+        <span class="en">Manuscript Management</span>
+    </a>
+    <a href="index.html" class="menu-item">
+        <span class="menu-icon">🌍</span>
+        <span class="cn">返回广场</span>
+        <span class="en">Return to Plaza</span>
+    </a>
+</div>
+
+<!-- 右侧内容区 -->
+<div class="main-content">
+    <div class="header">
+        <div class="user-profile">
+            <img id="headerAvatar" src="https://via.placeholder.com/36" class="avatar-small">
+            <span id="headerName" class="username">
+                <span class="cn">加载中...</span>
+                <span class="en">Loading...</span>
+            </span>
+            <a href="#" onclick="logout()" style="font-size: 12px; color: #999; margin-left: 10px; text-decoration: none;">
+                <span class="cn">[退出]</span>
+                <span class="en">[Logout]</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+        <div class="welcome-text">
+            <h2 id="welcomeTitle">
+                <span class="cn">你好！UP主</span>
+                <span class="en">Hello! Creator</span>
+            </h2>
+            <p>
+                <span class="cn">分享你的学术成果吧。</span>
+                <span class="en">Share your academic achievements.</span>
+            </p>
+        </div>
+        <div style="font-size: 60px; opacity: 0.5;">🎓</div>
+    </div>
+
+    <!-- 核心数据展示 -->
+    <div class="section-title">
+        <span class="cn">核心数据</span>
+        <span class="en">Core Data</span>
+    </div>
+    <div class="data-cards">
+        <div class="card">
+            <span class="card-label">
+                <span class="cn">👥 粉丝总数</span>
+                <span class="en">👥 Follower Count</span>
+            </span>
+            <span class="card-value" id="followerCount">--</span>
+        </div>
+        <div class="card">
+            <span class="card-label">
+                <span class="cn">📄 已发研究 (推文)</span>
+                <span class="en">📄 Published Research (Posts)</span>
+            </span>
+            <span class="card-value highlight" id="tweetCount">--</span>
+        </div>
+        <div class="card">
+            <span class="card-label">
+                <span class="cn">👀 正在关注</span>
+                <span class="en">👀 Following Count</span>
+            </span>
+            <span class="card-value" id="followingCount">--</span>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <span class="cn">系统公告</span>
+        <span class="en">System Announcement</span>
+    </div>
+    <div style="background:white; padding:20px; border-radius:8px; color:#666;">
+        <p>• <span class="cn">欢迎使用 Twieeetter 学术版创作中心！</span><span class="en">Welcome to Twieeetter Academic Creator Center!</span></p>
+        <p>• <span class="cn">请各位研究人员遵守学术规范，文明交流。</span><span class="en">Please abide by academic norms and communicate civilly.</span></p>
+        <p>• <span class="cn">支持上传 PDF 和 Word 文档。</span><span class="en">Supports uploading PDF and Word documents.</span></p>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    if(!userId) window.location.href = "login.html";
+
+    async function initDashboard() {
+        // 1. 加载用户信息（头像等）
+        const userRes = await fetch(`/api/users/${userId}`);
+        const user = await userRes.json();
+        const username = user.nickname || user.username;
+
+        // 动态文本适配语言（读取当前语言状态）
+        const currentLang = localStorage.getItem('appLang') || 'cn';
+        document.getElementById("headerName").innerText = username;
+        document.getElementById("welcomeTitle").innerText = currentLang === 'cn' ? `Hi，${username}` : `Hi, ${username}`;
+
+        if(user.avatar) document.getElementById("headerAvatar").src = "/uploads/" + user.avatar;
+
+        // 2. 加载统计数据 (新接口)
+        const statsRes = await fetch(`/api/users/${userId}/stats`);
+        const stats = await statsRes.json();
+
+        document.getElementById("tweetCount").innerText = stats.tweetCount;
+        document.getElementById("followerCount").innerText = stats.followerCount;
+        document.getElementById("followingCount").innerText = stats.followingCount;
+    }
+
+    function logout() {
+        localStorage.clear();
+        // 退出后跳转登录页，适配语言（登录页会读取本地存储，这里清空后默认中文）
+        window.location.href = "login.html";
+    }
+
+    initDashboard();
+</script>
+</body>
+</html>

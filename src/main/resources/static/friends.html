@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">我的好友</span>
+        <span class="en">My Friends</span>
+    </title>
+    <!-- 引入通用语言组件CSS -->
+    <link rel="stylesheet" href="common/lang-component.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; }
+
+        /* 导航栏防止溢出 */
+        .navbar {
+            position: fixed; top: 0; width: 100%; background: white; height: 60px;
+            display: flex; align-items: center; padding: 0 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-sizing: border-box; /* 关键 */
+        }
+        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; font-size: 17px; }
+
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; }
+        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #333; }
+
+        /* === 核心布局修改 === */
+        .user-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* 关键：让左右两边撑开 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* 左侧信息组：头像+文字 */
+        .user-info { display: flex; align-items: center; }
+
+        .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; }
+        .name { font-weight: bold; font-size: 16px; }
+        .handle { color: #777; font-size: 13px; }
+
+        /* === 补全按钮样式 (跟搜索页一致) === */
+        .followed-btn {
+            background: #fff;
+            border: 1px solid #cfd9de;
+            color: #0f1419;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 100px; /* 固定宽度，防止变字时抖动 */
+            transition: all 0.2s;
+        }
+
+        /* 鼠标悬停变红 */
+        .followed-btn:hover {
+            border-color: #f4212e;
+            color: #f4212e;
+            background-color: #fef2f2;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <a href="index.html" class="nav-link">⬅
+        <span class="cn">返回广场</span>
+        <span class="en">Back to Plaza</span>
+    </a>
+    <a href="search.html" class="nav-link">🔍
+        <span class="cn">继续找人</span>
+        <span class="en">Continue Searching</span>
+    </a>
+</div>
+
+<div class="container">
+    <div class="page-title">
+        <span class="cn">我的关注列表</span>
+        <span class="en">My Following List</span>
+    </div>
+    <div id="friendList">
+        <span class="cn">加载中...</span>
+        <span class="en">Loading...</span>
+    </div>
+</div>
+
+<!-- 通用语言切换组件HTML -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 引入通用语言组件JS -->
+<script src="common/lang-component.js"></script>
+
+<script>
+    const userId = localStorage.getItem("userId");
+    if (!userId) window.location.href = "login.html";
+
+    // 当前语言状态
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+
+    // 监听语言切换事件，重新加载列表更新文本
+    window.addEventListener('languageChange', function() {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        loadFriends();
+    });
+
+    async function loadFriends() {
+        const res = await fetch(`/api/users/${userId}/following`);
+        const users = await res.json();
+        const list = document.getElementById("friendList");
+        list.innerHTML = "";
+
+        const noFollowingText = currentLang === 'cn' ? '你还没有关注任何人。' : 'You haven\'t followed anyone yet.';
+        const followedText = currentLang === 'cn' ? '已关注' : 'Followed';
+        const unfollowText = currentLang === 'cn' ? '取消关注' : 'Unfollow';
+
+        if (users.length === 0) {
+            list.innerHTML = `<div style='text-align:center; color:#777; margin-top:20px;'><span class="cn">${noFollowingText}</span><span class="en">${noFollowingText}</span></div>`;
+            return;
+        }
+
+        users.forEach(user => {
+            const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/50';
+            const nickname = user.nickname || user.username;
+
+            // 加了 user-info 的包裹层
+            list.innerHTML += `
+                    <div class="user-card">
+                         <div class="user-info"
+             onclick="location.href='user_profile.html?id=${user.id}'"
+             style="cursor: pointer;">
+
+            <img src="${avatar}" class="avatar">
+            <div>
+                <div class="name">${nickname}</div>
+                <div class="handle">@${user.username}</div>
+            </div>
+        </div>
+                        <button class="followed-btn"
+                            onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'"
+                            onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'"
+                            onclick="unfollow(${user.id})">
+                            <span class="cn">${followedText}</span>
+                            <span class="en">${followedText}</span>
+                        </button>
+                    </div>
+                `;
+        });
+    }
+
+    async function unfollow(targetId) {
+        const confirmText = currentLang === 'cn' ? '确定要取消关注吗？' : 'Are you sure you want to unfollow?';
+        if(!confirm(confirmText)) return;
+
+        const res = await fetch(`/api/users/${userId}/unfollow?targetUserId=${targetId}`, { method: 'POST' });
+        const msg = await res.text();
+
+        const cancelText = currentLang === 'cn' ? '已取消' : 'cancelled';
+        if (msg.includes(cancelText)) {
+            loadFriends();
+        } else {
+            alert(msg);
+        }
+    }
+
+    loadFriends();
+</script>
+</body>
+</html>

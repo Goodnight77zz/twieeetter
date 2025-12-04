@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - Twieeetter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            position: relative;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 300px;
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .main-title {
+            text-align: center;
+            color: #1da1f2;
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        .bg-title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1, 1.8);
+            transform-origin: center;
+            font-size: 72px;
+            font-weight: 900;
+            color: rgba(29, 161, 242, 0.08);
+            z-index: 1;
+            user-select: none;
+            white-space: nowrap;
+            width: 100%;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border 0.2s, box-shadow 0.2s;
+            position: relative;
+            z-index: 2;
+        }
+        input:focus {
+            border-color: #1da1f2;
+            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        button:hover {
+            background-color: #0d8ddb;
+        }
+        button:disabled {
+            background-color: #a5d8ff;
+            cursor: not-allowed;
+        }
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #657786;
+            position: relative;
+            z-index: 2;
+        }
+        .link a {
+            color: #1da1f2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #e0245e;
+            font-size: 13px;
+            text-align: center;
+            margin: 10px 0;
+            min-height: 18px;
+            position: relative;
+            z-index: 2;
+        }
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 语言选择器样式（核心：明确定位和拖拽反馈） */
+        .lang-selector {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            z-index: 9999; /* 确保不被遮挡 */
+            padding: 5px;
+            border-radius: 8px;
+            /* 关键：初始位置用top/right，拖拽后用left/top覆盖 */
+            left: auto;
+            bottom: auto;
+        }
+        /* 拖拽时的视觉反馈（必加，让你知道正在拖拽） */
+        .lang-selector.dragging {
+            opacity: 0.9;
+            box-shadow: 0 4px 16px rgba(29, 161, 242, 0.3);
+            cursor: grabbing;
+        }
+        /* 原有语言选择器样式完全保留 */
+        .lang-trigger {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .lang-trigger:hover {
+            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
+            transform: scale(1.05);
+        }
+        .lang-trigger svg {
+            width: 24px;
+            height: 24px;
+            color: #1da1f2;
+        }
+        .lang-dropdown {
+            margin-top: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            width: 120px;
+        }
+        .lang-selector.active .lang-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .lang-option {
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lang-option:hover {
+            background-color: #f5f8fa;
+        }
+        .lang-option.active {
+            color: #1da1f2;
+            font-weight: 500;
+        }
+        .lang-option svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 隐藏英文文本（默认显示中文） */
+        .en {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!-- 语言选择器（结构不变） -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option active" onclick="switchLang('cn')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            中文
+        </button>
+        <button class="lang-option" onclick="switchLang('en')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            English
+        </button>
+    </div>
+</div>
+
+<!-- 登录卡片（完全不变） -->
+<div class="card">
+    <div class="bg-title">Twieeetter</div>
+    <h2 class="main-title">
+        <span class="cn">登录</span>
+        <span class="en">Login</span>
+    </h2>
+
+    <div class="input-group">
+        <input type="text" id="username"
+               placeholder="用户名"
+               data-placeholder-en="Username"
+               required>
+    </div>
+
+    <div class="input-group">
+        <input type="password" id="password"
+               placeholder="密码"
+               data-placeholder-en="Password"
+               required>
+    </div>
+
+    <div class="error-message" id="errorMsg"></div>
+
+    <button onclick="doLogin()" id="loginBtn">
+        <span class="cn">登 录</span>
+        <span class="en">Login</span>
+    </button>
+
+    <div class="link">
+        <span class="cn">还没有账号？</span>
+        <span class="en">Don't have an account?</span>
+        <a href="register.html">
+            <span class="cn">去注册</span>
+            <span class="en">Register</span>
+        </a>
+    </div>
+</div>
+
+<script>
+    // 原有逻辑完全保留
+    let currentLang = 'cn';
+    const langSelector = document.getElementById('langSelector');
+    const langTrigger = document.getElementById('langTrigger');
+
+    // 语言选择器展开/收起（保留原有功能）
+    langTrigger.addEventListener('click', () => {
+        langSelector.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+        if (!langSelector.contains(e.target)) {
+            langSelector.classList.remove('active');
+        }
+    });
+
+    // 语言切换（保留原有功能）
+    function switchLang(lang) {
+        const cnTexts = document.querySelectorAll('.cn');
+        const enTexts = document.querySelectorAll('.en');
+
+        if (lang === 'cn') {
+            cnTexts.forEach(text => text.style.display = 'inline');
+            enTexts.forEach(text => text.style.display = 'none');
+            document.getElementById('username').placeholder = '用户名';
+            document.getElementById('password').placeholder = '密码';
+        } else if (lang === 'en') {
+            cnTexts.forEach(text => text.style.display = 'none');
+            enTexts.forEach(text => text.style.display = 'inline');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            usernameInput.placeholder = usernameInput.getAttribute('data-placeholder-en');
+            passwordInput.placeholder = passwordInput.getAttribute('data-placeholder-en');
+        }
+
+        currentLang = lang;
+
+        const langOptions = document.querySelectorAll('.lang-option');
+        langOptions.forEach(option => {
+            option.classList.toggle('active', option.onclick.toString().includes(`switchLang('${lang}')`));
+        });
+        langSelector.classList.remove('active');
+    }
+
+    // 登录逻辑（保留原有功能）
+    async function doLogin() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        const errorMsg = document.getElementById("errorMsg");
+        const loginBtn = document.getElementById("loginBtn");
+
+        if (!username) {
+            errorMsg.textContent = currentLang === 'cn' ? '请输入用户名' : 'Please enter username';
+            return;
+        }
+        if (!password) {
+            errorMsg.textContent = currentLang === 'cn' ? '请输入密码' : 'Please enter password';
+            return;
+        }
+        errorMsg.textContent = "";
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<div class="loader"></div>';
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.message === "success") {
+                alert(currentLang === 'cn' ? '登录成功！即将跳转到首页' : 'Login successful! Redirecting to homepage');
+                localStorage.setItem("userId", data.userId);
+                localStorage.setItem("username", data.username);
+                window.location.href = "index.html";
+            } else {
+                errorMsg.textContent = currentLang === 'cn' ? '登录失败，用户名或密码错误' : 'Login failed. Invalid username or password';
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span class="cn">登 录</span><span class="en">Login</span>';
+            }
+        } catch (error) {
+            errorMsg.textContent = currentLang === 'cn' ? '网络错误，请稍后重试' : 'Network error. Please try again later';
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<span class="cn">登 录</span><span class="en">Login</span>';
+            console.error("登录请求失败:", error);
+        }
+    }
+
+    // 回车键登录（保留原有功能）
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            doLogin();
+        }
+    });
+
+    // --------------- 最终修复：长按拖拽逻辑（极简+高效） ---------------
+    let isDragging = false;
+    let pressStartTime; // 记录按下时间
+    let startX, startY;
+    let offsetX, offsetY;
+
+    // 1. 鼠标按下：记录开始时间和初始位置
+    langSelector.addEventListener('mousedown', function(e) {
+        // 排除点击语言选项时触发拖拽
+        if (e.target.closest('.lang-option')) return;
+
+        pressStartTime = Date.now(); // 记录按下时间
+        const rect = langSelector.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        offsetX = startX - rect.left; // 鼠标在组件内的X偏移
+        offsetY = startY - rect.top;  // 鼠标在组件内的Y偏移
+    });
+
+    // 2. 鼠标移动：判断是否长按，是则触发拖拽
+    document.addEventListener('mousemove', function(e) {
+        // 未按下鼠标 或 已在拖拽中，直接返回
+        if (!pressStartTime || isDragging) {
+            // 已在拖拽中，更新位置
+            if (isDragging) {
+                updateDragPosition(e);
+            }
+            return;
+        }
+
+        // 计算按下时长（超过250ms视为长按）
+        const pressDuration = Date.now() - pressStartTime;
+        if (pressDuration > 250) {
+            isDragging = true;
+            langSelector.classList.add('dragging');
+            langSelector.classList.remove('active'); // 拖拽时隐藏下拉菜单
+            updateDragPosition(e); // 立即更新位置
+        }
+    });
+
+    // 3. 更新拖拽位置（独立函数，避免重复代码）
+    function updateDragPosition(e) {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const compWidth = langSelector.offsetWidth;
+        const compHeight = langSelector.offsetHeight;
+
+        // 计算新位置（减去偏移量，避免组件跳变）
+        let newLeft = e.clientX - offsetX;
+        let newTop = e.clientY - offsetY;
+
+        // 边界限制：留10px边距，不超出屏幕
+        newLeft = Math.max(10, Math.min(windowWidth - compWidth - 10, newLeft));
+        newTop = Math.max(10, Math.min(windowHeight - compHeight - 10, newTop));
+
+        // 直接用left/top定位，无偏移问题
+        langSelector.style.left = `${newLeft}px`;
+        langSelector.style.top = `${newTop}px`;
+        // 覆盖初始的right/top，避免冲突
+        langSelector.style.right = 'auto';
+        langSelector.style.bottom = 'auto';
+    }
+
+    // 4. 鼠标松开/离开：重置状态
+    function resetDrag() {
+        pressStartTime = null;
+        isDragging = false;
+        langSelector.classList.remove('dragging');
+    }
+    document.addEventListener('mouseup', resetDrag);
+    document.addEventListener('mouseleave', resetDrag);
+
+    // 5. 修复：点击触发按钮时不干扰拖拽判断
+    langTrigger.addEventListener('mousedown', function(e) {
+        // 允许长按触发拖拽，短按触发点击（不阻止冒泡）
+        // 这里仅确保点击时不影响拖拽逻辑
+        e.stopPropagation = false;
+    });
+</script>
+</body>
+</html>
