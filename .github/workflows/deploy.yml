@@ -32,7 +32,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          source: "target/twieeetter-backend-0.0.1-SNAPSHOT.jar"
+          source: "target/backend-0.0.1-SNAPSHOT.jar"
           target: "/root"
           strip_components: 1  # 去掉 target 这一层目录，直接把 jar 放在 /root 下
 
