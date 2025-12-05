@@ -88,7 +88,9 @@
 
         /* 底部操作栏 */
         .card-footer { display: flex; gap: 20px; margin-top: 15px; border-top: 1px solid #eff3f4; padding-top: 10px; color: #536471; font-size: 14px; }
-        .action-item { display: flex; align-items: center; gap: 5px; }
+        .action-item { display: flex; align-items: center; gap: 5px; cursor: pointer; transition: color 0.2s; }
+        .action-item:hover { color: #1da1f2; }
+        .like-num { font-weight: bold; }
 
         /* 标签样式 */
         .tag-badge {
@@ -153,7 +155,7 @@
     </div>
 </div>
 
-<!-- 语言切换悬浮球 (使用新的 switchLang 参数) -->
+<!-- 语言切换悬浮球 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -170,7 +172,7 @@
 <script src="common/lang-component.js"></script>
 
 <script>
-    // 标签翻译字典 (同步 profile 里的逻辑)
+    // 标签翻译字典
     const tagTranslations = {
         "AI": "AI",
         "生物医学": "Biomedical",
@@ -184,17 +186,15 @@
     const currentUserId = localStorage.getItem("userId");
     if(!currentUserId) window.location.href = "login.html";
 
-    // 🔥 全局变量缓存数据，防止切换语言时重新请求网络
+    // 全局变量缓存数据
     let globalTweets = [];
 
-    // 初始化加载
+    // 初始化
     loadUserInfo();
-    fetchFeed(); // 第一次从网络获取
+    fetchFeed();
 
-    // 监听语言切换事件 (由 lang-component.js 触发)
+    // 监听语言切换
     window.addEventListener('languageChange', function() {
-        // 语言切换时，直接利用缓存数据重新生成 HTML
-        // 这样时间格式会变，而且新生成的 HTML 会立即遵循 CSS 的显隐规则
         renderFeed();
     });
 
@@ -218,30 +218,43 @@
         }
     }
 
-    // 1. 获取数据 (只负责拿数据)
+    // 1. 获取数据 (并行获取点赞状态)
     async function fetchFeed() {
         const container = document.getElementById("feedContainer");
         try {
+            // 1. 先拿推文列表
             const res = await fetch('/api/tweets');
-            globalTweets = await res.json(); // 存入全局变量
-            renderFeed(); // 拿完数据去渲染
+            globalTweets = await res.json();
+
+            // 2. 🔥 关键修复：并行获取每一条的点赞数和状态
+            // 因为后端列表接口没返回 likeCount，前端手动补全
+            if (globalTweets.length > 0) {
+                const promises = globalTweets.map(async (tweet) => {
+                    try {
+                        const likeRes = await fetch(`/api/tweets/${tweet.id}/like-status?userId=${currentUserId}`);
+                        const likeData = await likeRes.json();
+                        tweet.likeCount = likeData.count; // 补全数据
+                        tweet.isLiked = likeData.isLiked; // 补全数据
+                    } catch (e) {
+                        tweet.likeCount = 0;
+                        tweet.isLiked = false;
+                    }
+                });
+                await Promise.all(promises); // 等所有点赞数据加载完再渲染
+            }
+
+            renderFeed();
         } catch(e) {
             console.error(e);
-            container.innerHTML = `
-                <div style="text-align:center; padding:40px; color:red;">
-                    <span class="cn">加载失败</span>
-                    <span class="en">Load Failed</span>
-                </div>`;
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:red;">Load Failed</div>`;
         }
     }
 
-    // 2. 渲染界面 (负责生成 HTML)
+    // 2. 渲染界面
     function renderFeed() {
         const container = document.getElementById("feedContainer");
         const list = globalTweets;
-        // 获取当前语言 (localStorage 里可能是 zh 或 en)
-        let currentLang = localStorage.getItem('appLang') || 'zh';
-        if(currentLang === 'cn') currentLang = 'zh'; // 兼容旧数据
+        const currentLang = localStorage.getItem('appLang') || 'zh';
 
         if(list.length === 0) {
             container.innerHTML = `
@@ -250,7 +263,6 @@
                     <span class="en">No tweets yet, go publish one!</span>
                 </div>
             `;
-            // 不需要再调用 applyLang，CSS 自动生效
             return;
         }
 
@@ -258,10 +270,8 @@
         list.forEach(t => {
             const avatar = t.author.avatar ? `/uploads/${t.author.avatar}` : 'https://via.placeholder.com/48';
             const name = t.author.nickname || t.author.username;
-            // 重新计算时间字符串 (根据当前语言)
             const timeStr = formatRelativeTime(t.createTime, currentLang);
 
-            // 附件显示逻辑 (生成双语标签)
             let fileHtml = "";
             if(t.originalFilename) {
                 fileHtml = `
@@ -278,18 +288,12 @@
                 `;
             }
 
-            // 标签显示逻辑 (支持翻译)
             let tagsHtml = "";
             if(t.tags) {
                 const tagsArr = t.tags.split(',');
                 tagsHtml = tagsArr.map(tag => {
-                    // 如果是英文模式，尝试翻译，否则显示原样
                     const displayTag = currentLang === 'en' ? (tagTranslations[tag] || tag) : tag;
-                    return `
-                        <span class="tag-badge">
-                            <i class="fas fa-tag"></i> ${displayTag}
-                        </span>
-                    `;
+                    return `<span class="tag-badge" style="background:#e8f5fe; color:#1da1f2;">#${displayTag}</span>`;
                 }).join(" ");
             } else if (t.originalFilename && t.originalFilename.toLowerCase().endsWith(".pdf")) {
                 tagsHtml = `<span class="tag-badge" style="background:#e6fffa; color:#00b894;">
@@ -298,7 +302,10 @@
                 </span>`;
             }
 
-            // 生成卡片 HTML (注意：评论和查看详情按钮现在都包含了 .cn 和 .en)
+            // ❤️ 点赞状态逻辑
+            const heartClass = t.isLiked ? "fas fa-heart" : "far fa-heart";
+            const heartColor = t.isLiked ? "color: #f91880;" : "";
+
             container.innerHTML += `
                 <div class="tweet-card" onclick="location.href='detail.html?id=${t.id}'">
                     <div class="card-header">
@@ -318,18 +325,57 @@
                     <div style="margin-top:5px;">${tagsHtml}</div>
 
                     <div class="card-footer">
-                        <div class="action-item">
-                            <i class="far fa-heart"></i>
-                            <span>0</span>
+                        <!-- 🔥 修复：绑定了点击事件 toggleLikeInList -->
+                        <div class="action-item" onclick="event.stopPropagation(); toggleLikeInList(this, ${t.id})">
+                            <i class="${heartClass}" style="${heartColor}"></i>
+                            <span class="like-num" style="margin-left:5px;">${t.likeCount || 0}</span>
                         </div>
-                        <div class="action-item">
+                        <!-- 🔥 修复：绑定点击跳转到详情页评论区 -->
+                        <div class="action-item" onclick="event.stopPropagation(); location.href='detail.html?id=${t.id}#commentSection'">
                             <i class="far fa-comment"></i>
-                            <span class="cn">评论</span><span class="en">Comment</span>
+                            <span style="margin-left:5px;">
+                                <span class="cn">评论</span><span class="en">Comment</span>
+                            </span>
                         </div>
                     </div>
                 </div>
             `;
         });
+    }
+
+    // 🔥 核心修复：列表页直接点赞 (乐观更新)
+    async function toggleLikeInList(btn, tweetId) {
+        const icon = btn.querySelector('i');
+        const numSpan = btn.querySelector('.like-num');
+        let currentNum = parseInt(numSpan.innerText);
+
+        // 1. 立即改变 UI (让用户觉得很快)
+        if (icon.classList.contains('far')) {
+            // 点赞
+            icon.className = 'fas fa-heart';
+            icon.style.color = '#f91880';
+            numSpan.innerText = currentNum + 1;
+        } else {
+            // 取消点赞
+            icon.className = 'far fa-heart';
+            icon.style.color = '';
+            numSpan.innerText = Math.max(0, currentNum - 1);
+        }
+
+        // 2. 后台发请求
+        try {
+            await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
+            // 更新全局缓存里的状态，防止切语言时变回去
+            const tweet = globalTweets.find(t => t.id == tweetId);
+            if(tweet) {
+                tweet.isLiked = !tweet.isLiked;
+                tweet.likeCount = parseInt(numSpan.innerText);
+            }
+        } catch (e) {
+            // 失败回滚
+            alert("Network error");
+            fetchFeed(); // 重新拉取真实数据
+        }
     }
 
     function formatRelativeTime(timestamp, lang) {
@@ -341,7 +387,7 @@
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
 
-        if(lang === 'zh' || lang === 'cn') { // 兼容
+        if(lang === 'zh' || lang === 'cn') {
             if(seconds < 60) return "刚刚";
             if(minutes < 60) return `${minutes}分钟前`;
             if(hours < 24) return `${hours}小时前`;
@@ -356,7 +402,6 @@
 
     function logout() {
         const lang = localStorage.getItem('appLang') || 'zh';
-        // 确认框的文字只能是纯文本，需要 JS 判断
         const msg = (lang === 'zh' || lang === 'cn') ? '确定要退出吗？' : 'Are you sure to logout?';
         if(confirm(msg)) {
             localStorage.clear();
