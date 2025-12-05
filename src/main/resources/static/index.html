@@ -2,6 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         <span class="cn">Twieeetter - 学术交流平台</span>
         <span class="en">Twieeetter - Academic Plaza</span>
@@ -93,6 +94,13 @@
             display: inline-block; padding: 2px 8px; border-radius: 12px;
             background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px;
         }
+
+        /* 手机端适配 */
+        @media (max-width: 600px) {
+            .nav-item span { display: none; } /* 手机端隐藏导航文字只留图标 */
+            .btn-create span { display: none; }
+            .navbar { padding: 0 10px; }
+        }
     </style>
 </head>
 <body>
@@ -103,7 +111,6 @@
         <a href="index.html" class="brand">
             Twieeetter 🎓
         </a>
-        <!-- 🔥 修复1：进入创作中心按钮双语 -->
         <a href="dashboard.html" class="btn-create">
             <i class="fas fa-bolt"></i>
             <span class="cn">进入创作中心</span>
@@ -112,14 +119,12 @@
     </div>
 
     <div class="nav-right">
-        <!-- 🔥 修复2：搜索链接双语 -->
         <a href="search.html" class="nav-item">
             <i class="fas fa-search"></i>
             <span class="cn">搜索</span>
             <span class="en">Search</span>
         </a>
 
-        <!-- 🔥 修复3：好友列表双语 -->
         <a href="friends.html" class="nav-item">
             <i class="fas fa-users"></i>
             <span class="cn">好友列表</span>
@@ -132,7 +137,6 @@
             <span id="navUsername" class="username">User</span>
         </div>
 
-        <!-- 🔥 修复4：退出按钮双语 -->
         <button onclick="logout()" class="btn-logout">
             <span class="cn">退出</span>
             <span class="en">Logout</span>
@@ -161,7 +165,6 @@
     </div>
 </div>
 
-<!-- 脚本 -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="common/lang-component.js"></script>
 
@@ -173,16 +176,15 @@
     loadUserInfo();
     loadFeed();
 
-    // 监听语言切换，重新渲染列表里的时间文本等
+    // 监听语言切换
     window.addEventListener('languageChange', function() {
-        loadFeed(); // 简单粗暴：切语言时重载列表以更新 "刚刚/Just now" 等动态文本
+        // 当语言改变时，重新加载列表以更新时间格式，并强制应用语言显示规则
+        loadFeed();
     });
 
     async function loadUserInfo() {
         const username = localStorage.getItem("username");
         document.getElementById("navUsername").innerText = username;
-
-        // 获取头像
         try {
             const res = await fetch(`/api/users/${currentUserId}`);
             const user = await res.json();
@@ -192,9 +194,19 @@
         } catch(e) {}
     }
 
+    // 跳转到我的个人主页
+    function goToMyProfile() {
+        if (currentUserId) {
+            window.location.href = `user_profile.html?id=${currentUserId}`;
+        } else {
+            window.location.href = "login.html";
+        }
+    }
+
     async function loadFeed() {
         const container = document.getElementById("feedContainer");
-        // 如果是重新加载，不要清空整个容器，避免闪烁太严重（可选优化，这里简单处理）
+        // 获取当前语言，确保 JS 逻辑里用的也是最新的
+        const currentLang = localStorage.getItem('appLang') || 'cn';
 
         try {
             const res = await fetch('/api/tweets');
@@ -208,19 +220,18 @@
                         <span class="en">No tweets yet, go publish one!</span>
                     </div>
                 `;
-                // 手动应用语言显隐
-                if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
+                // 🔥 关键：插入HTML后立即应用语言规则
+                if(typeof applyLang === 'function') applyLang(currentLang);
                 return;
             }
-
-            const currentLang = localStorage.getItem('appLang') || 'cn';
 
             list.forEach(t => {
                 const avatar = t.author.avatar ? `/uploads/${t.author.avatar}` : 'https://via.placeholder.com/48';
                 const name = t.author.nickname || t.author.username;
+                // 时间根据语言格式化
                 const timeStr = formatRelativeTime(t.createTime, currentLang);
 
-                // 附件显示逻辑
+                // 附件显示逻辑 (双语标签)
                 let fileHtml = "";
                 if(t.originalFilename) {
                     fileHtml = `
@@ -229,7 +240,7 @@
                             <div class="file-info">
                                 <span class="file-label">
                                     <span class="cn">附件文档</span>
-                                    <span class="en">Attachment Document</span>
+                                    <span class="en">Attachment</span>
                                 </span>
                                 <span class="file-name">${t.originalFilename}</span>
                             </div>
@@ -247,7 +258,6 @@
                         </span>
                     `).join(" ");
                 } else if (t.originalFilename && t.originalFilename.toLowerCase().endsWith(".pdf")) {
-                    // 如果没标签但有PDF，可能自动标记AI (可选)
                     tagsHtml = `<span class="tag-badge" style="background:#e6fffa; color:#00b894;"><i class="fas fa-robot"></i> AI Analysis Ready</span>`;
                 }
 
@@ -272,7 +282,7 @@
                         <div class="card-footer">
                             <div class="action-item">
                                 <i class="far fa-heart"></i>
-                                <span>0</span> <!-- 这里可以对接点赞数 -->
+                                <span>0</span>
                             </div>
                             <div class="action-item">
                                 <i class="far fa-comment"></i>
@@ -283,7 +293,7 @@
                 `;
             });
 
-            // 渲染完后，再次应用语言规则，确保 .cn/.en 标签正确显示
+            // 🔥 关键：循环结束后，再次强制应用语言规则，防止“闪回”
             if(typeof applyLang === 'function') applyLang(currentLang);
 
         } catch(e) {
@@ -306,7 +316,7 @@
             if(hours < 24) return `${hours}小时前`;
             return `${days}天前`;
         } else {
-            if(seconds < 60) return "just now";
+            if(seconds < 60) return "Just now";
             if(minutes < 60) return `${minutes}m ago`;
             if(hours < 24) return `${hours}h ago`;
             return `${days}d ago`;
@@ -314,16 +324,9 @@
     }
 
     function logout() {
-        if(confirm(localStorage.getItem('appLang') === 'cn' ? '确定要退出吗？' : 'Logout?')) {
+        const lang = localStorage.getItem('appLang') || 'cn';
+        if(confirm(lang === 'cn' ? '确定要退出吗？' : 'Are you sure to logout?')) {
             localStorage.clear();
-            window.location.href = "login.html";
-        }
-    }
-    function goToMyProfile() {
-        const userId = localStorage.getItem("userId");
-        if (userId) {
-            window.location.href = `user_profile.html?id=${userId}`;
-        } else {
             window.location.href = "login.html";
         }
     }
