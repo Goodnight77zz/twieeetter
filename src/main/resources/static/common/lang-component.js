@@ -1,65 +1,67 @@
-// 通用 - 语言切换+拖拽功能封装（适配PC+移动端，拖拽仅PC生效）
+// 通用 - 语言切换+拖拽功能封装
 (function() {
-    // 1. 状态初始化（从本地存储读取上次选择的语言，默认中文）
-    let currentLang = localStorage.getItem('appLang') || 'cn';
+    // 1. 状态初始化
+    let currentLang = localStorage.getItem('appLang') || 'cn'; // 默认中文
+
+    // 统一转成标准格式：cn -> zh (为了符合 HTML 标准，也可以继续用 cn，只要和 CSS 对应即可)
+    // 这里为了配合 CSS 里的 html[lang="en"]，我们约定：中文='zh'，英文='en'
+    if (currentLang === 'cn') currentLang = 'zh';
+
     const langSelector = document.getElementById('langSelector');
     const langTrigger = document.getElementById('langTrigger');
-    const langCn = document.getElementById('langCn');
-    const langEn = document.getElementById('langEn');
-    // 判断是否为移动端（通过屏幕宽度+触摸事件支持）
+
+    // 判断是否为移动端
     const isMobile = window.innerWidth <= 576 || 'ontouchstart' in window;
 
-    // 2. 初始化页面语言（页面加载时自动应用上次选择的语言）
-    function initLang() {
-        // 切换文本显示
-        const cnTexts = document.querySelectorAll('.cn');
-        const enTexts = document.querySelectorAll('.en');
-        if (currentLang === 'cn') {
-            cnTexts.forEach(text => text.style.display = 'inline');
-            enTexts.forEach(text => text.style.display = 'none');
-        } else {
-            cnTexts.forEach(text => text.style.display = 'none');
-            enTexts.forEach(text => text.style.display = 'inline');
-        }
+    // 2. 初始化/应用语言的核心函数 (修改版)
+    function applyLangState(lang) {
+        // === 🔥 核心修改：只修改 HTML 顶层属性，剩下的交给 CSS ===
+        document.documentElement.setAttribute('lang', lang);
 
-        // 切换输入框占位符（适配有 data-placeholder-en 属性的输入框）
+        // 切换输入框占位符（这个还是需要 JS 做，因为 placeholder 不能用 CSS 控制）
         document.querySelectorAll('input[data-placeholder-en]').forEach(input => {
-            input.placeholder = currentLang === 'cn'
-                ? input.getAttribute('placeholder')
+            input.placeholder = lang === 'zh'
+                ? (input.getAttribute('data-placeholder-cn') || input.defaultValue || "请输入") // 兜底
                 : input.getAttribute('data-placeholder-en');
         });
 
-        // 切换选项激活状态（仅PC端语言选择器需要）
-        if (langCn && langEn) {
-            langCn.classList.toggle('active', currentLang === 'cn');
-            langEn.classList.toggle('active', currentLang === 'en');
-        }
-
-        // 触发全局语言切换事件，让页面其他组件响应（如评论区、AI按钮）
+        // 触发全局事件（通知 index.html 这种需要重算时间文字的页面）
         window.dispatchEvent(new Event('languageChange'));
     }
 
-    // 3. 语言切换函数（外部可调用，兼容PC下拉弹窗和移动端下拉菜单）
+    // 3. 暴露给外部调用的切换函数
     window.switchLang = function(lang) {
+        // 统一参数格式
+        if (lang === 'cn') lang = 'zh';
+
         currentLang = lang;
-        // 保存到本地存储，页面切换时持久化
+        // 存入本地，下次打开还是这个语言
+        // 注意：为了兼容旧代码可能存的 'cn'，这里存进去的还是转换后的 'zh' 或 'en'
         localStorage.setItem('appLang', lang);
-        // 应用新语言
-        initLang();
-        // 关闭PC端语言选择器下拉菜单（避免切换后菜单仍展开）
+
+        applyLangState(lang);
+
+        // 关闭下拉菜单
         if (langSelector) langSelector.classList.remove('active');
     };
 
-    // 4. 仅PC端初始化：语言选择器展开/收起（移动端不执行）
-    function initPcLangSelector() {
+    // 兼容旧代码里的 applyLang 调用（防止报错）
+    window.applyLang = function() {
+        // 空函数，因为 CSS 已经接管了一切
+    };
+
+    // 4. PC端交互逻辑 (保持原样，你的代码写的很好)
+    function initPcInteraction() {
         if (!langSelector || !langTrigger || isMobile) return;
 
-        // 展开/收起下拉菜单
-        langTrigger.addEventListener('click', () => {
-            langSelector.classList.toggle('active');
+        // 点击展开
+        langTrigger.addEventListener('click', (e) => {
+            if (!isDragging) {
+                langSelector.classList.toggle('active');
+            }
         });
 
-        // 点击外部关闭菜单
+        // 点击外部关闭
         document.addEventListener('click', (e) => {
             if (langSelector && !langSelector.contains(e.target)) {
                 langSelector.classList.remove('active');
@@ -67,18 +69,16 @@
         });
     }
 
-    // 5. 仅PC端初始化：长按拖拽功能（移动端不执行，避免触摸冲突）
+    // 5. 拖拽功能 (保持原样)
+    let isDragging = false;
     function initDragFeature() {
-        if (!langSelector || isMobile) return; // 移动端直接跳过拖拽初始化
+        if (!langSelector || isMobile) return;
 
-        let isDragging = false;
         let pressStartTime;
-        let startX, startY;
-        let offsetX, offsetY;
+        let startX, startY, offsetX, offsetY;
 
-        // 鼠标按下：记录初始状态
         langSelector.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.lang-option')) return; // 点击选项不触发拖拽
+            if (e.target.closest('.lang-option')) return;
             pressStartTime = Date.now();
             const rect = langSelector.getBoundingClientRect();
             startX = e.clientX;
@@ -87,25 +87,20 @@
             offsetY = startY - rect.top;
         });
 
-        // 鼠标移动：判断长按并更新位置
         document.addEventListener('mousemove', function(e) {
             if (!pressStartTime) return;
-            // 长按判断（250ms）+ 未进入拖拽状态
             if (!isDragging) {
-                const pressDuration = Date.now() - pressStartTime;
-                if (pressDuration > 250) {
+                if (Date.now() - pressStartTime > 200) {
                     isDragging = true;
                     langSelector.classList.add('dragging');
-                    langSelector.classList.remove('active'); // 拖拽时关闭菜单
+                    langSelector.classList.remove('active');
                 } else {
-                    return; // 短按移动不触发拖拽
+                    return;
                 }
             }
-            // 更新拖拽位置
             updateDragPosition(e);
         });
 
-        // 更新拖拽位置（边界限制）
         function updateDragPosition(e) {
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
@@ -115,34 +110,30 @@
             let newLeft = e.clientX - offsetX;
             let newTop = e.clientY - offsetY;
 
-            // 边界限制（留10px边距）
             newLeft = Math.max(10, Math.min(windowWidth - compWidth - 10, newLeft));
             newTop = Math.max(10, Math.min(windowHeight - compHeight - 10, newTop));
 
-            // 应用位置
             langSelector.style.left = `${newLeft}px`;
             langSelector.style.top = `${newTop}px`;
-            langSelector.style.right = 'auto';
+            langSelector.style.right = 'auto'; // 覆盖 CSS 的 right
             langSelector.style.bottom = 'auto';
         }
 
-        // 鼠标松开/离开：重置状态
         function resetDrag() {
             pressStartTime = null;
-            isDragging = false;
+            setTimeout(() => isDragging = false, 50); // 防止拖拽结束触发点击
             langSelector.classList.remove('dragging');
         }
         document.addEventListener('mouseup', resetDrag);
         document.addEventListener('mouseleave', resetDrag);
     }
 
-    // 6. 初始化入口（区分PC/移动端）
+    // 6. 启动
     function init() {
-        initLang(); // 无论PC/移动端，都初始化语言
-        initPcLangSelector(); // 仅PC端初始化下拉菜单交互
-        initDragFeature(); // 仅PC端初始化拖拽功能
+        applyLangState(currentLang);
+        initPcInteraction();
+        initDragFeature();
     }
 
-    // 页面加载时执行初始化
     window.addEventListener('load', init);
 })();

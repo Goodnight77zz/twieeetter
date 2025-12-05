@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- 默认设置 lang="zh"，CSS 会根据这个属性自动控制显隐 -->
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -92,7 +93,7 @@
         /* 标签样式 */
         .tag-badge {
             display: inline-block; padding: 2px 8px; border-radius: 12px;
-            background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px;
+            background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px; margin-right: 5px;
         }
 
         /* 手机端适配 */
@@ -152,7 +153,7 @@
     </div>
 </div>
 
-<!-- 语言切换悬浮球 -->
+<!-- 语言切换悬浮球 (使用新的 switchLang 参数) -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -160,7 +161,7 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" onclick="switchLang('zh')">中文</button>
         <button class="lang-option" onclick="switchLang('en')">English</button>
     </div>
 </div>
@@ -169,17 +170,32 @@
 <script src="common/lang-component.js"></script>
 
 <script>
+    // 标签翻译字典 (同步 profile 里的逻辑)
+    const tagTranslations = {
+        "AI": "AI",
+        "生物医学": "Biomedical",
+        "计算机": "Comp Sci",
+        "物理": "Physics",
+        "化学": "Chemistry",
+        "深度学习": "Deep Learning",
+        "数据分析": "Data Analysis"
+    };
+
     const currentUserId = localStorage.getItem("userId");
     if(!currentUserId) window.location.href = "login.html";
 
+    // 🔥 全局变量缓存数据，防止切换语言时重新请求网络
+    let globalTweets = [];
+
     // 初始化加载
     loadUserInfo();
-    loadFeed();
+    fetchFeed(); // 第一次从网络获取
 
-    // 监听语言切换
+    // 监听语言切换事件 (由 lang-component.js 触发)
     window.addEventListener('languageChange', function() {
-        // 当语言改变时，重新加载列表以更新时间格式，并强制应用语言显示规则
-        loadFeed();
+        // 语言切换时，直接利用缓存数据重新生成 HTML
+        // 这样时间格式会变，而且新生成的 HTML 会立即遵循 CSS 的显隐规则
+        renderFeed();
     });
 
     async function loadUserInfo() {
@@ -194,7 +210,6 @@
         } catch(e) {}
     }
 
-    // 跳转到我的个人主页
     function goToMyProfile() {
         if (currentUserId) {
             window.location.href = `user_profile.html?id=${currentUserId}`;
@@ -203,102 +218,118 @@
         }
     }
 
-    async function loadFeed() {
+    // 1. 获取数据 (只负责拿数据)
+    async function fetchFeed() {
         const container = document.getElementById("feedContainer");
-        // 获取当前语言，确保 JS 逻辑里用的也是最新的
-        const currentLang = localStorage.getItem('appLang') || 'cn';
-
         try {
             const res = await fetch('/api/tweets');
-            const list = await res.json();
-            container.innerHTML = "";
-
-            if(list.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:40px; color:#999;">
-                        <span class="cn">暂无内容，去发一条吧！</span>
-                        <span class="en">No tweets yet, go publish one!</span>
-                    </div>
-                `;
-                // 🔥 关键：插入HTML后立即应用语言规则
-                if(typeof applyLang === 'function') applyLang(currentLang);
-                return;
-            }
-
-            list.forEach(t => {
-                const avatar = t.author.avatar ? `/uploads/${t.author.avatar}` : 'https://via.placeholder.com/48';
-                const name = t.author.nickname || t.author.username;
-                // 时间根据语言格式化
-                const timeStr = formatRelativeTime(t.createTime, currentLang);
-
-                // 附件显示逻辑 (双语标签)
-                let fileHtml = "";
-                if(t.originalFilename) {
-                    fileHtml = `
-                        <div class="file-box" onclick="event.stopPropagation(); window.open('/uploads/${t.filePath.split(/[\\/]/).pop()}')">
-                            <div class="file-icon"><i class="fas fa-file-alt"></i></div>
-                            <div class="file-info">
-                                <span class="file-label">
-                                    <span class="cn">附件文档</span>
-                                    <span class="en">Attachment</span>
-                                </span>
-                                <span class="file-name">${t.originalFilename}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // 标签显示逻辑
-                let tagsHtml = "";
-                if(t.tags) {
-                    const tagsArr = t.tags.split(',');
-                    tagsHtml = tagsArr.map(tag => `
-                        <span class="tag-badge">
-                            <i class="fas fa-tag"></i> ${tag}
-                        </span>
-                    `).join(" ");
-                } else if (t.originalFilename && t.originalFilename.toLowerCase().endsWith(".pdf")) {
-                    tagsHtml = `<span class="tag-badge" style="background:#e6fffa; color:#00b894;"><i class="fas fa-robot"></i> AI Analysis Ready</span>`;
-                }
-
-                container.innerHTML += `
-                    <div class="tweet-card" onclick="location.href='detail.html?id=${t.id}'">
-                        <div class="card-header">
-                            <div class="author-box" onclick="event.stopPropagation(); location.href='user_profile.html?id=${t.author.id}'">
-                                <img src="${avatar}" class="author-avatar">
-                                <div>
-                                    <div class="author-name">${name}</div>
-                                    <div class="author-handle">@${t.author.username}</div>
-                                </div>
-                            </div>
-                            <div class="time-label">${timeStr}</div>
-                        </div>
-
-                        <div class="card-content">${t.content}</div>
-
-                        ${fileHtml}
-                        <div style="margin-top:5px;">${tagsHtml}</div>
-
-                        <div class="card-footer">
-                            <div class="action-item">
-                                <i class="far fa-heart"></i>
-                                <span>0</span>
-                            </div>
-                            <div class="action-item">
-                                <i class="far fa-comment"></i>
-                                <span class="cn">评论</span><span class="en">Comment</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // 🔥 关键：循环结束后，再次强制应用语言规则，防止“闪回”
-            if(typeof applyLang === 'function') applyLang(currentLang);
-
+            globalTweets = await res.json(); // 存入全局变量
+            renderFeed(); // 拿完数据去渲染
         } catch(e) {
             console.error(e);
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:red;">
+                    <span class="cn">加载失败</span>
+                    <span class="en">Load Failed</span>
+                </div>`;
         }
+    }
+
+    // 2. 渲染界面 (负责生成 HTML)
+    function renderFeed() {
+        const container = document.getElementById("feedContainer");
+        const list = globalTweets;
+        // 获取当前语言 (localStorage 里可能是 zh 或 en)
+        let currentLang = localStorage.getItem('appLang') || 'zh';
+        if(currentLang === 'cn') currentLang = 'zh'; // 兼容旧数据
+
+        if(list.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#999;">
+                    <span class="cn">暂无内容，去发一条吧！</span>
+                    <span class="en">No tweets yet, go publish one!</span>
+                </div>
+            `;
+            // 不需要再调用 applyLang，CSS 自动生效
+            return;
+        }
+
+        container.innerHTML = "";
+        list.forEach(t => {
+            const avatar = t.author.avatar ? `/uploads/${t.author.avatar}` : 'https://via.placeholder.com/48';
+            const name = t.author.nickname || t.author.username;
+            // 重新计算时间字符串 (根据当前语言)
+            const timeStr = formatRelativeTime(t.createTime, currentLang);
+
+            // 附件显示逻辑 (生成双语标签)
+            let fileHtml = "";
+            if(t.originalFilename) {
+                fileHtml = `
+                    <div class="file-box" onclick="event.stopPropagation(); window.open('/uploads/${t.filePath.split(/[\\/]/).pop()}')">
+                        <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="file-info">
+                            <span class="file-label">
+                                <span class="cn">附件文档</span>
+                                <span class="en">Attachment</span>
+                            </span>
+                            <span class="file-name">${t.originalFilename}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 标签显示逻辑 (支持翻译)
+            let tagsHtml = "";
+            if(t.tags) {
+                const tagsArr = t.tags.split(',');
+                tagsHtml = tagsArr.map(tag => {
+                    // 如果是英文模式，尝试翻译，否则显示原样
+                    const displayTag = currentLang === 'en' ? (tagTranslations[tag] || tag) : tag;
+                    return `
+                        <span class="tag-badge">
+                            <i class="fas fa-tag"></i> ${displayTag}
+                        </span>
+                    `;
+                }).join(" ");
+            } else if (t.originalFilename && t.originalFilename.toLowerCase().endsWith(".pdf")) {
+                tagsHtml = `<span class="tag-badge" style="background:#e6fffa; color:#00b894;">
+                    <i class="fas fa-robot"></i>
+                    <span class="cn">AI 分析就绪</span><span class="en">AI Analysis Ready</span>
+                </span>`;
+            }
+
+            // 生成卡片 HTML (注意：评论和查看详情按钮现在都包含了 .cn 和 .en)
+            container.innerHTML += `
+                <div class="tweet-card" onclick="location.href='detail.html?id=${t.id}'">
+                    <div class="card-header">
+                        <div class="author-box" onclick="event.stopPropagation(); location.href='user_profile.html?id=${t.author.id}'">
+                            <img src="${avatar}" class="author-avatar">
+                            <div>
+                                <div class="author-name">${name}</div>
+                                <div class="author-handle">@${t.author.username}</div>
+                            </div>
+                        </div>
+                        <div class="time-label">${timeStr}</div>
+                    </div>
+
+                    <div class="card-content">${t.content}</div>
+
+                    ${fileHtml}
+                    <div style="margin-top:5px;">${tagsHtml}</div>
+
+                    <div class="card-footer">
+                        <div class="action-item">
+                            <i class="far fa-heart"></i>
+                            <span>0</span>
+                        </div>
+                        <div class="action-item">
+                            <i class="far fa-comment"></i>
+                            <span class="cn">评论</span><span class="en">Comment</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
     }
 
     function formatRelativeTime(timestamp, lang) {
@@ -310,7 +341,7 @@
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
 
-        if(lang === 'cn') {
+        if(lang === 'zh' || lang === 'cn') { // 兼容
             if(seconds < 60) return "刚刚";
             if(minutes < 60) return `${minutes}分钟前`;
             if(hours < 24) return `${hours}小时前`;
@@ -324,8 +355,10 @@
     }
 
     function logout() {
-        const lang = localStorage.getItem('appLang') || 'cn';
-        if(confirm(lang === 'cn' ? '确定要退出吗？' : 'Are you sure to logout?')) {
+        const lang = localStorage.getItem('appLang') || 'zh';
+        // 确认框的文字只能是纯文本，需要 JS 判断
+        const msg = (lang === 'zh' || lang === 'cn') ? '确定要退出吗？' : 'Are you sure to logout?';
+        if(confirm(msg)) {
             localStorage.clear();
             window.location.href = "login.html";
         }

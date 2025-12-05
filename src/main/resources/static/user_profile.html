@@ -101,7 +101,6 @@
                 <div id="pBio" class="bio"></div>
 
                 <div class="stats">
-                    <!-- 使用 span 包裹，防止 updateText 时丢失 -->
                     <span>
                         <span id="statTweet" class="stat-num">0</span>
                         <span class="cn">研究</span><span class="en">Research</span>
@@ -119,7 +118,6 @@
         </div>
     </div>
 
-    <!-- 🔥 修复：这里的标题使用了静态双语标签，不再依赖 JS 动态修改 innerText -->
     <div>
         <div class="section-header">
             <span class="cn">全部研究成果</span>
@@ -136,7 +134,7 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" onclick="switchLang('zh')">中文</button>
         <button class="lang-option" onclick="switchLang('en')">English</button>
     </div>
 </div>
@@ -156,12 +154,10 @@
     // 监听语言切换
     window.addEventListener('languageChange', function() {
         const currentLang = localStorage.getItem('appLang') || 'cn';
-        // 重新加载推文列表以更新时间格式
         loadTweets();
-        // 重新渲染按钮（因为按钮是 JS 生成的，需要重绘双语结构）
         renderButton();
-        // 更新简介的默认文本
         updateBioText();
+        updateStatsText(); // 确保统计数字下的文字也更新
     });
 
     async function loadProfile() {
@@ -170,8 +166,6 @@
 
         document.getElementById("pNickname").innerText = user.nickname || user.username;
         document.getElementById("pUsername").innerText = "@" + user.username;
-
-        // 存原始 bio 数据以便切换语言时使用
         document.getElementById("pBio").setAttribute("data-bio", user.bio || "");
         updateBioText();
 
@@ -198,20 +192,28 @@
         }
     }
 
-    // 🔥 修复：生成的按钮直接包含双语结构，让 CSS 控制显隐，而不是 JS 判读语言
+    // 更新统计栏文字（防止动态生成后丢失样式）
+    function updateStatsText() {
+        if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
+    }
+
     async function renderButton() {
         const area = document.getElementById("actionArea");
 
+        // 1. 判断是否是自己
         if (targetUserId == currentUserId) {
             area.innerHTML = `
                 <button class="action-btn btn-edit" onclick="location.href='profile.html'">
                     <span class="cn">编辑资料</span>
                     <span class="en">Edit Profile</span>
                 </button>`;
+
+            // 🔥 关键修复：插入HTML后立即应用语言规则
             if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
             return;
         }
 
+        // 2. 判断是否已关注
         const res = await fetch(`/api/users/${currentUserId}/following`);
         const myFriends = await res.json();
         const isFollowing = myFriends.some(u => u.id == targetUserId);
@@ -220,8 +222,8 @@
             area.innerHTML = `
                 <button class="action-btn btn-followed" onclick="toggleFollow(false)"
                     onmouseover="showUnfollowText(this)" onmouseout="showFollowedText(this)">
-                    <span class="cn text-val">已关注</span>
-                    <span class="en text-val">Followed</span>
+                    <span class="cn">已关注</span>
+                    <span class="en">Followed</span>
                 </button>`;
         } else {
             area.innerHTML = `
@@ -231,20 +233,24 @@
                 </button>`;
         }
 
-        // 关键：生成完 HTML 后立即应用语言规则
+        // 🔥 关键修复：插入HTML后立即应用语言规则
         if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
     }
 
-    // 辅助函数：鼠标悬停改变已关注按钮文字
     function showUnfollowText(btn) {
-        const lang = localStorage.getItem('appLang') || 'cn';
-        btn.querySelector('.cn').innerText = "取消关注";
-        btn.querySelector('.en').innerText = "Unfollow";
+        // 鼠标悬停时手动修改双语标签的内容
+        const cnSpan = btn.querySelector('.cn');
+        const enSpan = btn.querySelector('.en');
+        if(cnSpan) cnSpan.innerText = "取消关注";
+        if(enSpan) enSpan.innerText = "Unfollow";
     }
+
     function showFollowedText(btn) {
-        const lang = localStorage.getItem('appLang') || 'cn';
-        btn.querySelector('.cn').innerText = "已关注";
-        btn.querySelector('.en').innerText = "Followed";
+        // 鼠标移出时恢复
+        const cnSpan = btn.querySelector('.cn');
+        const enSpan = btn.querySelector('.en');
+        if(cnSpan) cnSpan.innerText = "已关注";
+        if(enSpan) enSpan.innerText = "Followed";
     }
 
     async function toggleFollow(doFollow) {
@@ -262,7 +268,7 @@
 
         if(msg.includes("成功") || msg.includes("success") || msg.includes("取消") || msg.includes("cancelled")) {
             renderButton();
-            loadProfile(); // 刷新粉丝数
+            loadProfile();
         }
     }
 
@@ -282,7 +288,7 @@
             return;
         }
 
-        container.innerHTML = ""; // 先清空，避免累积
+        container.innerHTML = "";
         list.forEach(t => {
             const timeStr = t.createTime.replace('T', ' ').split('.')[0];
             let fileHtml = t.originalFilename ? `<div style="font-size:13px; color:#1da1f2; margin-top:8px; font-weight:bold;">📎 ${t.originalFilename}</div>` : '';
@@ -299,7 +305,6 @@
         if(typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    // 初始化加载
     loadProfile();
     loadTweets();
 </script>
