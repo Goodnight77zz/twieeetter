@@ -15,7 +15,6 @@ import java.io.IOException;
 @Service
 public class FileService {
 
-    // 对外的主方法：根据后缀名自动选择读取方式
     public String extractTextFromFile(String filePath) {
         File file = new File(filePath);
         if (!file.exists()) {
@@ -25,19 +24,13 @@ public class FileService {
         String lowerPath = filePath.toLowerCase();
 
         try {
-            // 1. 如果是 PDF
             if (lowerPath.endsWith(".pdf")) {
                 return readPdf(file);
-            }
-            // 2. 如果是新版 Word (.docx)
-            else if (lowerPath.endsWith(".docx")) {
+            } else if (lowerPath.endsWith(".docx")) {
                 return readDocx(file);
-            }
-            // 3. 如果是旧版 Word (.doc)
-            else if (lowerPath.endsWith(".doc")) {
+            } else if (lowerPath.endsWith(".doc")) {
                 return readDoc(file);
-            }
-            else {
+            } else {
                 return "不支持的文件格式，目前仅支持 PDF, DOC, DOCX";
             }
         } catch (Exception e) {
@@ -46,43 +39,49 @@ public class FileService {
         }
     }
 
-    // --- 具体的读取逻辑 ---
-
+    // === 读取 PDF (无限制版) ===
     private String readPdf(File file) throws IOException {
         try (PDDocument document = PDDocument.load(file)) {
-            // 限制读取前5页，防止太长
-            int maxPages = Math.min(document.getNumberOfPages(), 5);
+            // 🔥 修改点 1：删除了 maxPages 限制，读取所有页
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSortByPosition(true);
-            stripper.setStartPage(1);
-            stripper.setEndPage(maxPages);
-            return truncate(stripper.getText(document));
+            // 默认就是从第1页读到最后一页
+            return cleanText(stripper.getText(document));
         }
     }
 
+    // === 读取 Word .docx (无限制版) ===
     private String readDocx(File file) throws IOException {
         try (FileInputStream fis = new FileInputStream(file);
              XWPFDocument doc = new XWPFDocument(fis);
              XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
-            return truncate(extractor.getText());
+            return cleanText(extractor.getText());
         }
     }
 
+    // === 读取 Word .doc (无限制版) ===
     private String readDoc(File file) throws IOException {
         try (FileInputStream fis = new FileInputStream(file);
              HWPFDocument doc = new HWPFDocument(fis);
              WordExtractor extractor = new WordExtractor(doc)) {
-            return truncate(extractor.getText());
+            return cleanText(extractor.getText());
         }
     }
 
-    // 截断文本辅助方法 (防止 AI 内存溢出)
-    private String truncate(String text) {
+    // === 🔥 修改点 2：改名为 cleanText，不再截断字数 ===
+    private String cleanText(String text) {
         if (text == null) return "";
-        String cleanText = text.trim();
-        if (cleanText.length() > 3000) {
-            return cleanText.substring(0, 3000) + "...(内容过长已截断)";
+        // 简单清洗：去掉多余的空白字符，节省 Token
+        return text.trim();
+
+        // ⚠️ 注意：DeepSeek V3 最大支持约 60000 字符。
+        // 如果你的论文特别长（比如博士论文），可能还是需要截断，
+        // 但对于普通 10-20 页的论文，这里不需要限制了。
+        /*
+        if (cleanText.length() > 60000) {
+            return cleanText.substring(0, 60000) + "...(超长截断)";
         }
         return cleanText;
+        */
     }
 }
