@@ -130,7 +130,90 @@
             to { transform: rotate(360deg); }
         }
 
-
+        /* 语言选择器样式（核心：明确定位和拖拽反馈） */
+        .lang-selector {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            z-index: 9999; /* 确保不被遮挡 */
+            padding: 5px;
+            border-radius: 8px;
+            /* 关键：初始位置用top/right，拖拽后用left/top覆盖 */
+            left: auto;
+            bottom: auto;
+        }
+        /* 拖拽时的视觉反馈（必加，让你知道正在拖拽） */
+        .lang-selector.dragging {
+            opacity: 0.9;
+            box-shadow: 0 4px 16px rgba(29, 161, 242, 0.3);
+            cursor: grabbing;
+        }
+        /* 原有语言选择器样式完全保留 */
+        .lang-trigger {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .lang-trigger:hover {
+            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
+            transform: scale(1.05);
+        }
+        .lang-trigger svg {
+            width: 24px;
+            height: 24px;
+            color: #1da1f2;
+        }
+        .lang-dropdown {
+            margin-top: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            width: 120px;
+        }
+        .lang-selector.active .lang-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .lang-option {
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333 !important;
+        }
+        .lang-option:hover {
+            background-color: #f5f8fa;
+        }
+        .lang-option.active {
+            color: #1da1f2;
+            font-weight: 500;
+        }
+        .lang-option svg {
+            width: 16px;
+            height: 16px;
+        }
 
         /* 隐藏英文文本（默认显示中文） */
         .en {
