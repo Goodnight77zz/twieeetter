@@ -1,7 +1,7 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Data; // 既然你用了 Lombok，我就继续用 Data
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,17 +12,18 @@ public class Tweet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 1000) // 论文摘要或描述，给长一点
+    @Column(length = 1000)
     private String content;
 
-    // === 新增：文件相关字段 ===
-    private String filePath;         // 文件在硬盘上的真实路径
-    private String originalFilename; // 文件的原始名字 (例如: algorithm_v1.pdf)
-    // =======================
+    private String filePath;
+    private String originalFilename;
+
+    // === 🔥 新增：标签字段 ===
+    @Column(name = "tags")
+    private String tags;
 
     private LocalDateTime createTime;
 
-    // 关联用户 (多对一)
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User author;

@@ -7,10 +7,14 @@ import java.util.List;
 
 @Repository
 public interface TweetRepository extends JpaRepository<Tweet, Long> {
-    // 获取所有推文，按时间倒序（最新的在最上面）
-    List<Tweet> findAllByOrderByCreateTimeDesc();
 
-    // 统计某人发了多少推文
+    // 原有方法
+    List<Tweet> findAllByOrderByCreateTimeDesc();
     long countByAuthorId(Long userId);
     List<Tweet> findByAuthorIdOrderByCreateTimeDesc(Long userId);
+
+    // === 搜索方法 (内容包含 OR 标签包含) ===
+    // Spring Data JPA 会自动解析这个名字，生成 SQL:
+    // SELECT * FROM tweets WHERE content LIKE %?% OR tags LIKE %?% ORDER BY create_time DESC
+    List<Tweet> findByContentContainingOrTagsContainingOrderByCreateTimeDesc(String contentKeyword, String tagKeyword);
 }

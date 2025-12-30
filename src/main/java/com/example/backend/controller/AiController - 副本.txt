@@ -20,9 +20,12 @@ public class AiController {
     @Autowired
     private AiService aiService;
 
+    // 🔥 修改点：增加了 lang 参数，默认值为 zh
     @PostMapping("/evaluate/{tweetId}")
-    public Map<String, String> evaluatePaper(@PathVariable Long tweetId) {
-        // 1. 查数据库找到推文信息
+    public Map<String, String> evaluatePaper(
+            @PathVariable Long tweetId,
+            @RequestParam(defaultValue = "zh") String lang
+    ) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("未找到该研究记录"));
 
@@ -31,11 +34,10 @@ public class AiController {
             return Map.of("result", "该研究没有上传附件，AI 无法评审。");
         }
 
-        // 2. 提取 PDF 文本
         String extractedText = fileService.extractTextFromFile(filePath);
 
-        // 3. 调用 AI 分析
-        String aiResponse = aiService.callAiReview(extractedText);
+        // 🔥 修改点：把 lang 传给 Service
+        String aiResponse = aiService.callAiReview(extractedText, lang);
 
         return Map.of("result", aiResponse);
     }

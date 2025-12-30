@@ -18,59 +18,46 @@ import java.util.UUID;
 @Service
 public class TweetService {
 
-    @Autowired
-    private TweetRepository tweetRepository;
+    @Autowired private TweetRepository tweetRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    // 读取配置文件里的 file.upload.dir
     @Value("${file.upload.dir}")
     private String uploadDir;
 
-    // 发布带论文的推文
-    public Tweet postTweetWithFile(String content, Long userId, MultipartFile file) throws IOException {
-        // 1. 找用户
+    // === 🔥 修改：增加了 tags 参数 ===
+    public Tweet postTweetWithFile(String content, Long userId, String tags, MultipartFile file) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
-        // 2. 准备推文对象
         Tweet tweet = new Tweet();
         tweet.setContent(content);
         tweet.setAuthor(user);
+        tweet.setTags(tags); // 保存标签到数据库
         tweet.setCreateTime(LocalDateTime.now());
 
-        // 3. 处理文件上传逻辑
         if (file != null && !file.isEmpty()) {
-            // 获取原始文件名 (例如: my_paper.pdf)
-            String originalFilename = file.getOriginalFilename();
-
-            // 生成一个唯一的文件名，防止文件名冲突 (例如: uuid_my_paper.pdf)
             String uuid = UUID.randomUUID().toString();
-            String newFileName = uuid + "_" + originalFilename;
+            String newFileName = uuid + "_" + file.getOriginalFilename();
 
-            // 创建目标文件对象
             File destFile = new File(uploadDir + newFileName);
-
-            // 确保文件夹存在
             if (!destFile.getParentFile().exists()) {
                 destFile.getParentFile().mkdirs();
             }
-
-            // **核心动作：把文件写入硬盘**
             file.transferTo(destFile);
 
-            // 把路径保存到数据库对象里
             tweet.setFilePath(destFile.getAbsolutePath());
-            tweet.setOriginalFilename(originalFilename);
+            tweet.setOriginalFilename(file.getOriginalFilename());
         }
-
-        // 4. 保存到数据库
         return tweetRepository.save(tweet);
     }
 
-    // 获取列表
     public List<Tweet> getAllTweets() {
         return tweetRepository.findAllByOrderByCreateTimeDesc();
+    }
+
+    // === 搜索逻辑 ===
+    public List<Tweet> searchTweets(String keyword) {
+        // 调用 Repository 的搜索方法
+        return tweetRepository.findByContentContainingOrTagsContainingOrderByCreateTimeDesc(keyword, keyword);
     }
 }

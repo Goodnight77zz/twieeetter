@@ -36,7 +36,7 @@ public class TweetController {
             return "发布成功";
         } catch (Exception e) {
             e.printStackTrace();
-            return "发布失败: " + e.getMessage();
+            return "发布失败: " + e.getMessage                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ();
         }
     }
 

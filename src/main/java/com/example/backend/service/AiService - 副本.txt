@@ -16,50 +16,62 @@ import java.util.Map;
 @Service
 public class AiService {
 
-    // 从配置文件读取 URL 和 Key
     @Value("${deepseek.api.url}")
     private String apiUrl;
 
     @Value("${deepseek.api.key}")
     private String apiKey;
 
-    public String callAiReview(String paperContent) {
+    // 🔥 修改点：增加 lang 参数
+    public String callAiReview(String paperContent, String lang) {
         RestTemplate restTemplate = new RestTemplate();
 
-        // 1. 构造 Prompt (提示词) - 可以根据 DeepSeek 的特点微调
-        String systemPrompt = "你是一个资深的学术评审专家。请对用户提供的论文内容进行专业评审。\n" +
-                "请严格按照以下格式输出 HTML 代码（不要包含 ```html 标记）：\n" +
-                "1. **创新点**：列出3条。\n" +
-                "2. **方法论分析**：简要评价技术路线。\n" +
-                "3. **改进建议**：给出具体可行的建议。\n" +
-                "内容要精炼，语气要客观。";
+        // 🔥 根据语言生成不同的提示词
+        String systemPrompt;
 
-        // 2. 构造请求体
+        if ("en".equals(lang)) {
+            // === 英文提示词 ===
+            systemPrompt = "You are a senior academic reviewer. Users will provide a full academic paper.\n" +
+                    "Please read the full text and output a review report strictly in the following HTML format (do not include ```html tags):\n\n" +
+                    "<h3>1. Core Contributions</h3>\n" +
+                    "<p>Summarize the problems solved and the main innovations (list 3 points).</p>\n" +
+                    "<h3>2. Methodology Evaluation</h3>\n" +
+                    "<p>Analyze the rationality of the technical route and point out pros and cons.</p>\n" +
+                    "<h3>3. Improvements</h3>\n" +
+                    "<p>Give specific suggestions for the shortcomings.</p>\n\n" +
+                    "Note: The output must be professional, objective, and **MUST BE IN ENGLISH**.";
+        } else {
+            // === 中文提示词 ===
+            systemPrompt = "你是一个资深的学术评审专家。用户将提供一篇完整的学术论文内容。\n" +
+                    "请阅读全文，并严格按照以下 HTML 格式输出评审报告（不要包含 ```html 标记）：\n\n" +
+                    "<h3>1. 核心贡献 (Core Contributions)</h3>\n" +
+                    "<p>总结论文解决了什么问题，以及主要的创新点（列出3点）。</p>\n" +
+                    "<h3>2. 方法论评估 (Methodology)</h3>\n" +
+                    "<p>分析其技术路线的合理性，指出优缺点。</p>\n" +
+                    "<h3>3. 改进建议 (Improvements)</h3>\n" +
+                    "<p>针对不足之处给出具体建议。</p>\n\n" +
+                    "注意：输出内容要专业、客观，**请必须使用中文进行评审**。";
+        }
+
         Map<String, Object> requestBody = new HashMap<>();
-        // 重要：DeepSeek 必须指定模型名称，常用 'deepseek-chat' (V3) 或 'deepseek-reasoner' (R1)
         requestBody.put("model", "deepseek-chat");
-        requestBody.put("temperature", 1.3); // DeepSeek 建议 V3 设为 1.3 以获得更丰富的内容
+        requestBody.put("temperature", 1.3);
 
-        // 构造消息列表
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemPrompt));
-        messages.add(Map.of("role", "user", "content", "论文内容如下:\n" + paperContent));
+        messages.add(Map.of("role", "user", "content", "论文全文内容如下:\n" + paperContent));
 
         requestBody.put("messages", messages);
-        requestBody.put("stream", false); // 关闭流式输出，一次性返回
+        requestBody.put("stream", false);
 
-        // 3. 构造请求头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + apiKey); // 鉴权头
+        headers.set("Authorization", "Bearer " + apiKey);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            // 发送 POST 请求
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
-
-            // 4. 解析返回结果 (结构和 OpenAI 一样)
             Map<String, Object> body = response.getBody();
             if (body != null && body.containsKey("choices")) {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) body.get("choices");
@@ -72,7 +84,7 @@ public class AiService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "AI 服务调用失败: " + e.getMessage(); // 在前端显示报错信息
+            return "AI 服务调用失败: " + e.getMessage();
         }
     }
 }

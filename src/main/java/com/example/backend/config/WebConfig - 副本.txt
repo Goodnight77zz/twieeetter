@@ -14,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 映射规则：
-        // 访问 http://localhost:8080/uploads/abc.jpg
+        // 访问 http://localhost:8080/uploads/abc.jpg(commit更新测试)
         // 实际上去读取 D:/fyp_uploads/abc.jpg
 
         // 注意：Windows下文件路径必须以 file: 开头
