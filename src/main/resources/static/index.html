@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- 默认设置 lang="zh"，CSS 会根据这个属性自动控制显隐 -->
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -8,99 +7,163 @@
         <span class="cn">Twieeetter - 学术交流平台</span>
         <span class="en">Twieeetter - Academic Plaza</span>
     </title>
-    <!-- 引入通用语言组件CSS -->
     <link rel="stylesheet" href="common/lang-component.css">
-    <!-- 引入图标库 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; }
+        /* === 全局布局 === */
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; display: block !important; }
 
-        /* 顶部导航栏 */
+        /* === 导航栏 === */
         .navbar {
             position: fixed; top: 0; width: 100%; background: white; height: 64px;
             display: flex; align-items : center; justify-content: space-between;
             padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); z-index: 1000; box-sizing: border-box;
         }
 
-        .nav-left { display: flex; align-items: center; gap: 20px; }
-        .brand { font-size: 24px; font-weight: 900; color: #1da1f2; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+        .nav-left { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+        .brand { font-size: 24px; font-weight: 900; color: #1da1f2; text-decoration: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 
-        /* 创作中心按钮 */
         .btn-create {
             background: linear-gradient(90deg, #00a1d6, #00b5e5);
             color: white; padding: 8px 20px; border-radius: 20px;
             text-decoration: none; font-weight: bold; font-size: 14px;
             display: flex; align-items: center; gap: 5px; transition: transform 0.2s;
+            white-space: nowrap; flex-shrink: 0;
         }
         .btn-create:hover { transform: scale(1.05); }
 
-        .nav-right { display: flex; align-items: center; gap: 25px; }
+        /* === 🔥 导航栏右侧布局 (加大间距) === */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 40px; /* 🔥 间距加大到 40px，解决拥挤问题 */
+            flex-shrink: 0;
+        }
 
-        /* 导航链接样式 */
+        /* 通用导航链接 */
         .nav-item {
             text-decoration: none; color: #555; font-weight: 600; font-size: 15px;
-            display: flex; align-items: center; gap: 6px; transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px; transition: color 0.2s; position: relative;
+            white-space: nowrap;
         }
         .nav-item:hover { color: #1da1f2; }
 
-        /* 用户信息 */
-        .user-info { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; }
-        .username { font-weight: bold; color: #333; }
-
-        /* 退出按钮 */
-        .btn-logout {
-            border: 1px solid #ff4d4f; color: #ff4d4f; background: white;
-            padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 13px;
-            transition: all 0.2s;
+        /* === 🔥 消息图标专用容器 (固定大小，保证红点位置准确) === */
+        .nav-icon-btn {
+            text-decoration: none;
+            color: #555;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 限制容器大小，让红点紧贴图标 */
+            width: 24px;
+            height: 24px;
+            transition: color 0.2s;
         }
-        .btn-logout:hover { background: #fff1f0; }
+        .nav-icon-btn:hover { color: #1da1f2; }
 
-        /* 主内容区 */
+        /* === 🔥🔥 B站同款红点 (最终修正版) 🔥🔥 === */
+        #msgBadge {
+            position: absolute;
+            /* 定位：挂在右上角，稍微突出去一点点 */
+            top: -6px;
+            right: -8px;
+
+            /* 尺寸：固定高度，最小宽度，保证是正圆 */
+            height: 16px;
+            min-width: 16px;
+            padding: 0 4px; /* 数字多了自动变椭圆 */
+            border-radius: 9px; /* 半径是高度的一半 */
+
+            /* 颜色 */
+            background-color: #fa5a57; /* B站红 */
+            color: white;
+            border: 2px solid #fff; /* 🔥 关键：白色描边，制造悬浮感 */
+
+            /* 字体 */
+            font-size: 10px;
+            font-weight: 900;
+            font-family: Arial, sans-serif;
+
+            /* 布局：Flex 保证数字绝对居中 */
+            display: none; /* JS 改为 flex */
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-sizing: border-box; /* 包含边框尺寸 */
+        }
+
+        /* === 头像样式 === */
+        .avatar {
+            width: 32px !important; height: 32px !important;
+            border-radius: 50%; object-fit: cover; border: 1px solid #eee; display: block;
+        }
+
+        /* === 悬浮菜单 (保持之前的大尺寸优化) === */
+        .user-menu-container {
+            position: relative; height: 64px; display: flex; align-items: center; cursor: pointer; z-index: 2000;
+        }
+        .avatar-wrapper {
+            position: relative; z-index: 2002; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .user-menu-container:hover .avatar-wrapper {
+            transform: scale(2.2) translateY(18px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 50%;
+        }
+        .user-popover {
+            position: absolute; top: 60px; left: 50%;
+            transform: translateX(-50%) translateY(-15px) scale(0.95);
+            width: 240px; background: white; border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1); padding: 55px 20px 35px;
+            opacity: 0; visibility: hidden; transition: all 0.2s ease-out;
+            z-index: 2001; text-align: center; border: 1px solid #f0f0f0;
+        }
+        .user-menu-container:hover .user-popover {
+            opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0) scale(1);
+        }
+        .popover-name { font-size: 18px; font-weight: 900; color: #fb7299; margin-bottom: 6px; display: block; line-height: 1.2; }
+        .level-badge { display: inline-block; font-size: 12px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; font-weight: bold; transform: scale(0.9); }
+        .popover-credit { font-size: 12px; color: #9499a0; margin-top: 8px; margin-bottom: 15px; }
+        .credit-num { color: #222; font-weight: bold; margin-left: 4px; }
+        .popover-stats { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e3e5e7; }
+        .stat-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s; }
+        .stat-item:hover .stat-num, .stat-item:hover .stat-label { color: #1da1f2; }
+        .stat-num { font-size: 18px; font-weight: 800; color: #18191c; line-height: 1.2; }
+        .stat-label { font-size: 12px; color: #9499a0; margin-top: 2px; }
+        .popover-menu { text-align: left; display: flex; flex-direction: column; gap: 2px; }
+        .pop-menu-item { display: flex; align-items: center; padding: 10px 15px; color: #61666d; text-decoration: none; font-size: 14px; border-radius: 4px; transition: background 0.2s; }
+        .pop-menu-item:hover { background-color: #e3e5e7; color: #18191c; }
+        .pop-menu-item i { width: 24px; text-align: center; margin-right: 10px; font-size: 16px; color: #9499a0; }
+        .pop-menu-item:hover i { color: #18191c; }
+        .pop-menu-item.logout { margin-top: 8px; padding-top: 15px; border-top: 1px solid #e3e5e7; }
+        .pop-menu-item.logout:hover { background-color: transparent; color: #ff4d4f; }
+        .pop-menu-item.logout:hover i { color: #ff4d4f; }
+
+        /* 内容区样式 */
         .container { max-width: 700px; margin: 20px auto; padding-bottom: 40px; }
-
-        /* 推文卡片 */
-        .tweet-card {
-            background: white; border-radius: 12px; padding: 20px;
-            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s; cursor: pointer; position: relative;
-        }
+        .tweet-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer; position: relative; }
         .tweet-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-
         .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .author-box { display: flex; gap: 12px; }
         .author-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
         .author-name { font-weight: bold; font-size: 16px; color: #0f1419; }
         .author-handle { color: #536471; font-size: 14px; }
         .time-label { color: #536471; font-size: 13px; }
-
         .card-content { font-size: 16px; line-height: 1.6; color: #0f1419; margin-bottom: 15px; white-space: pre-wrap; }
-
-        /* 附件展示 */
-        .file-box {
-            background: #f7f9f9; border: 1px solid #cfd9de; border-radius: 12px;
-            padding: 12px; display: flex; align-items: center; gap: 12px; margin-top: 10px;
-        }
+        .file-box { background: #f7f9f9; border: 1px solid #cfd9de; border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; margin-top: 10px; }
         .file-icon { font-size: 24px; color: #536471; background: #eff3f4; padding: 8px; border-radius: 8px; }
         .file-info { display: flex; flex-direction: column; overflow: hidden; }
         .file-name { font-weight: bold; color: #1da1f2; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .file-label { font-size: 12px; color: #536471; }
-
-        /* 底部操作栏 */
         .card-footer { display: flex; gap: 20px; margin-top: 15px; border-top: 1px solid #eff3f4; padding-top: 10px; color: #536471; font-size: 14px; }
         .action-item { display: flex; align-items: center; gap: 5px; cursor: pointer; transition: color 0.2s; }
         .action-item:hover { color: #1da1f2; }
         .like-num { font-weight: bold; }
+        .tag-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px; margin-right: 5px; }
 
-        /* 标签样式 */
-        .tag-badge {
-            display: inline-block; padding: 2px 8px; border-radius: 12px;
-            background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px; margin-right: 5px;
-        }
-
-        /* 手机端适配 */
         @media (max-width: 600px) {
-            .nav-item span { display: none; } /* 手机端隐藏导航文字只留图标 */
+            .nav-item span { display: none; }
             .btn-create span { display: none; }
             .navbar { padding: 0 10px; }
         }
@@ -108,7 +171,6 @@
 </head>
 <body>
 
-<!-- 顶部导航栏 -->
 <div class="navbar">
     <div class="nav-left">
         <a href="index.html" class="brand">
@@ -121,33 +183,87 @@
         </a>
     </div>
 
+    <!-- 🔥 导航栏右侧：顺序[头像 -> 消息 -> 好友 -> 搜索] -->
     <div class="nav-right">
-        <a href="search.html" class="nav-item">
-            <i class="fas fa-search"></i>
-            <span class="cn">搜索</span>
-            <span class="en">Search</span>
-        </a>
 
-        <a href="friends.html" class="nav-item">
-            <i class="fas fa-users"></i>
-            <span class="cn">好友列表</span>
-            <span class="en">Friends</span>
-        </a>
+        <!-- 1. 头像悬浮菜单 -->
+        <div class="user-menu-container">
+            <div class="avatar-wrapper" onclick="goToMyProfile()">
+                <img id="navAvatar" src="https://via.placeholder.com/32" class="avatar">
+            </div>
 
-        <!-- 用户信息 -->
-        <div class="user-info" onclick="goToMyProfile()">
-            <img id="navAvatar" src="https://via.placeholder.com/32" class="avatar">
-            <span id="navUsername" class="username">User</span>
+            <!-- 悬浮卡片 -->
+            <div class="user-popover">
+                <div style="margin-top: 5px;">
+                    <span id="popName" class="popover-name">User</span>
+                </div>
+                <div>
+                    <span id="popLevel" class="level-badge" style="background:#99a2aa; color:white;">
+                        <span class="cn">普通用户</span><span class="en">User</span>
+                    </span>
+                </div>
+                <div class="popover-credit">
+                    <span class="cn">学术积分</span><span class="en">Credits</span>
+                    <span id="popReputation" class="credit-num">0</span>
+                </div>
+                <div class="popover-stats">
+                    <div class="stat-item" onclick="location.href='friends.html'">
+                        <div class="stat-num" id="popFollowing">0</div>
+                        <div class="stat-label"><span class="cn">关注</span><span class="en">Follow</span></div>
+                    </div>
+                    <div class="stat-item" onclick="goToMyProfile()">
+                        <div class="stat-num" id="popFollower">0</div>
+                        <div class="stat-label"><span class="cn">粉丝</span><span class="en">Fans</span></div>
+                    </div>
+                    <div class="stat-item" onclick="location.href='content.html'">
+                        <div class="stat-num" id="popTweets">0</div>
+                        <div class="stat-label"><span class="cn">投稿</span><span class="en">Posts</span></div>
+                    </div>
+                </div>
+                <div class="popover-menu">
+                    <a href="dashboard.html" class="pop-menu-item">
+                        <i class="fas fa-home"></i>
+                        <span class="cn">创作中心</span><span class="en">Creator Center</span>
+                    </a>
+                    <a href="profile.html" class="pop-menu-item">
+                        <i class="fas fa-user-edit"></i>
+                        <span class="cn">修改资料</span><span class="en">Edit Profile</span>
+                    </a>
+                    <a href="content.html" class="pop-menu-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="cn">稿件管理</span><span class="en">Manuscripts</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="pop-menu-item logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="cn">退出登录</span><span class="en">Logout</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <button onclick="logout()" class="btn-logout">
-            <span class="cn">退出</span>
-            <span class="en">Logout</span>
-        </button>
+        <!-- 2. 消息通知 -->
+        <a href="notifications.html" class="nav-icon-btn">
+            <i class="fas fa-envelope" style="font-size: 22px;"></i>
+            <!-- 红点：JS检测到有消息会自动显示 -->
+            <span id="msgBadge">0</span>
+        </a>
+
+        <!-- 3. 好友 -->
+        <a href="friends.html" class="nav-item">
+            <i class="fas fa-users"></i>
+            <span class="cn">好友</span><span class="en">Friends</span>
+        </a>
+
+        <!-- 4. 搜索 -->
+        <a href="search.html" class="nav-item">
+            <i class="fas fa-search"></i>
+            <span class="cn">搜索</span><span class="en">Search</span>
+        </a>
+
     </div>
 </div>
 
-<!-- 主内容：推文流 -->
+<!-- 主内容 -->
 <div class="container" id="feedContainer">
     <div style="text-align: center; padding: 40px; color: #999;">
         <span class="cn">加载中...</span>
@@ -155,7 +271,7 @@
     </div>
 </div>
 
-<!-- 语言切换悬浮球 -->
+<!-- 语言切换 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -172,7 +288,6 @@
 <script src="common/lang-component.js"></script>
 
 <script>
-    // 标签翻译字典
     const tagTranslations = {
         "AI": "AI",
         "生物医学": "Biomedical",
@@ -186,63 +301,104 @@
     const currentUserId = localStorage.getItem("userId");
     if(!currentUserId) window.location.href = "login.html";
 
-    // 全局变量缓存数据
     let globalTweets = [];
 
-    // 初始化
-    loadUserInfo();
+    loadNavData();
     fetchFeed();
+    startMsgPolling();
 
-    // 监听语言切换
     window.addEventListener('languageChange', function() {
         renderFeed();
+        loadNavData();
     });
 
-    async function loadUserInfo() {
-        const username = localStorage.getItem("username");
-        document.getElementById("navUsername").innerText = username;
+    async function loadNavData() {
         try {
-            const res = await fetch(`/api/users/${currentUserId}`);
-            const user = await res.json();
+            const userRes = await fetch(`/api/users/${currentUserId}`);
+            const user = await userRes.json();
+
             if(user.avatar) {
                 document.getElementById("navAvatar").src = "/uploads/" + user.avatar;
+            }
+
+            const nickname = user.nickname || user.username;
+            document.getElementById("popName").innerText = nickname;
+
+            const score = user.reputation || 0;
+            document.getElementById("popReputation").innerText = score;
+
+            const levelBadge = document.getElementById("popLevel");
+            let titleCn = "普通用户";
+            let titleEn = "User";
+            let bgColor = "#99a2aa";
+
+            if (score >= 100) {
+                titleCn = "资深教授"; titleEn = "Professor"; bgColor = "#f4212e";
+            } else if (score >= 20) {
+                titleCn = "认证学者"; titleEn = "Scholar"; bgColor = "#00a1d6";
+            }
+
+            levelBadge.style.backgroundColor = bgColor;
+            levelBadge.innerHTML = `<span class="cn">${titleCn}</span><span class="en">${titleEn}</span>`;
+
+            const currentLang = localStorage.getItem('appLang') || 'cn';
+            if(typeof applyLang === 'function') applyLang(currentLang);
+
+            const statsRes = await fetch(`/api/users/${currentUserId}/stats`);
+            const stats = await statsRes.json();
+            document.getElementById("popFollowing").innerText = stats.followingCount;
+            document.getElementById("popFollower").innerText = stats.followerCount;
+            document.getElementById("popTweets").innerText = stats.tweetCount;
+
+        } catch(e) {
+            console.error("Nav load failed", e);
+        }
+    }
+
+    function startMsgPolling() {
+        checkUnread();
+        setInterval(checkUnread, 5000);
+    }
+
+    async function checkUnread() {
+        try {
+            const res = await fetch(`/api/notifications/unread-count?userId=${currentUserId}`);
+            const count = await res.json();
+            const badge = document.getElementById("msgBadge");
+            if (count > 0) {
+                // 🔥 修改为 flex，确保数字绝对居中
+                badge.style.display = "flex";
+                badge.innerText = count > 99 ? "99+" : count;
+            } else {
+                badge.style.display = "none";
             }
         } catch(e) {}
     }
 
     function goToMyProfile() {
-        if (currentUserId) {
-            window.location.href = `user_profile.html?id=${currentUserId}`;
-        } else {
-            window.location.href = "login.html";
-        }
+        window.location.href = `user_profile.html?id=${currentUserId}`;
     }
 
-    // 1. 获取数据 (并行获取点赞状态)
     async function fetchFeed() {
         const container = document.getElementById("feedContainer");
         try {
-            // 1. 先拿推文列表
             const res = await fetch('/api/tweets');
             globalTweets = await res.json();
 
-            // 2. 🔥 关键修复：并行获取每一条的点赞数和状态
-            // 因为后端列表接口没返回 likeCount，前端手动补全
             if (globalTweets.length > 0) {
                 const promises = globalTweets.map(async (tweet) => {
                     try {
                         const likeRes = await fetch(`/api/tweets/${tweet.id}/like-status?userId=${currentUserId}`);
                         const likeData = await likeRes.json();
-                        tweet.likeCount = likeData.count; // 补全数据
-                        tweet.isLiked = likeData.isLiked; // 补全数据
+                        tweet.likeCount = likeData.count;
+                        tweet.isLiked = likeData.isLiked;
                     } catch (e) {
                         tweet.likeCount = 0;
                         tweet.isLiked = false;
                     }
                 });
-                await Promise.all(promises); // 等所有点赞数据加载完再渲染
+                await Promise.all(promises);
             }
-
             renderFeed();
         } catch(e) {
             console.error(e);
@@ -250,7 +406,6 @@
         }
     }
 
-    // 2. 渲染界面
     function renderFeed() {
         const container = document.getElementById("feedContainer");
         const list = globalTweets;
@@ -261,8 +416,8 @@
                 <div style="text-align:center; padding:40px; color:#999;">
                     <span class="cn">暂无内容，去发一条吧！</span>
                     <span class="en">No tweets yet, go publish one!</span>
-                </div>
-            `;
+                </div>`;
+            if(typeof applyLang === 'function') applyLang(currentLang);
             return;
         }
 
@@ -278,14 +433,10 @@
                     <div class="file-box" onclick="event.stopPropagation(); window.open('/uploads/${t.filePath.split(/[\\/]/).pop()}')">
                         <div class="file-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="file-info">
-                            <span class="file-label">
-                                <span class="cn">附件文档</span>
-                                <span class="en">Attachment</span>
-                            </span>
+                            <span class="file-label"><span class="cn">附件文档</span><span class="en">Attachment</span></span>
                             <span class="file-name">${t.originalFilename}</span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
             let tagsHtml = "";
@@ -295,14 +446,8 @@
                     const displayTag = currentLang === 'en' ? (tagTranslations[tag] || tag) : tag;
                     return `<span class="tag-badge" style="background:#e8f5fe; color:#1da1f2;">#${displayTag}</span>`;
                 }).join(" ");
-            } else if (t.originalFilename && t.originalFilename.toLowerCase().endsWith(".pdf")) {
-                tagsHtml = `<span class="tag-badge" style="background:#e6fffa; color:#00b894;">
-                    <i class="fas fa-robot"></i>
-                    <span class="cn">AI 分析就绪</span><span class="en">AI Analysis Ready</span>
-                </span>`;
             }
 
-            // ❤️ 点赞状态逻辑
             const heartClass = t.isLiked ? "fas fa-heart" : "far fa-heart";
             const heartColor = t.isLiked ? "color: #f91880;" : "";
 
@@ -318,19 +463,14 @@
                         </div>
                         <div class="time-label">${timeStr}</div>
                     </div>
-
                     <div class="card-content">${t.content}</div>
-
                     ${fileHtml}
                     <div style="margin-top:5px;">${tagsHtml}</div>
-
                     <div class="card-footer">
-                        <!-- 🔥 修复：绑定了点击事件 toggleLikeInList -->
                         <div class="action-item" onclick="event.stopPropagation(); toggleLikeInList(this, ${t.id})">
                             <i class="${heartClass}" style="${heartColor}"></i>
                             <span class="like-num" style="margin-left:5px;">${t.likeCount || 0}</span>
                         </div>
-                        <!-- 🔥 修复：绑定点击跳转到详情页评论区 -->
                         <div class="action-item" onclick="event.stopPropagation(); location.href='detail.html?id=${t.id}#commentSection'">
                             <i class="far fa-comment"></i>
                             <span style="margin-left:5px;">
@@ -341,40 +481,35 @@
                 </div>
             `;
         });
+
+        if(typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    // 🔥 核心修复：列表页直接点赞 (乐观更新)
     async function toggleLikeInList(btn, tweetId) {
         const icon = btn.querySelector('i');
         const numSpan = btn.querySelector('.like-num');
         let currentNum = parseInt(numSpan.innerText);
 
-        // 1. 立即改变 UI (让用户觉得很快)
         if (icon.classList.contains('far')) {
-            // 点赞
             icon.className = 'fas fa-heart';
             icon.style.color = '#f91880';
             numSpan.innerText = currentNum + 1;
         } else {
-            // 取消点赞
             icon.className = 'far fa-heart';
             icon.style.color = '';
             numSpan.innerText = Math.max(0, currentNum - 1);
         }
 
-        // 2. 后台发请求
         try {
             await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
-            // 更新全局缓存里的状态，防止切语言时变回去
             const tweet = globalTweets.find(t => t.id == tweetId);
             if(tweet) {
                 tweet.isLiked = !tweet.isLiked;
                 tweet.likeCount = parseInt(numSpan.innerText);
             }
         } catch (e) {
-            // 失败回滚
             alert("Network error");
-            fetchFeed(); // 重新拉取真实数据
+            fetchFeed();
         }
     }
 

@@ -29,28 +29,33 @@ public class AiService {
         // 🔥 根据语言生成不同的提示词
         String systemPrompt;
 
+
         if ("en".equals(lang)) {
-            // === 英文提示词 ===
-            systemPrompt = "You are a senior academic reviewer. Users will provide a full academic paper.\n" +
-                    "Please read the full text and output a review report strictly in the following HTML format (do not include ```html tags):\n\n" +
-                    "<h3>1. Core Contributions</h3>\n" +
-                    "<p>Summarize the problems solved and the main innovations (list 3 points).</p>\n" +
-                    "<h3>2. Methodology Evaluation</h3>\n" +
-                    "<p>Analyze the rationality of the technical route and point out pros and cons.</p>\n" +
-                    "<h3>3. Improvements</h3>\n" +
-                    "<p>Give specific suggestions for the shortcomings.</p>\n\n" +
-                    "Note: The output must be professional, objective, and **MUST BE IN ENGLISH**.";
+            systemPrompt = "You are a harsh academic reviewer. Analyze the paper and output a review in strict HTML format (no ```html tags):\n" +
+                    "<div class='ai-review-card'>" +
+                    "  <div class='ai-score-box'>" +
+                    "    <div>Innovation: <b>{score}/5</b></div>" +
+                    "    <div>Methodology: <b>{score}/5</b></div>" +
+                    "    <div>Utility: <b>{score}/5</b></div>" +
+                    "  </div>" +
+                    "  <h4>🤖 AI Initial Review Report</h4>" +
+                    "  <p><b>Summary:</b> ...</p>" +
+                    "  <p><b>Critique:</b> ...</p>" +
+                    "</div>" +
+                    "Fill in specific scores (1-5) and content based on the paper.";
         } else {
-            // === 中文提示词 ===
-            systemPrompt = "你是一个资深的学术评审专家。用户将提供一篇完整的学术论文内容。\n" +
-                    "请阅读全文，并严格按照以下 HTML 格式输出评审报告（不要包含 ```html 标记）：\n\n" +
-                    "<h3>1. 核心贡献 (Core Contributions)</h3>\n" +
-                    "<p>总结论文解决了什么问题，以及主要的创新点（列出3点）。</p>\n" +
-                    "<h3>2. 方法论评估 (Methodology)</h3>\n" +
-                    "<p>分析其技术路线的合理性，指出优缺点。</p>\n" +
-                    "<h3>3. 改进建议 (Improvements)</h3>\n" +
-                    "<p>针对不足之处给出具体建议。</p>\n\n" +
-                    "注意：输出内容要专业、客观，**请必须使用中文进行评审**。";
+            systemPrompt = "你是一位严格的学术期刊审稿人。请阅读论文，并严格按以下 HTML 格式输出评审报告（不要加 ```html 标签）：\n" +
+                    "<div class='ai-review-card'>" +
+                    "  <div class='ai-score-box'>" +
+                    "    <div>💡 创新性: <b>{分数}/5</b></div>" +
+                    "    <div>📐 方法论: <b>{分数}/5</b></div>" +
+                    "    <div>🛠️ 实用性: <b>{分数}/5</b></div>" +
+                    "  </div>" +
+                    "  <h4>🤖 AI 初审报告</h4>" +
+                    "  <p><b>核心摘要:</b> (请总结论文核心贡献)</p>" +
+                    "  <p><b>评审意见:</b> (请指出优点和不足)</p>" +
+                    "</div>" +
+                    "请根据论文质量填入具体分数（1-5分）和内容。";
         }
 
         Map<String, Object> requestBody = new HashMap<>();

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- 默认设置 lang="zh"，CSS 会根据这个属性自动控制显隐 -->
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -8,9 +7,12 @@
         <span class="cn">文献详情 & AI 评审</span>
         <span class="en">Literature Details & AI Review</span>
     </title>
-    <!-- 引入通用语言组件CSS -->
     <link rel="stylesheet" href="common/lang-component.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
+        /* 全局布局 */
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding-top: 60px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
 
         /* 导航栏 */
@@ -18,106 +20,102 @@
         .brand { color: #1da1f2; font-weight: 900; font-size: 24px; text-decoration: none; margin-right: 10px;}
         .back-link { color: #555; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 5px;}
 
+        /* 主布局 */
         .main-layout { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
-        /* 左侧面板 */
+        /* 左侧面板 (可滚动) */
         .left-panel { flex: 2; background: white; border-radius: 10px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; }
 
         /* 右侧面板 */
         .right-panel { flex: 1; background: white; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; }
 
+        /* 头部信息 */
         .header { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .title-area { display: flex; justify-content: space-between; align-items: flex-start; }
         .title-label { background: #eefaff; color: #00a1d6; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .avg-score-badge { background: #ffc107; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 5px; }
         .meta-info { color: #777; font-size: 13px; margin-top: 8px; display: flex; gap: 10px; align-items: center; }
         .avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover;}
-
         .content-body { font-size: 15px; line-height: 1.6; color: #333; white-space: pre-wrap; margin-bottom: 20px; }
 
-        /* 互动区域 */
-        .interaction-bar { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; gap: 20px; }
-        .btn-like {
-            display: flex; align-items: center; gap: 5px; cursor: pointer;
-            color: #536471; font-size: 14px; transition: 0.2s; border: none; background: none;
+        /* === 🔥🔥🔥 PDF 预览核心修复 🔥🔥🔥 === */
+        #pdfViewer {
+            width: 100%;
+            /* 强制高度 900px，确保能展示完整的一页 */
+            height: 900px !important;
+            min-height: 900px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
-        .btn-like:hover { color: #f91880; }
+
+        /* 文件卡片 */
+        .file-card { background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; text-align: center; margin-top: 10px; }
+        .file-icon { font-size: 48px; margin-bottom: 10px; display: block; }
+
+        /* 互动按钮 */
+        .interaction-bar { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; gap: 20px; }
+        .btn-like { display: flex; align-items: center; gap: 5px; cursor: pointer; color: #536471; font-size: 14px; border: none; background: none; }
         .btn-like.liked { color: #f91880; font-weight: bold; }
         .btn-like svg { width: 20px; height: 20px; fill: currentColor; }
 
-        /* 评论区样式 */
+        .download-btn { background: #0f1419; color: white; text-decoration: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block; transition: 0.2s; }
+
+        /* 评分卡片 */
+        .rating-card { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #e1e8ed; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .rating-title { font-weight: bold; font-size: 14px; margin-bottom: 15px; color: #333; border-left: 3px solid #ffc107; padding-left: 8px;}
+        .rating-area { display: flex; gap: 30px; margin-bottom: 15px; }
+        .rating-item { display: flex; flex-direction: column; align-items: center; }
+        .rating-label { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .star-group { color: #ddd; cursor: pointer; font-size: 20px; }
+        .star-group .active { color: #ffc107; }
+        .btn-rate-submit { background: #ffc107; color: #000; border: none; padding: 6px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+
+        /* 仪表盘样式 */
+        .analysis-card { background: white; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #cce5ff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .analysis-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #0056b3; border-left: 4px solid #0056b3; padding-left: 10px; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; }
+        .stat-label { font-size: 13px; color: #666; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+        .stat-val { font-size: 16px; font-weight: 900; color: #333; font-family: 'Arial', sans-serif; }
+        .expert-row { background: #fff8e6; border: 1px solid #ffeeba; }
+        .expert-val { color: #d68b00; }
+
+        /* 评论区 */
         .comment-section { margin-top: 30px; }
         .comment-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #0f1419; }
-
         .comment-input-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .comment-input {
-            flex: 1; padding: 10px; border: 1px solid #cfd9de; border-radius: 20px;
-            outline: none; font-size: 14px; transition: 0.2s;
-        }
-        .comment-input:focus { border-color: #1da1f2; background: #f8fbff; }
-        .btn-submit {
-            background: #1da1f2; color: white; border: none; padding: 0 20px;
-            border-radius: 20px; font-weight: bold; cursor: pointer;
-        }
-        .btn-submit:hover { background: #0d8ddb; }
-
+        .comment-input { flex: 1; padding: 10px; border: 1px solid #cfd9de; border-radius: 20px; outline: none; font-size: 14px; }
+        .btn-submit { background: #1da1f2; color: white; border: none; padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .comment-list { display: flex; flex-direction: column; gap: 15px; }
-        .comment-item { display: flex; gap: 10px; font-size: 14px; }
-        .c-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .c-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer;}
         .c-content { background: #f7f9f9; padding: 10px 15px; border-radius: 0 12px 12px 12px; flex: 1; }
         .c-name { font-weight: bold; color: #0f1419; margin-right: 5px; cursor: pointer;}
         .c-time { color: #536471; font-size: 12px; }
         .c-text { margin-top: 5px; color: #333; line-height: 1.4; }
+        .reply-container { margin-left: 48px; margin-top: 8px; background: #f8f9fa; border-radius: 8px; padding: 10px; }
+        .comment-actions { display: flex; gap: 15px; margin-top: 5px; font-size: 12px; color: #999; }
+        .action-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+        .action-btn:hover { color: #1da1f2; }
+        .action-btn.active-up { color: #f91880; }
+        .action-btn.active-down { color: #536471; font-weight: bold; }
 
-        /* AI 区域样式 */
+        /* AI 面板 */
         .ai-header { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
         .ai-title { margin:0; color:#1e293b; display: flex; align-items: center; font-size: 18px; }
-
         .ai-controls { display: flex; gap: 10px; width: 100%; }
-
-        .ai-lang-select {
-            padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1;
-            outline: none; background: white; cursor: pointer; flex: 1;
-            font-size: 14px; color: #334155; transition: border 0.2s;
-        }
-        .ai-lang-select:hover { border-color: #6366f1; }
-
-        .ai-btn {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white;
-            border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer;
-            font-weight: bold; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-            transition: 0.2s; flex: 1; display: flex; justify-content: center; align-items: center;
-        }
-        .ai-btn:hover { transform: scale(1.02); }
-        .ai-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .ai-result-box {
-            flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px;
-            overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155;
-            border: 1px dashed #cbd5e1; min-height: 300px;
-        }
+        .ai-lang-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; flex: 1; }
+        .ai-btn { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; flex: 1; }
+        .ai-result-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155; border: 1px dashed #cbd5e1; min-height: 300px; }
         .loader { display: none; text-align: center; margin-top: 50px; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        iframe { width: 100%; height: 600px; border: 1px solid #eee; border-radius: 4px; }
-        .file-card { background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; text-align: center; margin-top: 10px; }
-        .file-icon { font-size: 48px; margin-bottom: 10px; display: block; }
-        .file-name { font-weight: bold; color: #333; font-size: 16px; }
-        .file-tip { color: #666; font-size: 13px; margin: 10px 0 20px 0; }
-        .download-btn { background: #0f1419; color: white; text-decoration: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block; transition: 0.2s; }
-        .download-btn:hover { background: #333; }
-
-        /* 响应式 */
         @media (max-width: 992px) {
             .main-layout { flex-direction: column; gap: 15px; padding: 15px; }
             .left-panel, .right-panel { flex: none; width: 100%; padding: 20px; }
-            iframe { height: 400px; }
-        }
-        @media (max-width: 576px) {
-            .navbar { padding: 0 10px; }
-            .brand { font-size: 20px; margin-right: 10px; }
-            .left-panel, .right-panel { padding: 15px; }
-            iframe { height: 300px; }
-            .ai-controls { flex-direction: column; }
+            /* 移动端稍微小一点 */
+            iframe { height: 500px !important; }
         }
     </style>
 </head>
@@ -140,16 +138,27 @@
     <!-- 左侧 -->
     <div class="left-panel">
         <div class="header">
-            <span class="title-label">
-                <span class="cn">研究成果</span>
-                <span class="en">Research Achievement</span>
-            </span>
+            <div class="title-area">
+                <div>
+                    <span class="title-label">
+                        <span class="cn">研究成果</span>
+                        <span class="en">Research Achievement</span>
+                    </span>
+                </div>
+                <div class="avg-score-badge">
+                    <i class="fas fa-star"></i>
+                    <span id="scoreValue">0.0</span>
+                    <small>/ 5.0</small>
+                </div>
+            </div>
+
             <div class="meta-info">
                 <img id="authorAvatar" src="" class="avatar">
                 <span id="authorName">Loading...</span>
                 <span id="publishTime">...</span>
             </div>
         </div>
+
         <div class="content-body" id="mainContent">
             <span class="cn">加载中...</span><span class="en">Loading...</span>
         </div>
@@ -158,7 +167,10 @@
             <span class="cn">📄 附件内容</span>
             <span class="en">📄 Attachment</span>
         </h4>
+
+        <!-- 🔥 预览窗口：已通过 CSS 强制加大高度 -->
         <iframe id="pdfViewer" src="" style="display:none;"></iframe>
+
         <div id="docCard" class="file-card" style="display: none;">
             <span class="file-icon">📝</span>
             <div class="file-name" id="docName">filename.doc</div>
@@ -166,9 +178,6 @@
                 <span class="cn">该文件格式暂不支持在线预览，但 AI 仍可读取内容。</span>
                 <span class="en">Online preview not supported, but AI can still read it.</span>
             </div>
-            <a href="#" id="docDownload" class="download-btn" target="_blank">
-                <span class="cn">⬇️ 下载文件</span><span class="en">⬇️ Download</span>
-            </a>
         </div>
         <div id="noFileTip" style="display:none; color:#999; padding:20px; text-align:center; background:#fafafa;">
             <span class="cn">无附件文档</span><span class="en">No Attachment</span>
@@ -177,19 +186,116 @@
         <!-- 互动栏 -->
         <div class="interaction-bar">
             <button id="likeBtn" class="btn-like" onclick="toggleLike()">
-                <!-- 爱心 SVG -->
                 <svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg>
                 <span id="likeCount">0</span>
             </button>
+
+            <a id="downloadBtn" href="#" class="btn-like" target="_blank" style="text-decoration: none; display: none;">
+                <i class="fas fa-download" style="font-size: 18px;"></i>
+                <span style="margin-left: 5px;">
+                    <span class="cn">下载</span><span class="en">Download</span>
+                </span>
+                <span id="downloadCount" style="margin-left: 5px; font-weight: bold; font-size: 12px; background: #eee; padding: 1px 6px; border-radius: 10px;">0</span>
+            </a>
         </div>
 
-        <!-- 评论区 -->
+        <!-- 读者打分卡片 -->
+        <div id="readerRatingCard" class="rating-card" style="display:none;">
+            <div class="rating-title">
+                <span class="cn">我的学术评分 (可修改)</span>
+                <span class="en">My Academic Rating (Editable)</span>
+            </div>
+
+            <div class="rating-area">
+                <div class="rating-item">
+                    <span class="rating-label"><span class="cn">创新性</span><span class="en">Innovation</span></span>
+                    <div class="star-group" id="starGroup1">
+                        <i class="far fa-star" onclick="setRate(1, 1)"></i>
+                        <i class="far fa-star" onclick="setRate(1, 2)"></i>
+                        <i class="far fa-star" onclick="setRate(1, 3)"></i>
+                        <i class="far fa-star" onclick="setRate(1, 4)"></i>
+                        <i class="far fa-star" onclick="setRate(1, 5)"></i>
+                    </div>
+                    <input type="hidden" id="score1" value="0">
+                </div>
+                <div class="rating-item">
+                    <span class="rating-label"><span class="cn">方法论</span><span class="en">Methodology</span></span>
+                    <div class="star-group" id="starGroup2">
+                        <i class="far fa-star" onclick="setRate(2, 1)"></i>
+                        <i class="far fa-star" onclick="setRate(2, 2)"></i>
+                        <i class="far fa-star" onclick="setRate(2, 3)"></i>
+                        <i class="far fa-star" onclick="setRate(2, 4)"></i>
+                        <i class="far fa-star" onclick="setRate(2, 5)"></i>
+                    </div>
+                    <input type="hidden" id="score2" value="0">
+                </div>
+                <div class="rating-item">
+                    <span class="rating-label"><span class="cn">实用性</span><span class="en">Utility</span></span>
+                    <div class="star-group" id="starGroup3">
+                        <i class="far fa-star" onclick="setRate(3, 1)"></i>
+                        <i class="far fa-star" onclick="setRate(3, 2)"></i>
+                        <i class="far fa-star" onclick="setRate(3, 3)"></i>
+                        <i class="far fa-star" onclick="setRate(3, 4)"></i>
+                        <i class="far fa-star" onclick="setRate(3, 5)"></i>
+                    </div>
+                    <input type="hidden" id="score3" value="0">
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button class="btn-rate-submit" onclick="submitRating()">
+                    <span class="cn">提交评分</span><span class="en">Submit Rating</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 🔥 作者仪表盘 (新增专家数据) -->
+        <div id="authorDashboard" class="analysis-card" style="display:none;">
+            <h4 class="analysis-title">
+                <span class="cn">学术影响力仪表盘</span>
+                <span class="en">Impact Analysis Dashboard</span>
+            </h4>
+
+            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px; height: 250px; position: relative;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+
+                <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
+                    <div class="stat-row">
+                        <span class="stat-label">📥 <span class="cn">下载量</span><span class="en">Downloads</span></span>
+                        <span class="stat-val" id="dispDownload">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">❤️ <span class="cn">被引/点赞</span><span class="en">Likes/Cites</span></span>
+                        <span class="stat-val" id="dispLike">0</span>
+                    </div>
+
+                    <!-- 🔥 新增：专家数据行 -->
+                    <div class="stat-row expert-row">
+                        <span class="stat-label"><i class="fas fa-user-graduate" style="color:#d68b00"></i> <span class="cn">专家评审数</span><span class="en">Expert Reviews</span></span>
+                        <span class="stat-val expert-val" id="dispExpertCount">0</span>
+                    </div>
+                    <div class="stat-row expert-row">
+                        <span class="stat-label"><i class="fas fa-star" style="color:#d68b00"></i> <span class="cn">专家评分</span><span class="en">Expert Rating</span></span>
+                        <span class="stat-val expert-val" id="dispExpertScore">0.0</span>
+                    </div>
+
+                    <div class="stat-row">
+                        <span class="stat-label">⭐ <span class="cn">综合评分</span><span class="en">Rating</span></span>
+                        <span class="stat-val" id="dispScore" style="color: #ffc107;">0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="comment-section" id="commentSection">
             <div class="comment-title">
-                <span class="cn">评论</span><span class="en">Comments</span>
+                <span class="cn">讨论区</span>
+                <span class="en">Discussion</span>
             </div>
             <div class="comment-input-box">
-                <input type="text" id="commentInput" class="comment-input" placeholder="写下你的看法..." data-placeholder-en="Share your thoughts...">
+                <input type="text" id="commentInput" class="comment-input" placeholder="输入你的看法..." data-placeholder-en="Enter your thoughts...">
                 <button class="btn-submit" onclick="submitComment()">
                     <span class="cn">发送</span><span class="en">Send</span>
                 </button>
@@ -204,21 +310,17 @@
             <h3 class="ai-title">
                 🤖 <span class="cn">AI 智能评审</span><span class="en">AI Review</span>
             </h3>
-
-            <!-- 🔥 AI 控制区：语言选择 + 开始按钮 -->
             <div class="ai-controls">
                 <select id="aiLangSelect" class="ai-lang-select">
                     <option value="zh">🇨🇳 中文评审 (Chinese)</option>
                     <option value="en">🇺🇸 English Review</option>
                 </select>
-
                 <button id="aiBtn" class="ai-btn" onclick="startAiReview()">
                     <span class="cn">✨ 开始评估</span>
                     <span class="en">✨ Start</span>
                 </button>
             </div>
         </div>
-
         <div class="ai-result-box" id="aiOutput">
             <p style="color:#94a3b8; text-align:center; margin-top:50px;">
                 <span class="cn">点击上方按钮，<br>AI 将自动阅读左侧论文并生成评审报告。</span>
@@ -227,15 +329,14 @@
             <div class="loader" id="loader">
                 <div class="spinner"></div>
                 <div style="margin-top:15px; color:#6366f1;">
-                    <span class="cn">AI 正在深度阅读全文...<br>(这可能需要15-30秒)</span>
-                    <span class="en">AI is reading the full paper...<br>(May take 15-30s)</span>
+                    <span class="cn">AI 正在分析...<br>(约15-30秒)</span>
+                    <span class="en">AI analyzing...<br>(approx 15-30s)</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 语言切换悬浮球 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -255,56 +356,112 @@
     const tweetId = params.get("id");
     const currentUserId = localStorage.getItem("userId");
 
-    // 初始化
+    let myRadarChart = null;
+
     loadDetail();
 
     window.addEventListener('languageChange', function() {
         const lang = localStorage.getItem('appLang') || 'zh';
-        // 更新评论输入框 placeholder
-        const input = document.getElementById("commentInput");
-        input.placeholder = lang === 'zh' ? "写下你的看法..." : "Share your thoughts...";
+        document.getElementById("commentInput").placeholder = lang === 'zh' ? "输入你的看法..." : "Enter your thoughts...";
     });
 
     async function loadDetail() {
         try {
-            const res = await fetch(`/api/tweets/${tweetId}`);
+            const res = await fetch(`/api/tweets/${tweetId}/detail-dto?userId=${currentUserId}`);
             if(!res.ok) throw new Error("Not Found");
             const data = await res.json();
+            const tweet = data.tweet;
 
-            const user = data.author;
+            document.getElementById("scoreValue").innerText = data.avgScore || "0.0";
+            const user = tweet.author;
             document.getElementById("authorName").innerText = user.nickname || user.username;
             document.getElementById("authorAvatar").src = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/30';
-            document.getElementById("publishTime").innerText = data.createTime.replace('T', ' ').split('.')[0];
-            document.getElementById("mainContent").innerText = data.content;
+            document.getElementById("publishTime").innerText = tweet.createTime.replace('T', ' ').split('.')[0];
+            document.getElementById("mainContent").innerText = tweet.content;
 
-            // 文件显示逻辑
-            if(data.filePath && data.originalFilename) {
-                const pathParts = data.filePath.split(/[\\/]/);
+            const readerRatingCard = document.getElementById("readerRatingCard");
+            const authorDashboard = document.getElementById("authorDashboard");
+
+            if (currentUserId == tweet.author.id) {
+                readerRatingCard.style.display = "none";
+                authorDashboard.style.display = "block";
+
+                if (data.radar) {
+                    renderRadarChart(data.radar.s1, data.radar.s2, data.radar.s3);
+                    // 🔥 填充专家统计数据
+                    document.getElementById("dispExpertCount").innerText = data.radar.expertCount || 0;
+                    document.getElementById("dispExpertScore").innerText = data.radar.expertScore || "0.0";
+                }
+
+                document.getElementById("dispDownload").innerText = tweet.downloadCount || 0;
+                document.getElementById("dispScore").innerText = data.avgScore;
+
+            } else {
+                authorDashboard.style.display = "none";
+                readerRatingCard.style.display = "block";
+
+                if (data.myRating && data.myRating !== "null") {
+                    setRate(1, data.myRating.score1);
+                    setRate(2, data.myRating.score2);
+                    setRate(3, data.myRating.score3);
+
+                    const btn = document.querySelector(".btn-rate-submit");
+                    const cnSpan = btn.querySelector(".cn");
+                    const enSpan = btn.querySelector(".en");
+                    if (cnSpan) cnSpan.innerText = "修改评分";
+                    if (enSpan) enSpan.innerText = "Update Rating";
+                }
+            }
+
+            if (tweet.filePath && tweet.originalFilename) {
+                const pathParts = tweet.filePath.split(/[\\/]/);
                 const realFileName = pathParts[pathParts.length - 1];
                 const fileUrl = `/uploads/${realFileName}`;
-                const lowerName = data.originalFilename.toLowerCase();
+                const lowerName = tweet.originalFilename.toLowerCase();
 
                 if (lowerName.endsWith(".pdf")) {
                     const viewer = document.getElementById("pdfViewer");
-                    viewer.src = fileUrl;
+
+
+                    // 作用：隐藏顶部的黑色工具条，用户就不能通过那里下载了
+                    viewer.src = fileUrl + "#toolbar=0";
+
                     viewer.style.display = "block";
+                    document.getElementById("pdfViewer").src = fileUrl;
+                    document.getElementById("pdfViewer").style.display = "block";
                 } else {
-                    const card = document.getElementById("docCard");
-                    card.style.display = "block";
-                    document.getElementById("docName").innerText = data.originalFilename;
-                    document.getElementById("docDownload").href = fileUrl;
+                    document.getElementById("docCard").style.display = "block";
+                    document.getElementById("docName").innerText = tweet.originalFilename;
                 }
+
+                const dlBtn = document.getElementById("downloadBtn");
+                const dlCount = document.getElementById("downloadCount");
+                dlBtn.style.display = "flex";
+                dlBtn.href = `/api/tweets/${tweetId}/download`;
+                dlCount.innerText = tweet.downloadCount || 0;
+
+                dlBtn.onclick = function() {
+                    setTimeout(() => {
+                        let current = parseInt(dlCount.innerText);
+                        dlCount.innerText = current + 1;
+                        // 如果是作者，同步更新仪表盘
+                        const dispDl = document.getElementById("dispDownload");
+                        if(dispDl) dispDl.innerText = current + 1;
+                    }, 500);
+                    return true;
+                };
+
             } else {
                 document.getElementById("noFileTip").style.display = "block";
                 document.getElementById("aiBtn").disabled = true;
-                // 按钮显示“无文件”
-                document.getElementById("aiBtn").innerHTML = `
-                    <span class="cn">无文件</span><span class="en">No File</span>
-                `;
+                document.getElementById("aiBtn").innerHTML = `<span class="cn">无文件</span><span class="en">No File</span>`;
             }
 
             loadLikeStatus();
             loadComments();
+
+            const currentLang = localStorage.getItem('appLang') || 'zh';
+            if(typeof applyLang === 'function') applyLang(currentLang);
 
         } catch (e) {
             console.error(e);
@@ -312,11 +469,57 @@
         }
     }
 
+    function renderRadarChart(s1, s2, s3) {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        const lang = localStorage.getItem('appLang') || 'zh';
+
+        if (myRadarChart) myRadarChart.destroy();
+
+        myRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: lang === 'zh'
+                    ? ['创新性', '方法论', '实用性']
+                    : ['Innovation', 'Methodology', 'Utility'],
+                datasets: [{
+                    label: lang === 'zh' ? '评分分布' : 'Rating Distribution',
+                    data: [s1, s2, s3],
+                    backgroundColor: 'rgba(29, 161, 242, 0.2)',
+                    borderColor: '#1da1f2',
+                    pointBackgroundColor: '#1da1f2',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#1da1f2'
+                }]
+            },
+            options: {
+                elements: {
+                    line: { borderWidth: 3 }
+                },
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 5,
+                        ticks: { stepSize: 1, backdropColor: 'transparent' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                },
+                maintainAspectRatio: false
+            }
+        });
+    }
+
     async function loadLikeStatus() {
         const res = await fetch(`/api/tweets/${tweetId}/like-status?userId=${currentUserId}`);
         const data = await res.json();
         const btn = document.getElementById("likeBtn");
         document.getElementById("likeCount").innerText = data.count;
+
+        const dispLike = document.getElementById("dispLike");
+        if(dispLike) dispLike.innerText = data.count;
 
         if (data.isLiked) {
             btn.classList.add("liked");
@@ -330,81 +533,155 @@
     async function toggleLike() {
         const btn = document.getElementById("likeBtn");
         const countSpan = document.getElementById("likeCount");
-        const icon = btn.querySelector("svg");
         const isLiked = btn.classList.contains("liked");
         let currentCount = parseInt(countSpan.innerText);
 
-        // 乐观更新
         if (isLiked) {
             btn.classList.remove("liked");
             countSpan.innerText = Math.max(0, currentCount - 1);
-            icon.innerHTML = `<path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
+            btn.querySelector("svg").innerHTML = `<path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
         } else {
             btn.classList.add("liked");
             countSpan.innerText = currentCount + 1;
-            icon.innerHTML = `<path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
+            btn.querySelector("svg").innerHTML = `<path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
         }
 
         try {
             await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
         } catch (e) {
-            loadLikeStatus(); // 失败回滚
+            loadLikeStatus();
         }
     }
 
     async function loadComments() {
         const res = await fetch(`/api/tweets/${tweetId}/comments`);
-        const list = await res.json();
+        const allComments = await res.json();
         const container = document.getElementById("commentList");
         container.innerHTML = "";
 
-        if(list.length === 0) {
-            container.innerHTML = `<div style='color:#999; font-size:13px;'>
-                <span class="cn">暂无评论，快来抢沙发~</span>
-                <span class="en">No comments yet.</span>
-            </div>`;
+        // 🔥 作者视图：同步更新评论数
+        const dispComment = document.getElementById("dispComment");
+        if(dispComment) dispComment.innerText = allComments.length;
+
+        if(allComments.length === 0) {
+            container.innerHTML = `<div style='color:#999; font-size:13px; text-align:center;'>暂无评论</div>`;
             return;
         }
 
-        list.forEach(c => {
-            const avatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/36';
-            const time = c.createTime.replace('T', ' ').split('.')[0];
-            const name = c.user.nickname || c.user.username;
+        const rootComments = allComments.filter(c => !c.parentId);
+        const childComments = allComments.filter(c => c.parentId);
+
+        for (const root of rootComments) {
+            const replies = childComments.filter(c => c.parentId === root.id);
+            const rootHtml = await renderSingleComment(root, false);
+
+            let repliesHtml = "";
+            if (replies.length > 0) {
+                repliesHtml = `<div class="reply-container">`;
+                for (const reply of replies) {
+                    repliesHtml += await renderSingleComment(reply, true);
+                }
+                repliesHtml += `</div>`;
+            }
 
             container.innerHTML += `
-                <div class="comment-item">
-                    <img src="${avatar}" class="c-avatar" onclick="location.href='user_profile.html?id=${c.user.id}'" style="cursor:pointer">
-                    <div class="c-content">
-                        <div style="display:flex; align-items:center; justify-content:space-between;">
-                            <span class="c-name" onclick="location.href='user_profile.html?id=${c.user.id}'">${name}</span>
-                            <span class="c-time">${time}</span>
-                        </div>
-                        <div class="c-text">${c.content}</div>
-                    </div>
+                <div class="comment-wrapper" style="border-bottom:1px solid #eee; padding:15px 0;">
+                    ${rootHtml}
+                    ${repliesHtml}
                 </div>
             `;
-        });
+        }
+    }
+
+    async function renderSingleComment(c, isReply) {
+        const statusRes = await fetch(`/api/tweets/comments/${c.id}/status?userId=${currentUserId}`);
+        const status = await statusRes.json();
+        const avatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/36';
+        const name = c.user.nickname || c.user.username;
+        const time = c.createTime.replace('T', ' ').substring(0, 16);
+
+        let replyTarget = "";
+        if (c.replyToUser) {
+            const targetName = c.replyToUser.nickname || c.replyToUser.username;
+            replyTarget = ` <span style="color:#999;">▶</span> <span style="color:#00a1d6;font-weight:bold;">@${targetName}</span>`;
+        }
+
+        const likeClass = status.myAction === 1 ? "active-up" : "";
+        const dislikeClass = status.myAction === 2 ? "active-down" : "";
+        const likeIcon = status.myAction === 1 ? "fas fa-thumbs-up" : "far fa-thumbs-up";
+        const dislikeIcon = status.myAction === 2 ? "fas fa-thumbs-down" : "far fa-thumbs-down";
+
+        return `
+            <div class="comment-item" style="display:flex; gap:10px;">
+                <img src="${avatar}" class="c-avatar" onclick="location.href='user_profile.html?id=${c.user.id}'" style="width:${isReply?24:36}px; height:${isReply?24:36}px;">
+                <div class="c-content" style="flex:1;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div>
+                            <span class="c-name" onclick="location.href='user_profile.html?id=${c.user.id}'">${name}</span>
+                            ${replyTarget}
+                        </div>
+                        <span class="c-time">${time}</span>
+                    </div>
+                    <div class="c-text" style="margin-top:2px; color:#333;">${c.content}</div>
+                    <div class="comment-actions">
+                        <span class="action-btn ${likeClass}" onclick="toggleCommentAction(${c.id}, true)">
+                            <i class="${likeIcon}"></i> ${status.likes || ''}
+                        </span>
+                        <span class="action-btn ${dislikeClass}" onclick="toggleCommentAction(${c.id}, false)">
+                            <i class="${dislikeIcon}"></i>
+                        </span>
+                        <span class="action-btn" onclick="openReplyBox(${c.id}, ${c.parentId || c.id}, '${name}', ${c.user.id})">
+                            <span class="cn">回复</span><span class="en">Reply</span>
+                        </span>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    async function toggleCommentAction(commentId, isLike) {
+        await fetch(`/api/tweets/comments/${commentId}/like?userId=${currentUserId}&isLike=${isLike}`, { method: 'POST' });
+        loadComments();
+    }
+
+    let currentParentId = null;
+    let currentReplyToUserId = null;
+
+    function openReplyBox(commentId, parentId, userName, userId) {
+        currentParentId = parentId;
+        currentReplyToUserId = userId;
+        const input = document.getElementById("commentInput");
+        input.value = `回复 @${userName} : `;
+        input.focus();
+        document.querySelector(".comment-input-box").scrollIntoView({ behavior: "smooth" });
     }
 
     async function submitComment() {
-        const content = document.getElementById("commentInput").value;
-        if(!content.trim()) { alert("Content is empty"); return; }
+        let content = document.getElementById("commentInput").value;
+        if(!content.trim()) { alert("Empty content"); return; }
 
         const formData = new FormData();
         formData.append("userId", currentUserId);
+
+        if (content.startsWith("回复 @") && currentParentId) {
+            formData.append("parentId", currentParentId);
+            if (currentReplyToUserId) formData.append("replyToUserId", currentReplyToUserId);
+        }
+
         formData.append("content", content);
 
         const res = await fetch(`/api/tweets/${tweetId}/comments`, { method: 'POST', body: formData });
         const msg = await res.text();
+
         if(msg.includes("成功") || msg.includes("success")) {
             document.getElementById("commentInput").value = "";
+            currentParentId = null;
+            currentReplyToUserId = null;
             loadComments();
         } else {
             alert(msg);
         }
     }
 
-    // 🔥 启动 AI 评审（传参 lang）
     async function startAiReview() {
         const btn = document.getElementById("aiBtn");
         const output = document.getElementById("aiOutput");
@@ -412,10 +689,7 @@
         const targetLang = document.getElementById("aiLangSelect").value;
 
         btn.disabled = true;
-        btn.innerHTML = `
-            <span class="cn">分析中...</span><span class="en">Analyzing...</span>
-        `;
-
+        btn.innerHTML = `<span class="cn">分析中...</span><span class="en">Analyzing...</span>`;
         output.innerHTML = "";
         output.appendChild(loader);
         loader.style.display = "block";
@@ -423,24 +697,51 @@
         try {
             const res = await fetch(`/api/ai/evaluate/${tweetId}?lang=${targetLang}`, { method: 'POST' });
             const data = await res.json();
-
-            let formatted = data.result
-                .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-            output.innerHTML = `
-                <div style="color:#333; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    ${targetLang === 'zh' ? '分析报告' : 'Review Report'}
-                </div>
-                <div style="line-height:1.8; font-size:14px;">${formatted}</div>
-            `;
+            let formatted = data.result.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            output.innerHTML = `<div style="color:#333; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${targetLang === 'zh' ? '分析报告' : 'Review Report'}</div><div style="line-height:1.8; font-size:14px;">${formatted}</div>`;
         } catch (e) {
             output.innerHTML = `<div style="color:red;">Error: ${e.message}</div>`;
             btn.disabled = false;
-            btn.innerHTML = `
-                <span class="cn">✨ 重试</span><span class="en">✨ Retry</span>
-            `;
+            btn.innerHTML = `<span class="cn">✨ 重试</span><span class="en">✨ Retry</span>`;
         }
+    }
+
+    async function submitRating() {
+        const s1 = document.getElementById("score1").value;
+        const s2 = document.getElementById("score2").value;
+        const s3 = document.getElementById("score3").value;
+
+        if (s1 == 0 || s2 == 0 || s3 == 0) {
+            alert("请为所有维度打分 / Please rate all dimensions");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("userId", currentUserId);
+        formData.append("s1", s1);
+        formData.append("s2", s2);
+        formData.append("s3", s3);
+
+        const res = await fetch(`/api/tweets/${tweetId}/rate`, { method: 'POST', body: formData });
+        const msg = await res.text();
+        alert(msg);
+        location.reload();
+    }
+
+    function setRate(groupId, score) {
+        document.getElementById(`score${groupId}`).value = score;
+        const stars = document.querySelectorAll(`#starGroup${groupId} i`);
+        stars.forEach((star, index) => {
+            if (index < score) {
+                star.classList.remove("far");
+                star.classList.add("fas");
+                star.classList.add("active");
+            } else {
+                star.classList.remove("fas");
+                star.classList.add("far");
+                star.classList.remove("active");
+            }
+        });
     }
 </script>
 </body>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <span class="cn">消息通知</span>
+        <span class="en">Notifications</span>
+    </title>
+    <link rel="stylesheet" href="common/lang-component.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding-top: 70px; }
+        .navbar { position: fixed; top: 0; width: 100%; background: white; height: 60px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; box-sizing: border-box; }
+        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; }
+
+        .container { max-width: 700px; margin: 0 auto; background: white; min-height: 80vh; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+
+        .page-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 18px; font-weight: bold; }
+
+        .notif-list { list-style: none; padding: 0; margin: 0; }
+        .notif-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 15px; align-items: flex-start; transition: background 0.2s; cursor: pointer; }
+        .notif-item:hover { background-color: #fafafa; }
+        .notif-item.unread { background-color: #f0faff; border-left: 4px solid #1da1f2; } /* 未读高亮 */
+
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .content { flex: 1; font-size: 14px; color: #333; }
+        .time { font-size: 12px; color: #999; margin-top: 5px; }
+
+        .icon-type { font-size: 16px; margin-right: 5px; }
+        .type-1, .type-2 { color: #1da1f2; } /* 评论/回复 蓝色 */
+        .type-3, .type-4 { color: #f91880; } /* 点赞 红色 */
+
+        .mark-read-btn { font-size: 12px; color: #1da1f2; cursor: pointer; border: 1px solid #1da1f2; padding: 4px 10px; border-radius: 20px; background: white; }
+        .mark-read-btn:hover { background: #e8f5fe; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="javascript:history.back()" class="nav-link">⬅
+        <span class="cn">返回</span><span class="en">Back</span>
+    </a>
+    <div style="flex:1"></div>
+</div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title">
+            <span class="cn">消息通知</span><span class="en">Notifications</span>
+        </div>
+        <button class="mark-read-btn" onclick="markAllRead()">
+            <span class="cn">全部已读</span><span class="en">Mark all read</span>
+        </button>
+    </div>
+
+    <div id="notifList" class="notif-list">
+        <div style="padding:40px; text-align:center; color:#999;">Loading...</div>
+    </div>
+</div>
+
+<!-- 语言切换 -->
+<div class="lang-selector" id="langSelector">
+    <button class="lang-trigger" id="langTrigger">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 10.5h7.5M13.5 3H3v7.5" />
+        </svg>
+    </button>
+    <div class="lang-dropdown">
+        <button class="lang-option" onclick="switchLang('zh')">中文</button>
+        <button class="lang-option" onclick="switchLang('en')">English</button>
+    </div>
+</div>
+
+<script src="common/lang-component.js"></script>
+<script>
+    const userId = localStorage.getItem("userId");
+    if(!userId) location.href = "login.html";
+
+    const currentLang = localStorage.getItem('appLang') || 'zh';
+
+    loadNotifications();
+
+    async function loadNotifications() {
+        const res = await fetch(`/api/notifications?userId=${userId}`);
+        const list = await res.json();
+        const container = document.getElementById("notifList");
+        container.innerHTML = "";
+
+        if (list.length === 0) {
+            container.innerHTML = `<div style="padding:40px; text-align:center; color:#999;">
+                <span class="cn">暂无消息</span><span class="en">No notifications</span>
+            </div>`;
+            if(typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+
+        list.forEach(n => {
+            const avatar = n.actor.avatar ? `/uploads/${n.actor.avatar}` : 'https://via.placeholder.com/40';
+            const actorName = n.actor.nickname || n.actor.username;
+            const time = n.createTime.replace('T', ' ').split('.')[0];
+            const isReadClass = n.read ? "" : "unread"; // 注意后端字段是 isRead 还是 read
+
+            // 根据类型生成文案
+            let icon = "", textCn = "", textEn = "";
+            // 类型: 1=评论文章, 2=回复评论, 3=点赞文章, 4=点赞评论
+            if (n.type === 1) {
+                icon = '<i class="fas fa-comment icon-type type-1"></i>';
+                textCn = `<b>${actorName}</b> 评论了你的文章`;
+                textEn = `<b>${actorName}</b> commented on your post`;
+            } else if (n.type === 2) {
+                icon = '<i class="fas fa-reply icon-type type-2"></i>';
+                textCn = `<b>${actorName}</b> 回复了你的评论`;
+                textEn = `<b>${actorName}</b> replied to your comment`;
+            } else if (n.type === 3) {
+                icon = '<i class="fas fa-heart icon-type type-3"></i>';
+                textCn = `<b>${actorName}</b> 赞了你的文章`;
+                textEn = `<b>${actorName}</b> liked your post`;
+            } else if (n.type === 4) {
+                icon = '<i class="fas fa-thumbs-up icon-type type-4"></i>';
+                textCn = `<b>${actorName}</b> 赞了你的评论`;
+                textEn = `<b>${actorName}</b> liked your comment`;
+            }
+
+            container.innerHTML += `
+                <div class="notif-item ${isReadClass}" onclick="handleClick(${n.id}, ${n.tweetId})">
+                    <img src="${avatar}" class="avatar">
+                    <div class="content">
+                        <div>
+                            ${icon}
+                            <span class="cn">${textCn}</span>
+                            <span class="en">${textEn}</span>
+                        </div>
+                        <div class="time">${time}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if(typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    // 点击消息：标记已读 -> 跳转
+    async function handleClick(notifId, tweetId) {
+        // 1. 发送已读请求
+        await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
+        // 2. 跳转到文章详情
+        window.location.href = `detail.html?id=${tweetId}`;
+    }
+
+    // 全部已读 (这里偷懒用循环调接口，严谨做法应该写个 markAll 接口)
+    async function markAllRead() {
+        const items = document.querySelectorAll('.notif-item.unread');
+        if (items.length === 0) return;
+
+        // 简单刷新即可，点击具体的才会变已读
+        // 如果要做"一键已读"，建议后端加个接口，这里暂不展开
+        alert(currentLang === 'zh' ? '请点击具体消息进行查看' : 'Please click specific message to view');
+    }
+</script>
+</body>
+</html>

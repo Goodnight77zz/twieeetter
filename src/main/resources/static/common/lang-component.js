@@ -136,4 +136,39 @@
     }
 
     window.addEventListener('load', init);
+
+    // 每 5 秒检查一次
+    setInterval(checkUnreadMessages, 5000);
+
+// 页面加载时立即检查一次
+    document.addEventListener("DOMContentLoaded", checkUnreadMessages);
+
+    async function checkUnreadMessages() {
+        const userId = localStorage.getItem("userId");
+        // 如果没登录，或者页面上没有红点元素(可能没加)，就不查
+        if (!userId) return;
+
+        // 查找页面上的红点元素 (ID 必须统一叫 msgBadge)
+        const badge = document.getElementById("msgBadge");
+        if (!badge) return;
+
+        try {
+            const res = await fetch(`/api/notifications/unread-count?userId=${userId}`);
+            if (res.ok) {
+                const count = await res.json();
+                if (count > 0) {
+                    badge.style.display = "inline-block"; // 显示红点
+                    // 超过99显示99+
+                    badge.innerText = count > 99 ? "99+" : count;
+
+                    // 还可以加个简单的抖动动画效果
+                    // badge.classList.add("animate__animated", "animate__pulse");
+                } else {
+                    badge.style.display = "none"; // 隐藏红点
+                }
+            }
+        } catch (e) {
+            console.error("Check notification failed", e);
+        }
+    }
 })();

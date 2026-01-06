@@ -27,4 +27,7 @@ public class Tweet {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User author;
+
+    @Column(name = "download_count", columnDefinition = "bigint default 0")
+    private Long downloadCount = 0L;
 }

@@ -13,15 +13,32 @@ public class Comment {
     private Long id;
 
     @Column(length = 500)
-    private String content; // 评论内容
+    private String content; // 评审意见
+
+    // === 🔥 新增：学术评分字段 (1-5分) ===
+    @Column(name = "score_innovation")
+    private Integer scoreInnovation = 0; // 创新性
+
+    @Column(name = "score_methodology")
+    private Integer scoreMethodology = 0; // 方法论严谨性
+
+    @Column(name = "score_utility")
+    private Integer scoreUtility = 0;     // 实用价值
 
     private LocalDateTime createTime;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user; // 谁评论的
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "tweet_id")
-    private Tweet tweet; // 评论哪篇文章
+    private Tweet tweet;
+
+    @Column(name = "parent_id")
+    private Long parentId;
+
+    @ManyToOne
+    @JoinColumn(name = "reply_to_user_id")
+    private User replyToUser;
 }
