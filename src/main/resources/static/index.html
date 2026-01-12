@@ -4,272 +4,274 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        <span class="cn">Twieeetter - 广场</span>
-        <span class="en">Twieeetter - Plaza</span>
+        <span class="cn">Twieeetter - 学术交流平台</span>
+        <span class="en">Twieeetter - Academic Plaza</span>
     </title>
-    <!-- 引入 FontAwesome 图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入通用语言组件CSS -->
     <link rel="stylesheet" href="common/lang-component.css">
-
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* === 全局样式 === */
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding-top: 70px; /* 为导航栏留出空间 */
-        }
+        /* === 全局布局 === */
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; display: block !important; }
 
         /* === 导航栏 === */
         .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: white;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            box-sizing: border-box;
-            z-index: 1000;
+            position: fixed; top: 0; width: 100%; background: white; height: 64px;
+            display: flex; align-items : center; justify-content: space-between;
+            padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); z-index: 1000; box-sizing: border-box;
         }
 
-        .brand {
-            font-size: 22px;
-            font-weight: 900;
-            color: #00a1d6; /* 学术蓝 */
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .nav-left { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+        .brand { font-size: 24px; font-weight: 900; color: #1da1f2; text-decoration: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 
+        .btn-create {
+            background: linear-gradient(90deg, #00a1d6, #00b5e5);
+            color: white; padding: 8px 20px; border-radius: 20px;
+            text-decoration: none; font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; gap: 5px; transition: transform 0.2s;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .btn-create:hover { transform: scale(1.05); }
+
+        /* === 🔥 导航栏右侧布局 (加大间距) === */
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 40px; /* 🔥 间距加大到 40px，解决拥挤问题 */
+            flex-shrink: 0;
         }
 
-        .btn-create {
-            background-color: #00a1d6;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
+        /* 通用导航链接 */
+        .nav-item {
+            text-decoration: none; color: #555; font-weight: 600; font-size: 15px;
+            display: flex; align-items: center; gap: 6px; transition: color 0.2s; position: relative;
+            white-space: nowrap;
+        }
+        .nav-item:hover { color: #1da1f2; }
+
+        /* === 🔥 消息图标专用容器 (固定大小，保证红点位置准确) === */
+        .nav-icon-btn {
             text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .btn-create:hover { background-color: #008bb8; }
-
-        .nav-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        /* === 主内容区 === */
-        .container {
-            max-width: 700px;
-            margin: 20px auto;
-            padding: 0 10px;
-        }
-
-        /* === 推文卡片 === */
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .user-info {
-            display: flex;
-            gap: 12px;
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .username {
-            font-weight: bold;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .time {
-            font-size: 12px;
-            color: #999;
-            margin-top: 2px;
-        }
-
-        /* 🔥 删除按钮样式 */
-        .btn-delete {
-            color: #ff4d4f;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(255, 77, 79, 0.1);
-            display: none; /* 默认隐藏 */
-        }
-        .btn-delete:hover {
-            background: rgba(255, 77, 79, 0.2);
-        }
-
-        .content {
-            font-size: 15px;
-            line-height: 1.6;
-            color: #333;
-            margin-bottom: 15px;
-            cursor: pointer;
-            white-space: pre-wrap; /* 保留换行 */
-        }
-
-        .file-attachment {
-            background: #f7f9fa;
-            border: 1px solid #e1e8ed;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
+            color: #555;
+            position: relative;
             display: flex;
             align-items: center;
-            cursor: pointer;
-            color: #00a1d6;
-            font-weight: 500;
-        }
-        .file-attachment:hover { background: #f0f8ff; }
-
-        .tag-badge {
-            display: inline-block;
-            background: #e8f5fe;
-            color: #00a1d6;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-right: 5px;
-            margin-bottom: 10px;
-        }
-
-        /* === 底部互动栏 === */
-        .actions {
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-            color: #657786;
-        }
-
-        .action-btn {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
+            justify-content: center;
+            /* 限制容器大小，让红点紧贴图标 */
+            width: 24px;
+            height: 24px;
             transition: color 0.2s;
         }
-        .action-btn:hover { color: #00a1d6; }
-        .action-btn.liked { color: #e0245e; }
+        .nav-icon-btn:hover { color: #1da1f2; }
 
-        /* === 🔥 评论区样式 === */
-        .comment-box {
-            background-color: #f8f9fa;
-            margin-top: 15px;
-            padding: 0 15px 15px 15px;
-            border-radius: 8px;
-            display: none; /* 默认隐藏 */
-            border-top: 1px solid #eee;
+        /* === 🔥🔥 B站同款红点 (最终修正版) 🔥🔥 === */
+        #msgBadge {
+            position: absolute;
+            /* 定位：挂在右上角，稍微突出去一点点 */
+            top: -6px;
+            right: -8px;
+
+            /* 尺寸：固定高度，最小宽度，保证是正圆 */
+            height: 16px;
+            min-width: 16px;
+            padding: 0 4px; /* 数字多了自动变椭圆 */
+            border-radius: 9px; /* 半径是高度的一半 */
+
+            /* 颜色 */
+            background-color: #fa5a57; /* B站红 */
+            color: white;
+            border: 2px solid #fff; /* 🔥 关键：白色描边，制造悬浮感 */
+
+            /* 字体 */
+            font-size: 10px;
+            font-weight: 900;
+            font-family: Arial, sans-serif;
+
+            /* 布局：Flex 保证数字绝对居中 */
+            display: none; /* JS 改为 flex */
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-sizing: border-box; /* 包含边框尺寸 */
         }
 
-        .comment-item {
-            border-bottom: 1px solid #eee;
-            padding: 12px 0;
-            display: flex;
-            gap: 10px;
+        /* === 头像样式 === */
+        .avatar {
+            width: 32px !important; height: 32px !important;
+            border-radius: 50%; object-fit: cover; border: 1px solid #eee; display: block;
         }
-        .comment-item:last-child { border-bottom: none; }
 
-        .comment-avatar {
-            width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+        /* === 悬浮菜单 (保持之前的大尺寸优化) === */
+        .user-menu-container {
+            position: relative; height: 64px; display: flex; align-items: center; cursor: pointer; z-index: 2000;
         }
-        .comment-body { flex: 1; font-size: 13px; }
-        .comment-user { font-weight: bold; color: #333; margin-right: 5px; }
-        .comment-text { color: #444; line-height: 1.4; margin-top: 2px; }
-        .comment-date { color: #999; font-size: 12px; margin-top: 4px; }
+        .avatar-wrapper {
+            position: relative; z-index: 2002; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .user-menu-container:hover .avatar-wrapper {
+            transform: scale(2.2) translateY(18px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 50%;
+        }
+        .user-popover {
+            position: absolute; top: 60px; left: 50%;
+            transform: translateX(-50%) translateY(-15px) scale(0.95);
+            width: 240px; background: white; border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1); padding: 55px 20px 35px;
+            opacity: 0; visibility: hidden; transition: all 0.2s ease-out;
+            z-index: 2001; text-align: center; border: 1px solid #f0f0f0;
+        }
+        .user-menu-container:hover .user-popover {
+            opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0) scale(1);
+        }
+        .popover-name { font-size: 18px; font-weight: 900; color: #fb7299; margin-bottom: 6px; display: block; line-height: 1.2; }
+        .level-badge { display: inline-block; font-size: 12px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; font-weight: bold; transform: scale(0.9); }
+        .popover-credit { font-size: 12px; color: #9499a0; margin-top: 8px; margin-bottom: 15px; }
+        .credit-num { color: #222; font-weight: bold; margin-left: 4px; }
+        .popover-stats { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e3e5e7; }
+        .stat-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s; }
+        .stat-item:hover .stat-num, .stat-item:hover .stat-label { color: #1da1f2; }
+        .stat-num { font-size: 18px; font-weight: 800; color: #18191c; line-height: 1.2; }
+        .stat-label { font-size: 12px; color: #9499a0; margin-top: 2px; }
+        .popover-menu { text-align: left; display: flex; flex-direction: column; gap: 2px; }
+        .pop-menu-item { display: flex; align-items: center; padding: 10px 15px; color: #61666d; text-decoration: none; font-size: 14px; border-radius: 4px; transition: background 0.2s; }
+        .pop-menu-item:hover { background-color: #e3e5e7; color: #18191c; }
+        .pop-menu-item i { width: 24px; text-align: center; margin-right: 10px; font-size: 16px; color: #9499a0; }
+        .pop-menu-item:hover i { color: #18191c; }
+        .pop-menu-item.logout { margin-top: 8px; padding-top: 15px; border-top: 1px solid #e3e5e7; }
+        .pop-menu-item.logout:hover { background-color: transparent; color: #ff4d4f; }
+        .pop-menu-item.logout:hover i { color: #ff4d4f; }
 
-        .comment-link {
-            display: block;
-            text-align: center;
-            padding-top: 10px;
-            color: #00a1d6;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .comment-link:hover { text-decoration: underline; }
+        /* 内容区样式 */
+        .container { max-width: 700px; margin: 20px auto; padding-bottom: 40px; }
+        .tweet-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer; position: relative; }
+        .tweet-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .author-box { display: flex; gap: 12px; }
+        .author-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+        .author-name { font-weight: bold; font-size: 16px; color: #0f1419; }
+        .author-handle { color: #536471; font-size: 14px; }
+        .time-label { color: #536471; font-size: 13px; }
+        .card-content { font-size: 16px; line-height: 1.6; color: #0f1419; margin-bottom: 15px; white-space: pre-wrap; }
+        .file-box { background: #f7f9f9; border: 1px solid #cfd9de; border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        .file-icon { font-size: 24px; color: #536471; background: #eff3f4; padding: 8px; border-radius: 8px; }
+        .file-info { display: flex; flex-direction: column; overflow: hidden; }
+        .file-name { font-weight: bold; color: #1da1f2; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-label { font-size: 12px; color: #536471; }
+        .card-footer { display: flex; gap: 20px; margin-top: 15px; border-top: 1px solid #eff3f4; padding-top: 10px; color: #536471; font-size: 14px; }
+        .action-item { display: flex; align-items: center; gap: 5px; cursor: pointer; transition: color 0.2s; }
+        .action-item:hover { color: #1da1f2; }
+        .like-num { font-weight: bold; }
+        .tag-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px; margin-right: 5px; }
 
-        /* 加载动画 */
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #00a1d6;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        @media (max-width: 600px) {
+            .nav-item span { display: none; }
+            .btn-create span { display: none; }
+            .navbar { padding: 0 10px; }
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <a href="index.html" class="brand">
-        🎓 Twieeetter
-    </a>
-
-    <div class="nav-right">
+    <div class="nav-left">
+        <a href="index.html" class="brand">
+            Twieeetter 🎓
+        </a>
         <a href="dashboard.html" class="btn-create">
-            <i class="fas fa-plus"></i>
-            <span class="cn">创作中心</span><span class="en">Creator Center</span>
+            <i class="fas fa-bolt"></i>
+            <span class="cn">进入创作中心</span>
+            <span class="en">Creator Center</span>
         </a>
-        <a href="profile.html">
-            <img id="myAvatar" src="https://via.placeholder.com/36" class="nav-avatar">
+    </div>
+
+    <!-- 🔥 导航栏右侧：顺序[头像 -> 消息 -> 好友 -> 搜索] -->
+    <div class="nav-right">
+
+        <!-- 1. 头像悬浮菜单 -->
+        <div class="user-menu-container">
+            <div class="avatar-wrapper" onclick="goToMyProfile()">
+                <img id="navAvatar" src="https://via.placeholder.com/32" class="avatar">
+            </div>
+
+            <!-- 悬浮卡片 -->
+            <div class="user-popover">
+                <div style="margin-top: 5px;">
+                    <span id="popName" class="popover-name">User</span>
+                </div>
+                <div>
+                    <span id="popLevel" class="level-badge" style="background:#99a2aa; color:white;">
+                        <span class="cn">普通用户</span><span class="en">User</span>
+                    </span>
+                </div>
+                <div class="popover-credit">
+                    <span class="cn">学术积分</span><span class="en">Credits</span>
+                    <span id="popReputation" class="credit-num">0</span>
+                </div>
+                <div class="popover-stats">
+                    <div class="stat-item" onclick="location.href='friends.html'">
+                        <div class="stat-num" id="popFollowing">0</div>
+                        <div class="stat-label"><span class="cn">关注</span><span class="en">Follow</span></div>
+                    </div>
+                    <div class="stat-item" onclick="goToMyProfile()">
+                        <div class="stat-num" id="popFollower">0</div>
+                        <div class="stat-label"><span class="cn">粉丝</span><span class="en">Fans</span></div>
+                    </div>
+                    <div class="stat-item" onclick="location.href='content.html'">
+                        <div class="stat-num" id="popTweets">0</div>
+                        <div class="stat-label"><span class="cn">投稿</span><span class="en">Posts</span></div>
+                    </div>
+                </div>
+                <div class="popover-menu">
+                    <a href="dashboard.html" class="pop-menu-item">
+                        <i class="fas fa-home"></i>
+                        <span class="cn">创作中心</span><span class="en">Creator Center</span>
+                    </a>
+                    <a href="profile.html" class="pop-menu-item">
+                        <i class="fas fa-user-edit"></i>
+                        <span class="cn">修改资料</span><span class="en">Edit Profile</span>
+                    </a>
+                    <a href="content.html" class="pop-menu-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="cn">稿件管理</span><span class="en">Manuscripts</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="pop-menu-item logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="cn">退出登录</span><span class="en">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 消息通知 -->
+        <a href="notifications.html" class="nav-icon-btn">
+            <i class="fas fa-envelope" style="font-size: 22px;"></i>
+            <!-- 红点：JS检测到有消息会自动显示 -->
+            <span id="msgBadge">0</span>
         </a>
-        <a href="#" onclick="logout()" style="color:#666;text-decoration:none;font-size:14px">
-            <i class="fas fa-sign-out-alt"></i>
+
+        <!-- 3. 好友 -->
+        <a href="friends.html" class="nav-item">
+            <i class="fas fa-users"></i>
+            <span class="cn">好友</span><span class="en">Friends</span>
         </a>
+
+        <!-- 4. 搜索 -->
+        <a href="search.html" class="nav-item">
+            <i class="fas fa-search"></i>
+            <span class="cn">搜索</span><span class="en">Search</span>
+        </a>
+
     </div>
 </div>
 
-<div class="container" id="tweetList">
-    <div class="loader"></div>
+<!-- 主内容 -->
+<div class="container" id="feedContainer">
+    <div style="text-align: center; padding: 40px; color: #999;">
+        <span class="cn">加载中...</span>
+        <span class="en">Loading...</span>
+    </div>
 </div>
 
-<!-- 语言切换组件 -->
+<!-- 语言切换 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -277,262 +279,269 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" onclick="switchLang('zh')">中文</button>
         <button class="lang-option" onclick="switchLang('en')">English</button>
     </div>
 </div>
 
-<!-- 脚本区域 -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="common/lang-component.js"></script>
+
 <script>
+    const tagTranslations = {
+        "AI": "AI",
+        "生物医学": "Biomedical",
+        "计算机": "Comp Sci",
+        "物理": "Physics",
+        "化学": "Chemistry",
+        "深度学习": "Deep Learning",
+        "数据分析": "Data Analysis"
+    };
+
     const currentUserId = localStorage.getItem("userId");
+    if(!currentUserId) window.location.href = "login.html";
 
-    if(!currentUserId) {
-        window.location.href = "login.html";
-    }
+    let globalTweets = [];
 
-    // 初始化加载
-    loadUserInfo();
-    loadTweets();
+    loadNavData();
+    fetchFeed();
+    startMsgPolling();
 
-    // 监听语言切换，重新加载列表以更新文本（如时间、标签）
     window.addEventListener('languageChange', function() {
-        loadTweets();
+        renderFeed();
+        loadNavData();
     });
 
-    async function loadUserInfo() {
+    async function loadNavData() {
         try {
-            const res = await fetch(`/api/users/${currentUserId}`);
-            const user = await res.json();
+            const userRes = await fetch(`/api/users/${currentUserId}`);
+            const user = await userRes.json();
+
             if(user.avatar) {
-                document.getElementById("myAvatar").src = `/uploads/${user.avatar}`;
+                document.getElementById("navAvatar").src = "/uploads/" + user.avatar;
+            }
+
+            const nickname = user.nickname || user.username;
+            document.getElementById("popName").innerText = nickname;
+
+            const score = user.reputation || 0;
+            document.getElementById("popReputation").innerText = score;
+
+            const levelBadge = document.getElementById("popLevel");
+            let titleCn = "普通用户";
+            let titleEn = "User";
+            let bgColor = "#99a2aa";
+
+            if (score >= 100) {
+                titleCn = "资深教授"; titleEn = "Professor"; bgColor = "#f4212e";
+            } else if (score >= 20) {
+                titleCn = "认证学者"; titleEn = "Scholar"; bgColor = "#00a1d6";
+            }
+
+            levelBadge.style.backgroundColor = bgColor;
+            levelBadge.innerHTML = `<span class="cn">${titleCn}</span><span class="en">${titleEn}</span>`;
+
+            const currentLang = localStorage.getItem('appLang') || 'cn';
+            if(typeof applyLang === 'function') applyLang(currentLang);
+
+            const statsRes = await fetch(`/api/users/${currentUserId}/stats`);
+            const stats = await statsRes.json();
+            document.getElementById("popFollowing").innerText = stats.followingCount;
+            document.getElementById("popFollower").innerText = stats.followerCount;
+            document.getElementById("popTweets").innerText = stats.tweetCount;
+
+        } catch(e) {
+            console.error("Nav load failed", e);
+        }
+    }
+
+    function startMsgPolling() {
+        checkUnread();
+        setInterval(checkUnread, 5000);
+    }
+
+    async function checkUnread() {
+        try {
+            const res = await fetch(`/api/notifications/unread-count?userId=${currentUserId}`);
+            const count = await res.json();
+            const badge = document.getElementById("msgBadge");
+            if (count > 0) {
+                // 🔥 修改为 flex，确保数字绝对居中
+                badge.style.display = "flex";
+                badge.innerText = count > 99 ? "99+" : count;
+            } else {
+                badge.style.display = "none";
             }
         } catch(e) {}
     }
 
-    async function loadTweets() {
-        const container = document.getElementById("tweetList");
+    function goToMyProfile() {
+        window.location.href = `user_profile.html?id=${currentUserId}`;
+    }
+
+    async function fetchFeed() {
+        const container = document.getElementById("feedContainer");
         try {
             const res = await fetch('/api/tweets');
-            const list = await res.json();
+            globalTweets = await res.json();
 
-            container.innerHTML = "";
-            const lang = localStorage.getItem('appLang') || 'cn';
-
-            if(list.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:#999;padding:40px">
-                    <span class="cn">暂无内容</span><span class="en">No content</span>
-                </div>`;
-                if(typeof applyLang === 'function') applyLang(lang);
-                return;
+            if (globalTweets.length > 0) {
+                const promises = globalTweets.map(async (tweet) => {
+                    try {
+                        const likeRes = await fetch(`/api/tweets/${tweet.id}/like-status?userId=${currentUserId}`);
+                        const likeData = await likeRes.json();
+                        tweet.likeCount = likeData.count;
+                        tweet.isLiked = likeData.isLiked;
+                    } catch (e) {
+                        tweet.likeCount = 0;
+                        tweet.isLiked = false;
+                    }
+                });
+                await Promise.all(promises);
             }
-
-            for (const t of list) {
-                const user = t.author;
-                const timeStr = formatTime(t.createTime, lang);
-                const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/50';
-
-                // 1. 获取点赞状态
-                const likeRes = await fetch(`/api/tweets/${t.id}/like-status?userId=${currentUserId}`);
-                const likeData = await likeRes.json();
-                const likeClass = likeData.isLiked ? 'liked' : '';
-                const likeIcon = likeData.isLiked ? 'fas fa-heart' : 'far fa-heart';
-
-                // 2. 获取评论数
-                const commentRes = await fetch(`/api/tweets/${t.id}/comments`);
-                const comments = await commentRes.json();
-                const commentCount = comments.length;
-
-                // 3. 判断是否是本人 (显示删除按钮)
-                const isMe = (user.id == currentUserId);
-                const deleteBtnHtml = isMe
-                    ? `<span class="btn-delete" style="display:inline-block;" onclick="deleteTweet(${t.id})"><i class="fas fa-trash"></i> ${lang==='cn'?'删除':'Del'}</span>`
-                    : '';
-
-                // 4. 文件显示
-                let fileHtml = t.originalFilename ?
-                    `<div class="file-attachment" onclick="window.open('/api/tweets/${t.id}/download')">
-                        <i class="fas fa-file-alt"></i> &nbsp; ${t.originalFilename}
-                        <span style="font-size:12px;color:#999;margin-left:auto; display:flex; align-items:center; gap:4px;">
-                            <i class="fas fa-download"></i> ${t.downloadCount||0}
-                        </span>
-                     </div>` : '';
-
-                // 5. 标签处理
-                let tagsHtml = "";
-                if(t.tags) {
-                    const tagList = t.tags.split(',');
-                    tagsHtml = tagList.map(tag => `<span class="tag-badge">#${translateTag(tag, lang)}</span>`).join('');
-                }
-
-                container.innerHTML += `
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="user-info" onclick="location.href='user_profile.html?id=${user.id}'">
-                                <img src="${avatar}" class="avatar">
-                                <div>
-                                    <div class="username">${user.nickname || user.username}</div>
-                                    <div class="time">${timeStr} ${deleteBtnHtml}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="content" onclick="location.href='detail.html?id=${t.id}'">
-                            ${t.content}
-                        </div>
-                        ${fileHtml}
-                        <div style="margin-bottom:10px;">${tagsHtml}</div>
-
-                        <div class="actions">
-                            <div class="action-btn ${likeClass}" onclick="toggleLike(this, ${t.id})">
-                                <i class="${likeIcon}"></i> <span class="like-num">${likeData.count || 0}</span>
-                            </div>
-                            <!-- 🔥 评论按钮：绑定展开事件 -->
-                            <div class="action-btn" onclick="toggleComments(${t.id})">
-                                <i class="far fa-comment"></i> <span>${commentCount || 'Comment'}</span>
-                            </div>
-                            <div class="action-btn" onclick="location.href='detail.html?id=${t.id}'">
-                                <i class="far fa-share-square"></i>
-                            </div>
-                        </div>
-
-                        <!-- 🔥 评论折叠区 -->
-                        <div id="comment-box-${t.id}" class="comment-box">
-                            <!-- JS 动态填充 -->
-                        </div>
-                    </div>
-                `;
-            }
-            if(typeof applyLang === 'function') applyLang(lang);
-
-        } catch (e) {
+            renderFeed();
+        } catch(e) {
             console.error(e);
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:red;">Load Failed</div>`;
         }
     }
 
-    // 🔥 展开/收起评论
-    async function toggleComments(tweetId) {
-        const box = document.getElementById(`comment-box-${tweetId}`);
-        const lang = localStorage.getItem('appLang') || 'cn';
+    function renderFeed() {
+        const container = document.getElementById("feedContainer");
+        const list = globalTweets;
+        const currentLang = localStorage.getItem('appLang') || 'zh';
 
-        if (box.style.display === "block") {
-            box.style.display = "none";
+        if(list.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#999;">
+                    <span class="cn">暂无内容，去发一条吧！</span>
+                    <span class="en">No tweets yet, go publish one!</span>
+                </div>`;
+            if(typeof applyLang === 'function') applyLang(currentLang);
             return;
         }
 
-        box.style.display = "block";
-        box.innerHTML = `<div style="text-align:center;color:#999;padding:10px;">Loading...</div>`;
+        container.innerHTML = "";
+        list.forEach(t => {
+            const avatar = t.author.avatar ? `/uploads/${t.author.avatar}` : 'https://via.placeholder.com/48';
+            const name = t.author.nickname || t.author.username;
+            const timeStr = formatRelativeTime(t.createTime, currentLang);
 
-        try {
-            const res = await fetch(`/api/tweets/${tweetId}/comments`);
-            const comments = await res.json();
+            let fileHtml = "";
+            if(t.originalFilename) {
+                fileHtml = `
+                    <div class="file-box" onclick="event.stopPropagation(); window.open('/uploads/${t.filePath.split(/[\\/]/).pop()}')">
+                        <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="file-info">
+                            <span class="file-label"><span class="cn">附件文档</span><span class="en">Attachment</span></span>
+                            <span class="file-name">${t.originalFilename}</span>
+                        </div>
+                    </div>`;
+            }
 
-            if (comments.length === 0) {
-                box.innerHTML = `<div style="text-align:center;color:#999;font-size:13px;padding:10px;">
-                    ${lang==='cn' ? '暂无评论' : 'No comments'}
-                </div>`;
-            } else {
-                let html = '';
-                // 显示前5条
-                const previewList = comments.slice(0, 5);
+            let tagsHtml = "";
+            if(t.tags) {
+                const tagsArr = t.tags.split(',');
+                tagsHtml = tagsArr.map(tag => {
+                    const displayTag = currentLang === 'en' ? (tagTranslations[tag] || tag) : tag;
+                    return `<span class="tag-badge" style="background:#e8f5fe; color:#1da1f2;">#${displayTag}</span>`;
+                }).join(" ");
+            }
 
-                previewList.forEach(c => {
-                    const avatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/30';
-                    html += `
-                        <div class="comment-item">
-                            <img src="${avatar}" class="comment-avatar">
-                            <div class="comment-body">
-                                <span class="comment-user">${c.user.nickname || c.user.username}</span>
-                                <div class="comment-text">${c.content}</div>
+            const heartClass = t.isLiked ? "fas fa-heart" : "far fa-heart";
+            const heartColor = t.isLiked ? "color: #f91880;" : "";
+
+            container.innerHTML += `
+                <div class="tweet-card" onclick="location.href='detail.html?id=${t.id}'">
+                    <div class="card-header">
+                        <div class="author-box" onclick="event.stopPropagation(); location.href='user_profile.html?id=${t.author.id}'">
+                            <img src="${avatar}" class="author-avatar">
+                            <div>
+                                <div class="author-name">${name}</div>
+                                <div class="author-handle">@${t.author.username}</div>
                             </div>
                         </div>
-                    `;
-                });
+                        <div class="time-label">${timeStr}</div>
+                    </div>
+                    <div class="card-content">${t.content}</div>
+                    ${fileHtml}
+                    <div style="margin-top:5px;">${tagsHtml}</div>
+                    <div class="card-footer">
+                        <div class="action-item" onclick="event.stopPropagation(); toggleLikeInList(this, ${t.id})">
+                            <i class="${heartClass}" style="${heartColor}"></i>
+                            <span class="like-num" style="margin-left:5px;">${t.likeCount || 0}</span>
+                        </div>
+                        <div class="action-item" onclick="event.stopPropagation(); location.href='detail.html?id=${t.id}#commentSection'">
+                            <i class="far fa-comment"></i>
+                            <span style="margin-left:5px;">
+                                <span class="cn">评论</span><span class="en">Comment</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
 
-                // 底部链接
-                const linkText = lang==='cn' ? '查看更多 / 发表评论 >' : 'View more / Reply >';
-                html += `
-                    <a href="detail.html?id=${tweetId}" class="comment-link">${linkText}</a>
-                `;
-                box.innerHTML = html;
-            }
-        } catch (e) {
-            box.innerHTML = `<div style="color:red;text-align:center;">Error loading comments</div>`;
-        }
+        if(typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    // 🔥 删除推文
-    async function deleteTweet(tweetId) {
-        const lang = localStorage.getItem('appLang') || 'cn';
-        const confirmMsg = lang==='cn' ? "确定要删除这条推文吗？" : "Are you sure to delete this tweet?";
-
-        if (!confirm(confirmMsg)) return;
-
-        try {
-            const res = await fetch(`/api/tweets/${tweetId}?userId=${currentUserId}`, {
-                method: 'DELETE'
-            });
-            const msg = await res.text();
-
-            if (res.ok) {
-                alert(lang==='cn' ? "已删除" : "Deleted");
-                loadTweets();
-            } else {
-                alert("Error: " + msg);
-            }
-        } catch (e) {
-            alert("Network Error");
-        }
-    }
-
-    // 点赞逻辑
-    async function toggleLike(btn, tweetId) {
+    async function toggleLikeInList(btn, tweetId) {
         const icon = btn.querySelector('i');
         const numSpan = btn.querySelector('.like-num');
-        let num = parseInt(numSpan.innerText);
+        let currentNum = parseInt(numSpan.innerText);
 
-        if (btn.classList.contains('liked')) {
-            btn.classList.remove('liked');
-            icon.className = 'far fa-heart';
-            numSpan.innerText = Math.max(0, num - 1);
-        } else {
-            btn.classList.add('liked');
+        if (icon.classList.contains('far')) {
             icon.className = 'fas fa-heart';
-            numSpan.innerText = num + 1;
+            icon.style.color = '#f91880';
+            numSpan.innerText = currentNum + 1;
+        } else {
+            icon.className = 'far fa-heart';
+            icon.style.color = '';
+            numSpan.innerText = Math.max(0, currentNum - 1);
         }
 
         try {
             await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
-        } catch (e) {}
+            const tweet = globalTweets.find(t => t.id == tweetId);
+            if(tweet) {
+                tweet.isLiked = !tweet.isLiked;
+                tweet.likeCount = parseInt(numSpan.innerText);
+            }
+        } catch (e) {
+            alert("Network error");
+            fetchFeed();
+        }
+    }
+
+    function formatRelativeTime(timestamp, lang) {
+        const now = new Date();
+        const postTime = new Date(timestamp);
+        const diff = now - postTime;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if(lang === 'zh' || lang === 'cn') {
+            if(seconds < 60) return "刚刚";
+            if(minutes < 60) return `${minutes}分钟前`;
+            if(hours < 24) return `${hours}小时前`;
+            return `${days}天前`;
+        } else {
+            if(seconds < 60) return "Just now";
+            if(minutes < 60) return `${minutes}m ago`;
+            if(hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
     }
 
     function logout() {
-        localStorage.clear();
-        window.location.href = "login.html";
-    }
-
-    // 简易时间格式化
-    function formatTime(isoStr, lang) {
-        if(!isoStr) return "";
-        const date = new Date(isoStr);
-        const now = new Date();
-        const diff = (now - date) / 1000; // seconds
-
-        if(diff < 60) return lang==='cn' ? "刚刚" : "Just now";
-        if(diff < 3600) return Math.floor(diff/60) + (lang==='cn' ? "分钟前" : "m ago");
-        if(diff < 86400) return Math.floor(diff/3600) + (lang==='cn' ? "小时前" : "h ago");
-        return isoStr.split('T')[0];
-    }
-
-    // 标签翻译 (简易版)
-    function translateTag(tag, lang) {
-        if(lang === 'cn') return tag;
-        const dict = {
-            'AI': 'AI', '计算机': 'Comp Sci', '生物医学': 'Biomedical',
-            '物理': 'Physics', '化学': 'Chemistry', '深度学习': 'Deep Learning',
-            '数据分析': 'Data Analysis'
-        };
-        return dict[tag] || tag;
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const msg = (lang === 'zh' || lang === 'cn') ? '确定要退出吗？' : 'Are you sure to logout?';
+        if(confirm(msg)) {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
     }
 </script>
 </body>
