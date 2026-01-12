@@ -32,15 +32,8 @@
         }
         .btn-create:hover { transform: scale(1.05); }
 
-        /* === 🔥 导航栏右侧布局 (加大间距) === */
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 40px; /* 🔥 间距加大到 40px，解决拥挤问题 */
-            flex-shrink: 0;
-        }
+        .nav-right { display: flex; align-items: center; gap: 40px; flex-shrink: 0; }
 
-        /* 通用导航链接 */
         .nav-item {
             text-decoration: none; color: #555; font-weight: 600; font-size: 15px;
             display: flex; align-items: center; gap: 6px; transition: color 0.2s; position: relative;
@@ -48,69 +41,32 @@
         }
         .nav-item:hover { color: #1da1f2; }
 
-        /* === 🔥 消息图标专用容器 (固定大小，保证红点位置准确) === */
         .nav-icon-btn {
-            text-decoration: none;
-            color: #555;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* 限制容器大小，让红点紧贴图标 */
-            width: 24px;
-            height: 24px;
-            transition: color 0.2s;
+            text-decoration: none; color: #555; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; transition: color 0.2s;
         }
         .nav-icon-btn:hover { color: #1da1f2; }
 
-        /* === 🔥🔥 B站同款红点 (最终修正版) 🔥🔥 === */
         #msgBadge {
-            position: absolute;
-            /* 定位：挂在右上角，稍微突出去一点点 */
-            top: -6px;
-            right: -8px;
-
-            /* 尺寸：固定高度，最小宽度，保证是正圆 */
-            height: 16px;
-            min-width: 16px;
-            padding: 0 4px; /* 数字多了自动变椭圆 */
-            border-radius: 9px; /* 半径是高度的一半 */
-
-            /* 颜色 */
-            background-color: #fa5a57; /* B站红 */
-            color: white;
-            border: 2px solid #fff; /* 🔥 关键：白色描边，制造悬浮感 */
-
-            /* 字体 */
-            font-size: 10px;
-            font-weight: 900;
-            font-family: Arial, sans-serif;
-
-            /* 布局：Flex 保证数字绝对居中 */
-            display: none; /* JS 改为 flex */
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            box-sizing: border-box; /* 包含边框尺寸 */
+            position: absolute; top: -6px; right: -8px;
+            height: 16px; min-width: 16px; padding: 0 4px;
+            border-radius: 9px; background-color: #fa5a57;
+            color: white; border: 2px solid #fff;
+            font-size: 10px; font-weight: 900;
+            display: none; align-items: center; justify-content: center;
+            z-index: 10; box-sizing: border-box;
         }
 
-        /* === 头像样式 === */
         .avatar {
             width: 32px !important; height: 32px !important;
             border-radius: 50%; object-fit: cover; border: 1px solid #eee; display: block;
         }
 
-        /* === 悬浮菜单 (保持之前的大尺寸优化) === */
-        .user-menu-container {
-            position: relative; height: 64px; display: flex; align-items: center; cursor: pointer; z-index: 2000;
-        }
-        .avatar-wrapper {
-            position: relative; z-index: 2002; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .user-menu-container:hover .avatar-wrapper {
-            transform: scale(2.2) translateY(18px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 50%;
-        }
+        /* === 悬浮菜单 === */
+        .user-menu-container { position: relative; height: 64px; display: flex; align-items: center; cursor: pointer; z-index: 2000; }
+        .avatar-wrapper { position: relative; z-index: 2002; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .user-menu-container:hover .avatar-wrapper { transform: scale(2.2) translateY(18px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 50%; }
         .user-popover {
             position: absolute; top: 60px; left: 50%;
             transform: translateX(-50%) translateY(-15px) scale(0.95);
@@ -119,9 +75,7 @@
             opacity: 0; visibility: hidden; transition: all 0.2s ease-out;
             z-index: 2001; text-align: center; border: 1px solid #f0f0f0;
         }
-        .user-menu-container:hover .user-popover {
-            opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0) scale(1);
-        }
+        .user-menu-container:hover .user-popover { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0) scale(1); }
         .popover-name { font-size: 18px; font-weight: 900; color: #fb7299; margin-bottom: 6px; display: block; line-height: 1.2; }
         .level-badge { display: inline-block; font-size: 12px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; font-weight: bold; transform: scale(0.9); }
         .popover-credit { font-size: 12px; color: #9499a0; margin-top: 8px; margin-bottom: 15px; }
@@ -135,12 +89,11 @@
         .pop-menu-item { display: flex; align-items: center; padding: 10px 15px; color: #61666d; text-decoration: none; font-size: 14px; border-radius: 4px; transition: background 0.2s; }
         .pop-menu-item:hover { background-color: #e3e5e7; color: #18191c; }
         .pop-menu-item i { width: 24px; text-align: center; margin-right: 10px; font-size: 16px; color: #9499a0; }
-        .pop-menu-item:hover i { color: #18191c; }
         .pop-menu-item.logout { margin-top: 8px; padding-top: 15px; border-top: 1px solid #e3e5e7; }
         .pop-menu-item.logout:hover { background-color: transparent; color: #ff4d4f; }
         .pop-menu-item.logout:hover i { color: #ff4d4f; }
 
-        /* 内容区样式 */
+        /* === 内容区样式 === */
         .container { max-width: 700px; margin: 20px auto; padding-bottom: 40px; }
         .tweet-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer; position: relative; }
         .tweet-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
@@ -162,6 +115,48 @@
         .like-num { font-weight: bold; }
         .tag-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; background: #e8f5fe; color: #1da1f2; font-size: 12px; margin-top: 8px; margin-right: 5px; }
 
+        /* === 🔥 新增：删除按钮样式 === */
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #e0245e; /* 红色 */
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: background 0.2s;
+            margin-left: 10px;
+        }
+        .btn-delete:hover { background-color: rgba(224, 36, 94, 0.1); }
+
+        /* === 🔥 新增：评论预览区样式 === */
+        .comment-preview-area {
+            background-color: #f7f9f9;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+            display: none; /* 默认隐藏 */
+            border: 1px solid #eee;
+        }
+        .preview-item {
+            font-size: 13px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-item:hover { background-color: #f0f2f5; }
+        .preview-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover;}
+        .preview-content { flex: 1; }
+        .preview-user { font-weight: bold; margin-right: 5px; color: #0f1419; }
+        .view-all-link {
+            display: block; text-align: center; font-size: 12px; color: #1da1f2;
+            margin-top: 5px; text-decoration: none; cursor: pointer;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
         @media (max-width: 600px) {
             .nav-item span { display: none; }
             .btn-create span { display: none; }
@@ -173,9 +168,7 @@
 
 <div class="navbar">
     <div class="nav-left">
-        <a href="index.html" class="brand">
-            Twieeetter 🎓
-        </a>
+        <a href="index.html" class="brand">Twieeetter 🎓</a>
         <a href="dashboard.html" class="btn-create">
             <i class="fas fa-bolt"></i>
             <span class="cn">进入创作中心</span>
@@ -183,15 +176,12 @@
         </a>
     </div>
 
-    <!-- 🔥 导航栏右侧：顺序[头像 -> 消息 -> 好友 -> 搜索] -->
     <div class="nav-right">
-
         <!-- 1. 头像悬浮菜单 -->
         <div class="user-menu-container">
             <div class="avatar-wrapper" onclick="goToMyProfile()">
                 <img id="navAvatar" src="https://via.placeholder.com/32" class="avatar">
             </div>
-
             <!-- 悬浮卡片 -->
             <div class="user-popover">
                 <div style="margin-top: 5px;">
@@ -244,7 +234,6 @@
         <!-- 2. 消息通知 -->
         <a href="notifications.html" class="nav-icon-btn">
             <i class="fas fa-envelope" style="font-size: 22px;"></i>
-            <!-- 红点：JS检测到有消息会自动显示 -->
             <span id="msgBadge">0</span>
         </a>
 
@@ -259,7 +248,6 @@
             <i class="fas fa-search"></i>
             <span class="cn">搜索</span><span class="en">Search</span>
         </a>
-
     </div>
 </div>
 
@@ -366,7 +354,6 @@
             const count = await res.json();
             const badge = document.getElementById("msgBadge");
             if (count > 0) {
-                // 🔥 修改为 flex，确保数字绝对居中
                 badge.style.display = "flex";
                 badge.innerText = count > 99 ? "99+" : count;
             } else {
@@ -379,6 +366,7 @@
         window.location.href = `user_profile.html?id=${currentUserId}`;
     }
 
+    // 🔥 修改：fetchFeed 中增加获取评论数的逻辑
     async function fetchFeed() {
         const container = document.getElementById("feedContainer");
         try {
@@ -388,13 +376,19 @@
             if (globalTweets.length > 0) {
                 const promises = globalTweets.map(async (tweet) => {
                     try {
+                        // 1. 获取点赞状态
                         const likeRes = await fetch(`/api/tweets/${tweet.id}/like-status?userId=${currentUserId}`);
                         const likeData = await likeRes.json();
                         tweet.likeCount = likeData.count;
                         tweet.isLiked = likeData.isLiked;
+
+                        // 2. 🔥 获取评论数
+                        const commentRes = await fetch(`/api/tweets/${tweet.id}/comment-count`);
+                        tweet.commentCount = await commentRes.json();
                     } catch (e) {
                         tweet.likeCount = 0;
                         tweet.isLiked = false;
+                        tweet.commentCount = 0;
                     }
                 });
                 await Promise.all(promises);
@@ -406,6 +400,7 @@
         }
     }
 
+    // 🔥 修改：renderFeed 函数，加入删除按钮和评论预览结构
     function renderFeed() {
         const container = document.getElementById("feedContainer");
         const list = globalTweets;
@@ -427,6 +422,7 @@
             const name = t.author.nickname || t.author.username;
             const timeStr = formatRelativeTime(t.createTime, currentLang);
 
+            // 附件HTML
             let fileHtml = "";
             if(t.originalFilename) {
                 fileHtml = `
@@ -439,6 +435,7 @@
                     </div>`;
             }
 
+            // 标签HTML
             let tagsHtml = "";
             if(t.tags) {
                 const tagsArr = t.tags.split(',');
@@ -451,6 +448,17 @@
             const heartClass = t.isLiked ? "fas fa-heart" : "far fa-heart";
             const heartColor = t.isLiked ? "color: #f91880;" : "";
 
+            // 🔥 判断是否是自己的推文，如果是，显示删除按钮
+            let deleteBtnHtml = "";
+            if (t.author.id == currentUserId) {
+                deleteBtnHtml = `
+                    <button class="btn-delete" onclick="event.stopPropagation(); deleteTweet(${t.id})">
+                        <i class="fas fa-trash"></i>
+                        <span class="cn">删除</span><span class="en">Delete</span>
+                    </button>
+                `;
+            }
+
             container.innerHTML += `
                 <div class="tweet-card" onclick="location.href='detail.html?id=${t.id}'">
                     <div class="card-header">
@@ -461,7 +469,10 @@
                                 <div class="author-handle">@${t.author.username}</div>
                             </div>
                         </div>
-                        <div class="time-label">${timeStr}</div>
+                        <div style="display:flex; align-items:center;">
+                            <div class="time-label">${timeStr}</div>
+                            ${deleteBtnHtml}
+                        </div>
                     </div>
                     <div class="card-content">${t.content}</div>
                     ${fileHtml}
@@ -471,12 +482,19 @@
                             <i class="${heartClass}" style="${heartColor}"></i>
                             <span class="like-num" style="margin-left:5px;">${t.likeCount || 0}</span>
                         </div>
-                        <div class="action-item" onclick="event.stopPropagation(); location.href='detail.html?id=${t.id}#commentSection'">
+                        <!-- 🔥 修改评论按钮逻辑：点击触发 togglePreviewComments -->
+                        <div class="action-item" onclick="event.stopPropagation(); togglePreviewComments(${t.id})">
                             <i class="far fa-comment"></i>
                             <span style="margin-left:5px;">
                                 <span class="cn">评论</span><span class="en">Comment</span>
+                                <span style="font-weight:bold;">${t.commentCount || 0}</span>
                             </span>
                         </div>
+                    </div>
+
+                    <!-- 🔥 新增：评论预览容器 -->
+                    <div id="preview-area-${t.id}" class="comment-preview-area" onclick="event.stopPropagation()">
+                        <div style="text-align:center; color:#999; font-size:12px;">Loading...</div>
                     </div>
                 </div>
             `;
@@ -541,6 +559,86 @@
         if(confirm(msg)) {
             localStorage.clear();
             window.location.href = "login.html";
+        }
+    }
+
+    // 🔥 新增：删除推文函数
+    async function deleteTweet(tweetId) {
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const confirmMsg = (lang === 'zh' || lang === 'cn') ? "确定要删除这条研究记录吗？" : "Are you sure to delete this research?";
+
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}?userId=${currentUserId}`, { method: 'DELETE' });
+            const msg = await res.text();
+            if (msg.includes("成功") || msg.includes("success")) {
+                alert((lang === 'zh' || lang === 'cn') ? "删除成功" : "Deleted successfully");
+                fetchFeed(); // 刷新列表
+            } else {
+                alert(msg);
+            }
+        } catch (e) {
+            alert("Error deleting tweet");
+        }
+    }
+
+    // 🔥 新增：下拉展示前几个评论
+    async function togglePreviewComments(tweetId) {
+        const area = document.getElementById(`preview-area-${tweetId}`);
+
+        // 如果已经打开，则关闭
+        if (area.style.display === "block") {
+            area.style.display = "none";
+            return;
+        }
+
+        // 打开并加载
+        area.style.display = "block";
+        const lang = localStorage.getItem('appLang') || 'zh';
+
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/comments`);
+            const comments = await res.json();
+
+            if (comments.length === 0) {
+                area.innerHTML = `<div style="text-align:center; color:#999; font-size:12px;">
+                    ${(lang === 'zh' || lang === 'cn') ? '暂无评论' : 'No comments yet'}
+                </div>`;
+                return;
+            }
+
+            // 只取前 3 条显示
+            const previewComments = comments.slice(0, 3);
+
+            let html = "";
+            previewComments.forEach(c => {
+                const userAvatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/24';
+                const userName = c.user.nickname || c.user.username;
+                const content = c.content.length > 50 ? c.content.substring(0, 50) + "..." : c.content;
+
+                html += `
+                    <div class="preview-item" onclick="location.href='detail.html?id=${tweetId}'">
+                        <img src="${userAvatar}" class="preview-avatar">
+                        <div class="preview-content">
+                            <span class="preview-user">${userName}:</span>
+                            <span style="color:#555;">${content}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 引导去详情页查看更多
+            html += `
+                <div class="view-all-link" onclick="location.href='detail.html?id=${tweetId}'">
+                    ${(lang === 'zh' || lang === 'cn') ? '查看详情 / 全部评论' : 'View Details / All Comments'}
+                </div>
+            `;
+
+            area.innerHTML = html;
+
+        } catch (e) {
+            area.innerHTML = `<div style="color:red; font-size:12px;">Load error</div>`;
         }
     }
 </script>

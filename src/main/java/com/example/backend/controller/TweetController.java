@@ -46,6 +46,7 @@ public class TweetController {
     @Autowired private CommentLikeRepository commentLikeRepository;
     @Autowired private TweetRatingRepository ratingRepository;
 
+
     @PostMapping
     public String postTweet(
             @RequestParam("content") String content,
@@ -60,6 +61,11 @@ public class TweetController {
             e.printStackTrace();
             return "发布失败: " + e.getMessage();
         }
+    }
+
+    @GetMapping("/{tweetId}/comment-count")
+    public long getCommentCount(@PathVariable Long tweetId) {
+        return commentRepository.countByTweetId(tweetId);
     }
 
     @GetMapping("/search")

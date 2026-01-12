@@ -9,4 +9,5 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     // 获取某篇文章的所有评论，按时间倒序
     List<Comment> findByTweetIdOrderByCreateTimeDesc(Long tweetId);
+    long countByTweetId(Long tweetId);
 }
