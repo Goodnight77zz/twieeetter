@@ -3,6 +3,8 @@ package com.example.backend.controller;
 import com.example.backend.entity.Tweet;
 import com.example.backend.entity.User;
 import com.example.backend.entity.Comment;
+import com.example.backend.entity.CommentLike;
+import com.example.backend.entity.TweetRating;
 import com.example.backend.entity.TweetLike;
 import com.example.backend.repository.TweetRepository;
 import com.example.backend.repository.UserRepository;
@@ -23,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -231,24 +234,39 @@ public class TweetController {
         return Map.of("count", count, "isLiked", isLiked);
     }
 
+    @Transactional // 🔥 关键：添加事务注解，保证删除过程要么全成功，要么回滚
     @DeleteMapping("/{tweetId}")
     public String deleteTweet(@PathVariable Long tweetId, @RequestParam Long userId) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("推文不存在"));
 
-        // 验证权限：只有作者自己能删除
+        // 验证权限
         if (!tweet.getAuthor().getId().equals(userId)) {
             throw new RuntimeException("无权删除他人的推文");
         }
 
-        // 删除关联数据（评论、点赞、评分）
-        // 注意：实际生产环境建议用级联删除或软删除，这里为了演示直接硬删关联数据
-        commentRepository.deleteAll(commentRepository.findByTweetIdOrderByCreateTimeDesc(tweetId));
-        tweetLikeRepository.deleteAll(tweetLikeRepository.findByUserIdAndTweetId(userId, tweetId).stream().toList());
-        // ratingRepository.deleteAll(...); // 如果有评分记录也要删，视你数据库外键策略而定
+        // === 1. 删除该推文下所有评论的相关数据 ===
+        List<Comment> comments = commentRepository.findByTweetIdOrderByCreateTimeDesc(tweetId);
+        for (Comment c : comments) {
+            // 先删评论的点赞/倒赞
+            List<CommentLike> cLikes = commentLikeRepository.findByCommentId(c.getId());
+            commentLikeRepository.deleteAll(cLikes);
+        }
+        // 再删评论本身
+        commentRepository.deleteAll(comments);
 
-        // 最后删除推文
+        // === 2. 删除该推文的所有点赞（包括其他用户的）===
+        List<TweetLike> likes = tweetLikeRepository.findByTweetId(tweetId);
+        tweetLikeRepository.deleteAll(likes);
+
+        // === 3. 删除该推文的所有评分 ===
+        // 确保你注入了 ratingRepository
+        List<TweetRating> ratings = ratingRepository.findByTweetId(tweetId);
+        ratingRepository.deleteAll(ratings);
+
+        // === 4. 最后删除推文 ===
         tweetRepository.delete(tweet);
+
         return "删除成功";
     }
 }

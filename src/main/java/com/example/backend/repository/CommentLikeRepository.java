@@ -14,4 +14,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     long countByCommentIdAndIsLikeTrue(Long commentId);
     // 统计某评论的倒赞数
     long countByCommentIdAndIsLikeFalse(Long commentId);
+
+    List<CommentLike> findByCommentId(Long commentId);
 }

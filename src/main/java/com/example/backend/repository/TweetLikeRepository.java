@@ -4,6 +4,7 @@ import com.example.backend.entity.TweetLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface TweetLikeRepository extends JpaRepository<TweetLike, Long> {
@@ -15,4 +16,6 @@ public interface TweetLikeRepository extends JpaRepository<TweetLike, Long> {
 
     // 统计点赞数
     long countByTweetId(Long tweetId);
+
+    List<TweetLike> findByTweetId(Long tweetId);
 }
