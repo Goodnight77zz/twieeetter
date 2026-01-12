@@ -224,4 +224,25 @@ public class TweetController {
         boolean isLiked = tweetLikeRepository.existsByUserIdAndTweetId(userId, tweetId);
         return Map.of("count", count, "isLiked", isLiked);
     }
+
+    @DeleteMapping("/{tweetId}")
+    public String deleteTweet(@PathVariable Long tweetId, @RequestParam Long userId) {
+        Tweet tweet = tweetRepository.findById(tweetId)
+                .orElseThrow(() -> new RuntimeException("推文不存在"));
+
+        // 验证权限：只有作者自己能删除
+        if (!tweet.getAuthor().getId().equals(userId)) {
+            throw new RuntimeException("无权删除他人的推文");
+        }
+
+        // 删除关联数据（评论、点赞、评分）
+        // 注意：实际生产环境建议用级联删除或软删除，这里为了演示直接硬删关联数据
+        commentRepository.deleteAll(commentRepository.findByTweetIdOrderByCreateTimeDesc(tweetId));
+        tweetLikeRepository.deleteAll(tweetLikeRepository.findByUserIdAndTweetId(userId, tweetId).stream().toList());
+        // ratingRepository.deleteAll(...); // 如果有评分记录也要删，视你数据库外键策略而定
+
+        // 最后删除推文
+        tweetRepository.delete(tweet);
+        return "删除成功";
+    }
 }
