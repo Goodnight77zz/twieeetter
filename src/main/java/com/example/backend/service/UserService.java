@@ -19,6 +19,8 @@ import java.util.UUID;
 @Service
 public class UserService {
 
+    private static final String DEFAULT_TEST_EMAIL = "1747607922@qq.com";
+
     @Autowired
     private UserRepository userRepository;
 
@@ -36,19 +38,31 @@ public class UserService {
         if (user.getNickname() == null || user.getNickname().isEmpty()) {
             user.setNickname(user.getUsername());
         }
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            user.setEmail(DEFAULT_TEST_EMAIL);
+        }
         return userRepository.save(user);
     }
 
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username);
         if (user != null && user.getPassword().equals(password)) {
+            if (user.getEmail() == null || user.getEmail().isBlank()) {
+                user.setEmail(DEFAULT_TEST_EMAIL);
+                userRepository.save(user);
+            }
             return user;
         }
         return null;
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
+            user.setEmail(DEFAULT_TEST_EMAIL);
+            return userRepository.save(user);
+        }
+        return user;
     }
 
     // 修改资料 (增加昵称参数)

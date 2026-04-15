@@ -2,10 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>
-        <span class="cn">消息通知</span>
-        <span class="en">Notifications</span>
-    </title>
+    <title>Notifications</title>
     <link rel="stylesheet" href="common/lang-component.css">
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -21,18 +18,28 @@
         .notif-list { list-style: none; padding: 0; margin: 0; }
         .notif-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 15px; align-items: flex-start; transition: background 0.2s; cursor: pointer; }
         .notif-item:hover { background-color: #fafafa; }
-        .notif-item.unread { background-color: #f0faff; border-left: 4px solid #1da1f2; } /* 未读高亮 */
+        .notif-item.unread { background-color: #f0faff; border-left: 4px solid #1da1f2; }
 
         .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .content { flex: 1; font-size: 14px; color: #333; }
         .time { font-size: 12px; color: #999; margin-top: 5px; }
 
         .icon-type { font-size: 16px; margin-right: 5px; }
-        .type-1, .type-2 { color: #1da1f2; } /* 评论/回复 蓝色 */
-        .type-3, .type-4 { color: #f91880; } /* 点赞 红色 */
+        .type-0, .type-4 { color: #f91880; }
+        .type-1, .type-2 { color: #1da1f2; }
+        .type-3 { color: #20b26b; }
 
         .mark-read-btn { font-size: 12px; color: #1da1f2; cursor: pointer; border: 1px solid #1da1f2; padding: 4px 10px; border-radius: 20px; background: white; }
         .mark-read-btn:hover { background: #e8f5fe; }
+        .mark-read-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .notif-actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .notif-action-btn { border: 1px solid #d0d5dd; background: #fff; color: #344054; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .notif-action-btn:hover { background: #f8fafc; }
+        .notif-action-btn.primary { border-color: #bfdbfe; color: #1d4ed8; }
+        .notif-action-btn.primary:hover { background: #eff6ff; }
+        .page-tip { padding: 12px 20px; font-size: 12px; color: #64748b; background: #f8fafc; border-bottom: 1px solid #eef2f7; display: none; }
+        .page-tip.error { color: #b42318; background: #fff5f5; }
+        .empty-box { padding: 40px; text-align: center; color: #999; }
     </style>
 </head>
 <body>
@@ -49,17 +56,18 @@
         <div class="page-title">
             <span class="cn">消息通知</span><span class="en">Notifications</span>
         </div>
-        <button class="mark-read-btn" onclick="markAllRead()">
+        <button class="mark-read-btn" id="markAllBtn" onclick="markAllRead()">
             <span class="cn">全部已读</span><span class="en">Mark all read</span>
         </button>
     </div>
 
+    <div id="pageTip" class="page-tip"></div>
+
     <div id="notifList" class="notif-list">
-        <div style="padding:40px; text-align:center; color:#999;">Loading...</div>
+        <div class="empty-box">Loading...</div>
     </div>
 </div>
 
-<!-- 语言切换 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -75,36 +83,90 @@
 <script src="common/lang-component.js"></script>
 <script>
     const userId = localStorage.getItem("userId");
-    if(!userId) location.href = "login.html";
+    if (!userId) location.href = "login.html";
 
-    const currentLang = localStorage.getItem('appLang') || 'zh';
+    let currentLang = localStorage.getItem('appLang') || 'zh';
+    let notifications = [];
+    let markAllLoading = false;
 
-    loadNotifications();
+    function getAvatarInitial(user) {
+        const source = String(user?.nickname || user?.username || user?.email || 'S').trim();
+        return source.charAt(0).toUpperCase() || 'S';
+    }
 
-    async function loadNotifications() {
-        const res = await fetch(`/api/notifications?userId=${userId}`);
-        const list = await res.json();
+    function buildDefaultAvatarDataUri(user, size = 40) {
+        const initial = encodeURIComponent(getAvatarInitial(user));
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#2563eb"/></linearGradient></defs><rect width="${size}" height="${size}" rx="${size / 2}" fill="url(#g)"/><text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${Math.round(size * 0.42)}" font-weight="700" fill="#ffffff">${initial}</text></svg>`;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function getAvatarSrc(user, size = 40) {
+        return user?.avatar ? `/uploads/${user.avatar}` : buildDefaultAvatarDataUri(user, size);
+    }
+
+    function setPageTip(message, isError = false) {
+        const tip = document.getElementById('pageTip');
+        if (!tip) return;
+        tip.classList.toggle('error', isError);
+        tip.style.display = message ? 'block' : 'none';
+        tip.innerHTML = message || '';
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function updateMarkAllButton() {
+        const btn = document.getElementById('markAllBtn');
+        if (!btn) return;
+        const unreadCount = notifications.filter(item => !item.read).length;
+        btn.disabled = markAllLoading || unreadCount === 0;
+    }
+
+    function goToSubscriptions(event) {
+        if (event) event.stopPropagation();
+        window.location.href = `user_profile.html?id=${userId}#subscriptions`;
+    }
+
+    function getNotificationActions(notification) {
+        if (notification.type !== 3) {
+            return '';
+        }
+        return `
+            <div class="notif-actions">
+                <button type="button" class="notif-action-btn primary" onclick="handleClick(${notification.id}, ${notification.tweetId}, event)">
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                    <span class="cn">查看成果</span><span class="en">Open Work</span>
+                </button>
+                <button type="button" class="notif-action-btn" onclick="goToSubscriptions(event)">
+                    <i class="fas fa-list"></i>
+                    <span class="cn">管理订阅</span><span class="en">Manage Subscriptions</span>
+                </button>
+            </div>
+        `;
+    }
+
+    function renderNotifications() {
         const container = document.getElementById("notifList");
         container.innerHTML = "";
 
-        if (list.length === 0) {
-            container.innerHTML = `<div style="padding:40px; text-align:center; color:#999;">
-                <span class="cn">暂无消息</span><span class="en">No notifications</span>
-            </div>`;
-            if(typeof applyLang === 'function') applyLang(currentLang);
+        if (!notifications.length) {
+            container.innerHTML = `<div class="empty-box"><span class="cn">暂无消息</span><span class="en">No notifications</span></div>`;
+            updateMarkAllButton();
+            if (typeof applyLang === 'function') applyLang(currentLang);
             return;
         }
 
-        list.forEach(n => {
-            const avatar = n.actor.avatar ? `/uploads/${n.actor.avatar}` : 'https://via.placeholder.com/40';
-            const actorName = n.actor.nickname || n.actor.username;
-            const time = n.createTime.replace('T', ' ').split('.')[0];
-            const isReadClass = n.read ? "" : "unread"; // 注意后端字段是 isRead 还是 read
+        notifications.forEach(n => {
+            const actor = n.actor || {};
+            const avatar = getAvatarSrc(actor, 40);
+            const actorName = actor.nickname || actor.username || (currentLang === 'zh' ? '系统' : 'System');
+            const time = n.createTime ? n.createTime.replace('T', ' ').split('.')[0] : '-';
+            const isReadClass = n.read ? "" : "unread";
 
-            // 根据类型生成文案
             let icon = "", textCn = "", textEn = "";
-            // 类型: 1=评论文章, 2=回复评论, 3=点赞文章, 4=点赞评论
-            if (n.type === 1) {
+            if (n.type === 0) {
+                icon = '<i class="fas fa-heart icon-type type-0"></i>';
+                textCn = `<b>${actorName}</b> 赞了你的文章`;
+                textEn = `<b>${actorName}</b> liked your post`;
+            } else if (n.type === 1) {
                 icon = '<i class="fas fa-comment icon-type type-1"></i>';
                 textCn = `<b>${actorName}</b> 评论了你的文章`;
                 textEn = `<b>${actorName}</b> commented on your post`;
@@ -113,9 +175,9 @@
                 textCn = `<b>${actorName}</b> 回复了你的评论`;
                 textEn = `<b>${actorName}</b> replied to your comment`;
             } else if (n.type === 3) {
-                icon = '<i class="fas fa-heart icon-type type-3"></i>';
-                textCn = `<b>${actorName}</b> 赞了你的文章`;
-                textEn = `<b>${actorName}</b> liked your post`;
+                icon = '<i class="fas fa-bell icon-type type-3"></i>';
+                textCn = `你订阅的研究方向有新的成果发布：<b>${actorName}</b> 发布了新内容`;
+                textEn = `New research was published in your subscribed area: <b>${actorName}</b> posted new content`;
             } else if (n.type === 4) {
                 icon = '<i class="fas fa-thumbs-up icon-type type-4"></i>';
                 textCn = `<b>${actorName}</b> 赞了你的评论`;
@@ -132,31 +194,81 @@
                             <span class="en">${textEn}</span>
                         </div>
                         <div class="time">${time}</div>
+                        ${getNotificationActions(n)}
                     </div>
                 </div>
             `;
         });
 
-        if(typeof applyLang === 'function') applyLang(currentLang);
+        updateMarkAllButton();
+        if (typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    // 点击消息：标记已读 -> 跳转
-    async function handleClick(notifId, tweetId) {
-        // 1. 发送已读请求
-        await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
-        // 2. 跳转到文章详情
+    async function loadNotifications() {
+        try {
+            const res = await fetch(`/api/notifications?userId=${userId}`);
+            if (!res.ok) {
+                throw new Error('Failed to load notifications');
+            }
+            const list = await res.json();
+            notifications = Array.isArray(list) ? list : [];
+            setPageTip('');
+            renderNotifications();
+        } catch (error) {
+            console.error(error);
+            notifications = [];
+            renderNotifications();
+            setPageTip(`<span class="cn">通知加载失败，请稍后重试。</span><span class="en">Failed to load notifications. Please try again later.</span>`, true);
+        }
+    }
+
+    async function handleClick(notifId, tweetId, event) {
+        if (event) event.stopPropagation();
+        try {
+            await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
+            notifications = notifications.map(item => Number(item.id) === Number(notifId) ? { ...item, read: true } : item);
+        } catch (error) {
+            console.error(error);
+        }
         window.location.href = `detail.html?id=${tweetId}`;
     }
 
-    // 全部已读 (这里偷懒用循环调接口，严谨做法应该写个 markAll 接口)
     async function markAllRead() {
-        const items = document.querySelectorAll('.notif-item.unread');
-        if (items.length === 0) return;
+        const unreadCount = notifications.filter(item => !item.read).length;
+        if (unreadCount === 0 || markAllLoading) return;
 
-        // 简单刷新即可，点击具体的才会变已读
-        // 如果要做"一键已读"，建议后端加个接口，这里暂不展开
-        alert(currentLang === 'zh' ? '请点击具体消息进行查看' : 'Please click specific message to view');
+        markAllLoading = true;
+        updateMarkAllButton();
+        setPageTip(`<span class="cn">正在将 ${unreadCount} 条未读消息标记为已读...</span><span class="en">Marking ${unreadCount} unread notifications as read...</span>`);
+
+        try {
+            const res = await fetch(`/api/notifications/mark-all-read?userId=${userId}`, { method: 'POST' });
+            const result = await res.json().catch(() => ({}));
+            if (!res.ok || result.success === false) {
+                throw new Error(result.message || 'Mark all read failed');
+            }
+            const updatedCount = Number(result.updatedCount || unreadCount);
+            notifications = notifications.map(item => ({ ...item, read: true }));
+            renderNotifications();
+            setPageTip(`<span class="cn">已将 ${updatedCount} 条消息标记为已读。</span><span class="en">Marked ${updatedCount} notifications as read.</span>`);
+        } catch (error) {
+            console.error(error);
+            setPageTip(`<span class="cn">全部已读操作失败，请稍后重试。</span><span class="en">Failed to mark all notifications as read. Please try again later.</span>`, true);
+        } finally {
+            markAllLoading = false;
+            updateMarkAllButton();
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotifications();
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    });
+
+    window.addEventListener('languageChange', () => {
+        currentLang = localStorage.getItem('appLang') || 'zh';
+        renderNotifications();
+    });
 </script>
 </body>
 </html>

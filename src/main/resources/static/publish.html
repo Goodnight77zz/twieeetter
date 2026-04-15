@@ -2,127 +2,638 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>
-        <span class="cn">发布研究 - 创作中心</span>
-        <span class="en">Publish Research - Creator Center</span>
-    </title>
-    <!-- 引入通用语言组件CSS -->
+    <title>Share Research Work - Creator Center</title>
     <link rel="stylesheet" href="common/lang-component.css">
     <style>
-        /* 复用基础布局 CSS */
-        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 240px; background: white; border-right: 1px solid #e7e7e7; display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
-        .logo { padding: 0 24px 20px; font-size: 22px; font-weight: 900; color: #00a1d6; border-bottom: 1px solid #eee; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
-        .post-btn-container { padding: 0 20px; margin-bottom: 20px; }
-        .big-post-btn { width: 100%; background-color: #00a1d6; color: white; border: none; padding: 12px; border-radius: 4px; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; text-decoration: none; box-sizing: border-box;}
-
-        .menu-item { padding: 12px 24px; color: #505050; text-decoration: none; font-size: 15px; display: flex; align-items: center; transition: background 0.2s; }
-        .menu-item:hover { background-color: #f4f5f7; color: #00a1d6; }
-        .menu-icon { margin-right: 10px; font-size: 18px; width: 20px; text-align: center;}
-
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; background-color: #f4f5f7; }
-
-        /* === 发布表单区域 === */
-        .editor-container { background: white; max-width: 800px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 40px; }
-        .page-header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
-        .page-header h2 { margin: 0; color: #333; font-size: 24px; font-weight: 800; }
-
-        .form-group { margin-bottom: 30px; }
-        .form-label { display: block; margin-bottom: 12px; font-weight: 700; color: #2c3e50; font-size: 15px; }
-
-        textarea { width: 100%; height: 200px; border: 1px solid #e1e8ed; border-radius: 8px; padding: 15px; font-size: 16px; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; transition: all 0.2s; background: #f8f9fa;}
-        textarea:focus { border-color: #00a1d6; background: white; box-shadow: 0 0 0 3px rgba(0, 161, 214, 0.1); }
-
-        /* 文件上传区域美化 */
-        .file-upload-box {
-            border: 2px dashed #cfd9de; border-radius: 12px; padding: 40px;
-            text-align: center; background-color: #f8f9fa; cursor: pointer;
-            transition: all 0.2s; position: relative; overflow: hidden;
+        :root {
+            --bg: #f3f7fb;
+            --card: #ffffff;
+            --line: #dbe7f3;
+            --line-soft: #eaf1f7;
+            --text: #0f172a;
+            --muted: #64748b;
+            --brand: #0ea5e9;
+            --brand-deep: #2563eb;
+            --brand-soft: #e0f2fe;
+            --success: #059669;
+            --warn: #d97706;
+            --danger: #dc2626;
+            --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
         }
-        .file-upload-box:hover { border-color: #00a1d6; background-color: #f0faff; }
-        .upload-icon { font-size: 48px; color: #aab8c2; margin-bottom: 15px; display: block; transition: transform 0.2s;}
-        .file-upload-box:hover .upload-icon { transform: scale(1.1); color: #00a1d6; }
-        .upload-text { color: #657786; font-size: 14px; }
-        #fileNameDisplay { margin-top: 15px; color: #00a1d6; font-weight: bold; font-size: 14px; background: rgba(0, 161, 214, 0.1); display: inline-block; padding: 5px 15px; border-radius: 20px; }
 
-        /* === 标签区域美化 (UI 升级重点) === */
-        .tag-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        * { box-sizing: border-box; }
 
-        /* 胶囊按钮样式 */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 248px;
+            background: rgba(255, 255, 255, 0.92);
+            border-right: 1px solid var(--line);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            align-self: flex-start;
+            z-index: 10;
+        }
+
+        .logo-area {
+            margin: 0 22px 22px;
+            padding: 0 0 20px;
+            border-bottom: 1px solid var(--line-soft);
+            color: var(--brand-deep);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 900;
+        }
+
+        .post-btn-wrapper {
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+
+        .big-post-btn {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+            color: white;
+            border-radius: 14px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 13px 16px;
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.18);
+        }
+
+        .menu-item {
+            margin: 4px 14px;
+            padding: 12px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 12px;
+            transition: 0.2s ease;
+        }
+
+        .menu-item:hover {
+            background: #f4f9ff;
+            color: var(--brand-deep);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, #eef8ff, #f8fbff);
+            color: var(--brand-deep);
+            font-weight: 800;
+            border: 1px solid #cae8fb;
+        }
+
+        .menu-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 28px;
+            overflow-y: auto;
+        }
+
+        .page-shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            gap: 22px;
+        }
+
+        .page-header,
+        .main-form,
+        .side-panel {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+        }
+
+        .page-header {
+            padding: 28px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(37, 99, 235, 0.10), rgba(255, 255, 255, 0.94));
+            border-color: #d6e8f8;
+            box-shadow: var(--shadow);
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 30px;
+            color: #0b1324;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            margin-top: 14px;
+            color: #475569;
+            font-size: 15px;
+            line-height: 1.8;
+            max-width: 780px;
+        }
+
+        .hero-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+            gap: 18px;
+        }
+
+        .hero-card,
+        .quality-panel,
+        .workflow-panel {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid #d9e8f5;
+            border-radius: 18px;
+        }
+
+        .quality-panel,
+        .workflow-panel { margin-top: 18px; }
+
+        .hero-title,
+        .quality-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .hero-list {
+            display: grid;
+            gap: 10px;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .hero-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .hero-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: var(--brand-soft);
+            color: var(--brand-deep);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .quality-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .quality-score {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--brand-deep);
+        }
+
+        .quality-bar {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #dbeafe;
+            overflow: hidden;
+        }
+
+        .quality-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #38bdf8, #2563eb);
+            transition: width 0.25s ease;
+        }
+
+        .quality-tip,
+        .workflow-list {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .quality-tip { margin-top: 10px; }
+
+        .quality-checklist {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 14px;
+        }
+
+        .quality-item {
+            font-size: 13px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quality-item.ok {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .quality-item.missing { color: #e11d48; }
+
+        .workflow-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .workflow-list li + li { margin-top: 8px; }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.95fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .main-form,
+        .side-panel {
+            padding: 24px;
+        }
+
+        .section-card {
+            border: 1px solid #eaf0f4;
+            border-radius: 18px;
+            background: #fbfdff;
+            padding: 20px;
+        }
+
+        .section-card + .section-card { margin-top: 18px; }
+
+        .section-title {
+            margin: 0 0 18px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-subtitle {
+            margin: -8px 0 18px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .required-badge {
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .field-hint {
+            margin-top: 8px;
+            color: #8b949e;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .field-warning {
+            margin-top: 8px;
+            color: var(--danger);
+            font-size: 12px;
+            display: none;
+        }
+
+        .form-control,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid #d7e5f2;
+            border-radius: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #f8fbfe;
+            font-family: inherit;
+            color: var(--text);
+        }
+
+        .form-control:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--brand);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+        }
+
+        .field-invalid {
+            border-color: #ef4444 !important;
+            background: #fff7f7 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+        }
+
+        textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .taxonomy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .taxonomy-card {
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid #e5eef7;
+            background: #fff;
+        }
+
+        .taxonomy-name {
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .taxonomy-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
         .tag-btn {
-            padding: 8px 18px; font-size: 14px; border: 1px solid #e1e8ed;
-            background: white; color: #536471; border-radius: 50px; /* 圆角胶囊 */
-            cursor: pointer; transition: all 0.2s ease; font-weight: 500;
-            display: flex; align-items: center; gap: 5px;
+            padding: 8px 18px;
+            font-size: 14px;
+            border: 1px solid #d9e3ec;
+            background: #fff;
+            color: #536471;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
+
         .tag-btn:hover {
-            background: #f7f9f9; border-color: #00a1d6; color: #00a1d6; transform: translateY(-1px);
+            background: #f7f9f9;
+            border-color: var(--brand);
+            color: var(--brand-deep);
+            transform: translateY(-1px);
         }
+
         .tag-btn.active {
-            background: #00a1d6; color: white; border-color: #00a1d6;
-            box-shadow: 0 4px 10px rgba(0, 161, 214, 0.3);
+            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
         }
 
-        /* 自定义标签输入框美化 */
-        .form-control {
-            width: 100%; padding: 10px 15px; font-size: 14px;
-            border: 1px solid #e1e8ed; border-radius: 8px;
-            box-sizing: border-box; outline: none; transition: all 0.2s;
-            background: #f8f9fa;
+        #selectedTags {
+            min-height: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
         }
-        .form-control:focus { border-color: #00a1d6; background: white; }
 
-        /* 已选标签展示区 */
-        #selectedTags { min-height: 30px; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         .selected-tag-badge {
-            background: #e8f5fe; color: #00a1d6; padding: 5px 12px;
-            border-radius: 6px; font-size: 13px; font-weight: bold;
-            display: flex; align-items: center; gap: 8px; border: 1px solid #bce3ff;
+            background: #e8f5fe;
+            color: #0284c7;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #bce3ff;
         }
+
         .btn-close-tag {
-            cursor: pointer; font-size: 14px; opacity: 0.6; transition: 0.2s;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
         }
-        .btn-close-tag:hover { opacity: 1; color: #ff4d4f; }
 
-        .action-bar { margin-top: 40px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
+        .btn-close-tag:hover {
+            opacity: 1;
+            color: #ef4444;
+        }
+
+        .upload-card {
+            padding: 22px;
+            background: linear-gradient(180deg, #f3fbff 0%, #ffffff 100%);
+            border: 1px solid #d9edf8;
+        }
+
+        .upload-card .section-title { margin-bottom: 12px; }
+        .upload-card .section-subtitle { margin-bottom: 16px; }
+
+        .file-upload-box {
+            border: 2px dashed #9bd4ef;
+            border-radius: 18px;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            padding: 36px 24px;
+            text-align: center;
+            background: #f0f9ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-upload-box:hover {
+            border-color: var(--brand);
+            background: #e8f7ff;
+        }
+
+        .upload-icon {
+            font-size: 56px;
+            color: #7aa9c2;
+            display: block;
+        }
+
+        .upload-text {
+            max-width: 280px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #64748b;
+        }
+
+        #fileNameDisplay {
+            margin-top: 6px;
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 13px;
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(2, 132, 199, 0.1);
+        }
+
+        .aside-note {
+            padding: 14px;
+            border-radius: 14px;
+            background: #f8fbff;
+            border: 1px solid #e1edf8;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .action-bar {
+            margin-top: 24px;
+            text-align: right;
+            border-top: 1px solid #e9eef5;
+            padding-top: 20px;
+        }
+
         .submit-btn {
-            background: linear-gradient(90deg, #00a1d6, #00b5e5);
-            color: white; border: none; padding: 12px 50px;
-            border-radius: 30px; font-size: 16px; cursor: pointer;
-            font-weight: bold; box-shadow: 0 4px 15px rgba(0, 161, 214, 0.3);
-            transition: all 0.2s;
+            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+            color: #fff;
+            border: none;
+            padding: 12px 38px;
+            border-radius: 999px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 800;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.24);
+            transition: all 0.2s ease;
         }
-        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 161, 214, 0.4); }
 
-        /* 提示框 */
-        .toast {
-            position: fixed; top: 20px; right: 20px; padding: 15px 25px;
-            background: #dc3545; color: white; border-radius: 8px;
-            z-index: 10000; opacity: 0; transition: opacity 0.3s;
-            font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
         }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #dc3545;
+            color: white;
+            border-radius: 10px;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: bold;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+        }
+
         .toast.show { opacity: 1; }
         .toast.success { background: #10b981; }
+
+        @media (max-width: 1180px) {
+            .editor-grid,
+            .hero-grid,
+            .metadata-grid,
+            .taxonomy-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+            body { display: block; }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+            .main-content { padding: 18px; }
+            .page-header,
+            .main-form,
+            .side-panel { padding: 18px; }
+            .quality-checklist { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-
-<!-- 侧边栏 -->
 <div class="sidebar">
-    <div class="logo">🌊
+    <a href="index.html" class="logo-area">🎓
         <span class="cn">创作中心</span>
         <span class="en">Creator Center</span>
-    </div>
-
-     <div class="post-btn-container">
-        <a href="publish.html" class="big-post-btn" style="background-color:#00b5e5;">
-            📝
+    </a>
+    <div class="post-btn-wrapper">
+        <a href="publish.html" class="big-post-btn">
+            <span>📝</span>
             <span class="cn">发布新研究</span>
             <span class="en">Publish New Research</span>
         </a>
     </div>
-
-    <!-- 侧边栏双语 -->
     <a href="dashboard.html" class="menu-item">
         <span class="menu-icon">🏠</span>
         <span class="cn">首页概览</span>
@@ -130,8 +641,18 @@
     </a>
     <a href="content.html" class="menu-item">
         <span class="menu-icon">📂</span>
-        <span class="cn">稿件管理</span>
-        <span class="en">Manuscripts</span>
+        <span class="cn">研究成果管理</span>
+        <span class="en">Research Works</span>
+    </a>
+    <a href="archive.html" class="menu-item">
+        <span class="menu-icon">🗂️</span>
+        <span class="cn">我的研究档案</span>
+        <span class="en">My Research Archive</span>
+    </a>
+    <a href="publish.html" class="menu-item active">
+        <span class="menu-icon">✍️</span>
+        <span class="cn">发布与完善</span>
+        <span class="en">Publish & Improve</span>
     </a>
     <a href="index.html" class="menu-item">
         <span class="menu-icon">🌍</span>
@@ -140,93 +661,262 @@
     </a>
 </div>
 
-<!-- 主编辑区 -->
 <div class="main-content">
-    <div class="editor-container">
+    <div class="page-shell">
         <div class="page-header">
-            <h2>
-                <span class="cn">发布研究成果</span>
-                <span class="en">Publish Research Achievement</span>
+            <h2 id="pageHeading">
+                <span class="cn">发布结构化研究成果</span>
+                <span class="en">Publish Structured Research Work</span>
             </h2>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
-                <span class="cn">研究描述 / 摘要</span>
-                <span class="en">Research Description / Abstract</span>
-            </label>
-            <textarea id="tweetContent" placeholder="请输入论文的标题、摘要或主要研究成果说明..." data-placeholder-en="Please enter the paper's title, abstract or main research achievements..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
-                <span class="cn">上传附件 (论文/文档)</span>
-                <span class="en">Upload Attachment (Paper/Document)</span>
-            </label>
-            <div class="file-upload-box" onclick="document.getElementById('paperFile').click()">
-                <span class="upload-icon">☁️</span>
-                <div class="upload-text">
-                    <span class="cn">点击此处上传文件 (支持 PDF, Word)</span>
-                    <span class="en">Click here to upload files (Supports PDF, Word)</span>
+            <div class="page-subtitle" id="pageSubtitle">
+                <span class="cn">把普通帖子升级为可检索、可归档、可讨论的开放研究条目，便于后续发现、评价与知识积累。</span>
+                <span class="en">Turn a normal post into a searchable, archivable, and discussable open research entry for later discovery, evaluation, and reuse.</span>
+            </div>
+            <div class="hero-grid">
+                <div class="hero-card">
+                    <div class="hero-title"><span class="cn">建议包含的信息</span><span class="en">Recommended Information</span></div>
+                    <div class="hero-list">
+                        <div class="hero-item"><span class="hero-dot">1</span><div><span class="cn">清晰标题 + 摘要，说明研究问题、方法与核心结果。</span><span class="en">A clear title and abstract explaining the research problem, method, and outcomes.</span></div></div>
+                        <div class="hero-item"><span class="hero-dot">2</span><div><span class="cn">作者、机构、领域、关键词，方便搜索和聚类。</span><span class="en">Authors, institution, area, and keywords for better discovery and clustering.</span></div></div>
+                        <div class="hero-item"><span class="hero-dot">3</span><div><span class="cn">补充引用、资源链接和附件，帮助他人复现或继续研究。</span><span class="en">References, resource links, and attachments help others verify and reuse the work.</span></div></div>
+                    </div>
                 </div>
-                <div id="fileNameDisplay"></div>
+                <div>
+                    <div class="quality-panel">
+                        <div class="quality-top">
+                            <div class="quality-title"><span class="cn">知识条目质量检查</span><span class="en">Knowledge Entry Quality Check</span></div>
+                            <div class="quality-score" id="qualityScoreText">0%</div>
+                        </div>
+                        <div class="quality-bar"><div class="quality-fill" id="qualityFill"></div></div>
+                        <div class="quality-tip" id="qualityTip">
+                            <span class="cn">请补充标题、摘要、作者、机构、研究领域等核心元数据，系统会估算条目完整度。</span>
+                            <span class="en">Please complete core metadata such as title, abstract, authors, institution, and research area. The system estimates entry completeness.</span>
+                        </div>
+                        <div class="quality-checklist" id="qualityChecklist"></div>
+                    </div>
+                    <div class="workflow-panel">
+                        <div class="hero-title"><span class="cn">作者完善工作流</span><span class="en">Author Improvement Workflow</span></div>
+                        <ul class="workflow-list">
+                            <li><span class="cn">先在“我的研究档案”中识别优先改进条目。</span><span class="en">First identify priority entries in My Research Archive.</span></li>
+                            <li><span class="cn">在此页补充 DOI、引用、附件与结构化元数据。</span><span class="en">Then complete DOI, references, attachments, and structured metadata here.</span></li>
+                            <li><span class="cn">保存后返回“研究成果管理”或“我的研究档案”继续复查。</span><span class="en">After saving, return to Research Works or My Research Archive for follow-up review.</span></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <input type="file" id="paperFile" accept=".pdf,.doc,.docx" style="display: none;" onchange="showFileName()">
         </div>
 
-        <!-- 标签选择区域 -->
-        <div class="form-group">
-            <label class="form-label tag-form-label">
-                <span class="cn">论文标签（可多选）</span>
-                <span class="en">Paper Tags (Multi-select)</span>
-            </label>
+        <div class="editor-grid">
+            <div class="main-form">
+                <div class="section-card">
+                    <h3 class="section-title">🧭 <span class="cn">成果分类建议</span><span class="en">Suggested Work Categories</span></h3>
+                    <div class="section-subtitle">
+                        <span class="cn">当前后端支持灵活文本字段，你可以把研究成果组织为论文、报告、项目输出、数据集说明或实验记录。</span>
+                        <span class="en">The current backend supports flexible text fields, so you can structure the work as a paper, report, project output, dataset note, or experiment record.</span>
+                    </div>
+                    <div class="taxonomy-grid">
+                        <div class="taxonomy-card"><div class="taxonomy-name"><span class="cn">论文 / 预印本</span><span class="en">Paper / Preprint</span></div><div class="taxonomy-desc"><span class="cn">适合正式研究成果、课程论文、投递中的文章。</span><span class="en">Best for formal research outputs, coursework papers, or submissions in progress.</span></div></div>
+                        <div class="taxonomy-card"><div class="taxonomy-name"><span class="cn">项目 / 数据集</span><span class="en">Project / Dataset</span></div><div class="taxonomy-desc"><span class="cn">适合代码仓库、实验平台、模型、数据集及其说明。</span><span class="en">Best for code repositories, platforms, models, datasets, and documentation.</span></div></div>
+                        <div class="taxonomy-card"><div class="taxonomy-name"><span class="cn">报告 / 记录</span><span class="en">Report / Note</span></div><div class="taxonomy-desc"><span class="cn">适合研究日志、实验记录、阶段总结和内部知识沉淀。</span><span class="en">Best for research logs, experiment notes, milestone reports, and internal knowledge capture.</span></div></div>
+                    </div>
+                </div>
 
-            <div class="tag-container">
-                <!-- 注意：data-tag 存储的是发给后端的中文值，内部 span 用于显示 -->
-                <button type="button" class="tag-btn" data-tag="AI">
-                    AI
-                </button>
-                <button type="button" class="tag-btn" data-tag="生物医学">
-                    <span class="cn">生物医学</span><span class="en">Biomedical</span>
-                </button>
-                <button type="button" class="tag-btn" data-tag="计算机">
-                    <span class="cn">计算机</span><span class="en">Comp Sci</span>
-                </button>
-                <button type="button" class="tag-btn" data-tag="物理">
-                    <span class="cn">物理</span><span class="en">Physics</span>
-                </button>
-                <button type="button" class="tag-btn" data-tag="化学">
-                    <span class="cn">化学</span><span class="en">Chemistry</span>
-                </button>
-                <button type="button" class="tag-btn" data-tag="深度学习">
-                    <span class="cn">深度学习</span><span class="en">Deep Learning</span>
-                </button>
-                <button type="button" class="tag-btn" data-tag="数据分析">
-                    <span class="cn">数据分析</span><span class="en">Data Analysis</span>
-                </button>
+                <div class="section-card">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="cn">研究标题</span>
+                            <span class="en">Research Title</span>
+                            <span class="required-badge"><span class="cn">必填</span><span class="en">Required</span></span>
+                        </label>
+                        <input id="tweetTitle" class="form-control" placeholder="请输入标题，例如：基于深度学习的医学影像分类研究" data-placeholder-en="Enter a title, e.g. Deep Learning Based Medical Image Classification">
+                        <div class="field-hint"><span class="cn">建议把标题写成可被搜索和引用的形式。</span><span class="en">Write the title in a form that is easy to search and cite.</span></div>
+                        <div id="warningTitle" class="field-warning"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="cn">研究摘要 / 描述</span>
+                            <span class="en">Research Abstract / Description</span>
+                            <span class="required-badge"><span class="cn">必填</span><span class="en">Required</span></span>
+                        </label>
+                        <textarea id="tweetContent" placeholder="请描述你的研究问题、方法、实验过程、结果与意义..." data-placeholder-cn="请描述你的研究问题、方法、实验过程、结果与意义..." data-placeholder-en="Describe the research problem, method, experiments, outcomes, and significance..."></textarea>
+                        <div class="field-hint"><span class="cn">建议按“问题 - 方法 - 结果 - 价值”结构书写，更利于读者理解与后续评价。</span><span class="en">A “problem - method - result - value” structure makes the work easier to understand and evaluate.</span></div>
+                        <div class="field-warning" id="aiHelperWarning" style="display:none;"></div>
+                        <div class="tag-container" style="margin-top:12px; gap:10px;">
+                            <button type="button" class="tag-btn" onclick="runPublishAiHelper('keywords')">✨ <span class="cn">AI提炼关键词</span><span class="en">AI Keywords</span></button>
+                            <button type="button" class="tag-btn" onclick="runPublishAiHelper('polish')">🪄 <span class="cn">AI润色摘要</span><span class="en">Polish Abstract</span></button>
+                        </div>
+                        <div class="aside-note" id="aiHelperStatus" style="margin-top:12px; display:none;"></div>
+                        <div id="warningContent" class="field-warning"></div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3 class="section-title">🧾 <span class="cn">研究条目元数据</span><span class="en">Research Entry Metadata</span></h3>
+                    <div class="section-subtitle">
+                        <span class="cn">这些字段会影响首页展示、搜索筛选、详情页结构化展示和完整度评估。</span>
+                        <span class="en">These fields affect homepage cards, search filters, structured detail display, and completeness scoring.</span>
+                    </div>
+                    <div class="metadata-grid">
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">作者 / 团队</span><span class="en">Authors / Team</span><span class="required-badge"><span class="cn">必填</span><span class="en">Required</span></span></label>
+                            <input id="authors" class="form-control" placeholder="如：张三, 李四, XX实验室" data-placeholder-en="e.g. Zhang San, Li Si, Lab Name">
+                            <div class="field-hint"><span class="cn">可填写多个作者或团队名称，建议用逗号分隔。</span><span class="en">You can enter multiple authors or a team name, preferably separated by commas.</span></div>
+                            <div id="warningAuthors" class="field-warning"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">所属机构</span><span class="en">Institution</span></label>
+                            <input id="institution" class="form-control" placeholder="如：XX大学人工智能学院" data-placeholder-en="e.g. School of AI, XX University">
+                            <div id="warningInstitution" class="field-warning"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">研究领域</span><span class="en">Research Area</span><span class="required-badge"><span class="cn">必填</span><span class="en">Required</span></span></label>
+                            <input id="researchArea" class="form-control" placeholder="如：机器学习 / 生物医学 / 教育技术" data-placeholder-en="e.g. Machine Learning / Biomedical / EdTech">
+                            <div id="warningResearchArea" class="field-warning"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">关键词</span><span class="en">Keywords</span></label>
+                            <input id="keywords" class="form-control" placeholder="多个关键词请用逗号分隔" data-placeholder-en="Separate multiple keywords with commas">
+                            <div id="warningKeywords" class="field-warning"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">内容类型</span><span class="en">Content Type</span></label>
+                            <select id="contentType">
+                                <option value="">请选择</option>
+                                <option value="论文">论文</option>
+                                <option value="研究报告">研究报告</option>
+                                <option value="实验记录">实验记录</option>
+                                <option value="数据集说明">数据集说明</option>
+                                <option value="项目成果">项目成果</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">成果形式</span><span class="en">Work Format</span></label>
+                            <select id="publicationType">
+                                <option value="">请选择</option>
+                                <option value="期刊">期刊</option>
+                                <option value="会议">会议</option>
+                                <option value="预印本">预印本</option>
+                                <option value="课程项目">课程项目</option>
+                                <option value="毕业设计">毕业设计</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">开放传播状态</span><span class="en">Open Sharing Status</span></label>
+                            <select id="status">
+                                <option value="">请选择</option>
+                                <option value="草稿">草稿</option>
+                                <option value="进行中">进行中</option>
+                                <option value="已完成">已完成</option>
+                                <option value="已投稿">已投稿</option>
+                                <option value="已发表">已发表</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">语言</span><span class="en">Language</span></label>
+                            <select id="language">
+                                <option value="">请选择</option>
+                                <option value="中文">中文</option>
+                                <option value="英文">英文</option>
+                                <option value="中英双语">中英双语</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">期刊 / 会议 / 分享渠道</span><span class="en">Journal / Conference / Sharing Venue</span></label>
+                            <input id="journalOrConference" class="form-control" placeholder="如：Nature, ACL, 校内答辩" data-placeholder-en="e.g. Nature, ACL, campus defense">
+                            <div class="field-hint"><span class="cn">如果不是正式发表内容，也可以填写实验室分享、课程展示或项目演示。</span><span class="en">If not formally published, you can enter a lab sharing event, class presentation, or project demo.</span></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">公开日期</span><span class="en">Public Release Date</span></label>
+                            <input id="publicationDate" class="form-control" type="date" lang="en">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">DOI / 唯一标识</span><span class="en">DOI / Identifier</span></label>
+                            <input id="doi" class="form-control" placeholder="如：10.1000/xyz123" data-placeholder-en="e.g. 10.1000/xyz123">
+                            <div class="field-hint"><span class="cn">如没有 DOI，可以留空，或填写 arXiv 编号、仓库编号、项目唯一标识。</span><span class="en">If there is no DOI, leave it blank or use an arXiv ID, repository ID, or other persistent identifier.</span></div>
+                            <div id="warningDoi" class="field-warning"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">可见范围</span><span class="en">Visibility</span></label>
+                            <select id="visibility">
+                                <option value="公开">公开</option>
+                                <option value="好友可见">好友可见</option>
+                                <option value="仅自己可见">仅自己可见</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3 class="section-title">🔗 <span class="cn">参考资料与项目资源</span><span class="en">References and Project Resources</span></h3>
+                    <div class="metadata-grid">
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">参考文献</span><span class="en">References</span></label>
+                            <textarea id="referencesText" placeholder="可填写引用文献、相关论文、数据来源等" data-placeholder-cn="可填写引用文献、相关论文、数据来源等" data-placeholder-en="Add cited papers, related work, datasets, or source references"></textarea>
+                            <div class="field-hint"><span class="cn">建议至少给出关键文献或数据来源，方便论证依据和后续查证。</span><span class="en">Adding key references or data sources helps justify the work and support verification.</span></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><span class="cn">项目链接 / 代码 / 数据资源</span><span class="en">Project Links / Code / Data</span></label>
+                            <textarea id="projectLinks" placeholder="可填写 GitHub、项目主页、数据集、演示链接等" data-placeholder-cn="可填写 GitHub、项目主页、数据集、演示链接等" data-placeholder-en="Add GitHub, project homepage, dataset, or demo links"></textarea>
+                            <div class="field-hint"><span class="cn">多个链接可换行输入；建议以 http(s):// 开头，增强复现性与传播性。</span><span class="en">Use one line per link if needed; starting with http(s):// improves reproducibility and sharing.</span></div>
+                            <div id="warningLinks" class="field-warning"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button class="submit-btn" onclick="submitTweet()"><span class="cn">立即分享</span><span class="en">Share Now</span></button>
+                </div>
             </div>
 
-            <input type="text" class="form-control mb-2" id="customTag"
-                   placeholder="输入自定义标签，按回车添加"
-                   data-placeholder-en="Enter custom tag, press Enter to add">
+            <div class="side-panel">
+                <div class="section-card">
+                    <h3 class="section-title">🏷️ <span class="cn">研究标签</span><span class="en">Research Tags</span></h3>
+                    <div class="section-subtitle">
+                        <span class="cn">标签会影响搜索命中、主题聚类与首页发现流推荐。</span>
+                        <span class="en">Tags affect search hits, thematic clustering, and discovery feed recommendations.</span>
+                    </div>
+                    <div class="tag-container">
+                        <button type="button" class="tag-btn" data-tag="AI">🤖 AI</button>
+                        <button type="button" class="tag-btn" data-tag="生物医学">🧬 生物医学</button>
+                        <button type="button" class="tag-btn" data-tag="计算机">💻 计算机</button>
+                        <button type="button" class="tag-btn" data-tag="物理">🧲 物理</button>
+                        <button type="button" class="tag-btn" data-tag="化学">🧪 化学</button>
+                        <button type="button" class="tag-btn" data-tag="深度学习">🧠 深度学习</button>
+                        <button type="button" class="tag-btn" data-tag="数据分析">📊 数据分析</button>
+                    </div>
+                    <div id="selectedTags"></div>
+                </div>
 
-            <!-- 已选标签展示区 -->
-            <div id="selectedTags"></div>
+                <div class="section-card upload-card">
+                    <h3 class="section-title">📎 <span class="cn">上传附件</span><span class="en">Upload Attachment</span></h3>
+                    <div class="section-subtitle">
+                        <span class="cn">建议上传论文 PDF、研究报告、补充材料或其他可支持复查与复用的附件。</span>
+                        <span class="en">Upload a paper PDF, report, supplementary material, or other files that support review and reuse.</span>
+                    </div>
+                    <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
+                    <div class="file-upload-box" onclick="document.getElementById('fileInput').click()">
+                        <span class="upload-icon">☁️</span>
+                        <div class="upload-text">
+                            <span class="cn">点击上传附件，或重新选择更完整的研究材料</span>
+                            <span class="en">Click to upload an attachment or replace it with a more complete research file</span>
+                        </div>
+                        <div id="fileNameDisplay" style="display:none;"></div>
+                    </div>
+                </div>
 
-            <!-- 隐藏输入框：存储最终标签字符串 -->
-            <input type="hidden" id="finalTags" value="">
-        </div>
-
-        <div class="action-bar">
-            <button class="submit-btn" onclick="postTweet()">
-                <span class="cn">立即发布</span>
-                <span class="en">Publish Now</span>
-            </button>
+                <div class="section-card">
+                    <h3 class="section-title">💡 <span class="cn">填写建议</span><span class="en">Authoring Tips</span></h3>
+                    <div class="aside-note">
+                        <span class="cn">如果你的条目稍后还会继续补充，可以先完成标题、摘要、作者、领域和关键词，再逐步完善 DOI、引用、附件与资源链接。</span>
+                        <span class="en">If your entry will keep evolving, start with title, abstract, authors, area, and keywords first, then gradually enrich DOI, references, attachments, and project links.</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- 语言选择器 -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -241,203 +931,457 @@
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="common/lang-component.js"></script>
-
 <script>
-    // 标签的中英对照表 (用于在JS里渲染选中标签时翻译)
-    const tagTranslations = {
-        "AI": "AI",
-        "生物医学": "Biomedical",
-        "计算机": "Comp Sci",
-        "物理": "Physics",
-        "化学": "Chemistry",
-        "深度学习": "Deep Learning",
-        "数据分析": "Data Analysis"
+    const currentUserId = localStorage.getItem('userId');
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+    let selectedTags = [];
+    let selectedFile = null;
+    let editId = null;
+
+    function normalizeLang(lang) {
+        return lang === 'zh' ? 'cn' : lang;
+    }
+
+    const qualityFields = [
+        { id: 'tweetTitle', labelCn: '标题', labelEn: 'Title', required: true },
+        { id: 'tweetContent', labelCn: '摘要', labelEn: 'Abstract', required: true },
+        { id: 'authors', labelCn: '作者', labelEn: 'Authors', required: true },
+        { id: 'institution', labelCn: '机构', labelEn: 'Institution' },
+        { id: 'researchArea', labelCn: '研究领域', labelEn: 'Research Area', required: true },
+        { id: 'keywords', labelCn: '关键词', labelEn: 'Keywords' },
+        { id: 'contentType', labelCn: '内容类型', labelEn: 'Content Type' },
+        { id: 'publicationType', labelCn: '成果形式', labelEn: 'Work Format' },
+        { id: 'status', labelCn: '开放传播状态', labelEn: 'Sharing Status' },
+        { id: 'language', labelCn: '语言', labelEn: 'Language' },
+        { id: 'journalOrConference', labelCn: '期刊/会议/渠道', labelEn: 'Venue' },
+        { id: 'publicationDate', labelCn: '公开日期', labelEn: 'Release Date' },
+        { id: 'doi', labelCn: 'DOI / 标识', labelEn: 'DOI / Identifier' },
+        { id: 'referencesText', labelCn: '参考文献', labelEn: 'References' },
+        { id: 'projectLinks', labelCn: '项目链接', labelEn: 'Project Links' },
+        { id: 'fileInput', labelCn: '附件', labelEn: 'Attachment' }
+    ];
+
+    const selectOptionText = {
+        contentType: {
+            '': { cn: '请选择', en: 'Please select' },
+            '论文': { cn: '论文', en: 'Paper' },
+            '研究报告': { cn: '研究报告', en: 'Research Report' },
+            '实验记录': { cn: '实验记录', en: 'Experiment Log' },
+            '数据集说明': { cn: '数据集说明', en: 'Dataset Description' },
+            '项目成果': { cn: '项目成果', en: 'Project Outcome' }
+        },
+        publicationType: {
+            '': { cn: '请选择', en: 'Please select' },
+            '期刊': { cn: '期刊', en: 'Journal' },
+            '会议': { cn: '会议', en: 'Conference' },
+            '预印本': { cn: '预印本', en: 'Preprint' },
+            '课程项目': { cn: '课程项目', en: 'Course Project' },
+            '毕业设计': { cn: '毕业设计', en: 'Graduation Project' }
+        },
+        status: {
+            '': { cn: '请选择', en: 'Please select' },
+            '草稿': { cn: '草稿', en: 'Draft' },
+            '进行中': { cn: '进行中', en: 'In Progress' },
+            '已完成': { cn: '已完成', en: 'Completed' },
+            '已投稿': { cn: '已投稿', en: 'Submitted' },
+            '已发表': { cn: '已发表', en: 'Published' }
+        },
+        language: {
+            '': { cn: '请选择', en: 'Please select' },
+            '中文': { cn: '中文', en: 'Chinese' },
+            '英文': { cn: '英文', en: 'English' },
+            '中英双语': { cn: '中英双语', en: 'Bilingual' }
+        },
+        visibility: {
+            '公开': { cn: '公开', en: 'Public' },
+            '好友可见': { cn: '好友可见', en: 'Friends Only' },
+            '仅自己可见': { cn: '仅自己可见', en: 'Only Me' }
+        }
     };
 
-    function showToast(msg, type = 'error') {
-        const toast = document.createElement('div');
-        toast.className = `toast show ${type}`;
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => document.body.removeChild(toast), 300);
-        }, 2000);
-    }
-
-    const userId = localStorage.getItem("userId");
-    let currentLang = localStorage.getItem('appLang') || 'cn';
-    let selectedTags = new Set(); // 存储选中的标签（值始终是中文，保证传给后端统一）
-
-    if(!userId) window.location.href = "login.html";
-
-    // 监听语言切换
-    window.addEventListener('languageChange', function() {
-        currentLang = localStorage.getItem('appLang') || 'cn';
-        updateFormText();
-        updateSelectedTags(); // 重新渲染选中的标签以更新语言
-    });
-
-    function updateFormText() {
-        // 刷新 placeholder
-        const contentInput = document.getElementById("tweetContent");
-        contentInput.placeholder = currentLang === 'cn' ?
-            contentInput.getAttribute("placeholder") :
-            contentInput.getAttribute("data-placeholder-en");
-
-        const customTagInput = document.getElementById("customTag");
-        customTagInput.placeholder = currentLang === 'cn' ?
-            customTagInput.getAttribute("placeholder") :
-            customTagInput.getAttribute("data-placeholder-en");
-
-        // 刷新文件选中提示
-        const display = document.getElementById("fileNameDisplay");
-        if (display.innerText) {
-            const rawName = display.getAttribute('data-raw-name');
-            if(rawName) {
-                display.innerHTML = currentLang === 'cn' ?
-                    `已选择: ${rawName}` : `Selected: ${rawName}`;
-            }
-        }
-    }
-
-    function showFileName() {
-        const fileInput = document.getElementById("paperFile");
-        const display = document.getElementById("fileNameDisplay");
-        if(fileInput.files.length > 0) {
-            const fileName = fileInput.files[0].name;
-            display.setAttribute('data-raw-name', fileName); // 存原始名方便切换语言
-            display.innerHTML = currentLang === 'cn' ? `已选择: ${fileName}` : `Selected: ${fileName}`;
-        } else {
-            display.innerHTML = "";
-        }
-    }
-
-    // === 标签选择逻辑 ===
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tagVal = this.getAttribute('data-tag'); // 始终获取中文值
-            if (selectedTags.has(tagVal)) {
-                selectedTags.delete(tagVal);
-                this.classList.remove('active');
-            } else {
-                selectedTags.add(tagVal);
-                this.classList.add('active');
-            }
-            updateSelectedTags();
-        });
-    });
-
-    // 自定义标签输入
-    document.getElementById('customTag').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            e.preventDefault();
-            const tag = this.value.trim();
-            selectedTags.add(tag);
-            this.value = '';
-            updateSelectedTags();
-        }
-    });
-
-    // 渲染“已选标签” (支持双语显示)
-    function updateSelectedTags() {
-        const displayArea = document.getElementById('selectedTags');
-        const hiddenInput = document.getElementById('finalTags');
-        displayArea.innerHTML = '';
-
-        // 无论当前语言是啥，传给后端的 hiddenInput 始终存原始值（中文），保持数据库一致性
-        const tagsStr = Array.from(selectedTags).join(',');
-        hiddenInput.value = tagsStr;
-
-        selectedTags.forEach(tagVal => {
-            // 尝试翻译，如果是自定义标签则显示原样
-            const displayCn = tagVal;
-            const displayEn = tagTranslations[tagVal] || tagVal;
-
-            const tagEl = document.createElement('div');
-            tagEl.className = 'selected-tag-badge';
-
-            // 构建双语 HTML
-            tagEl.innerHTML = `
-                <span class="cn">${displayCn}</span>
-                <span class="en">${displayEn}</span>
-                <span class="btn-close-tag" data-tag="${tagVal}">✕</span>
-            `;
-            displayArea.appendChild(tagEl);
-
-            // 删除逻辑
-            tagEl.querySelector('.btn-close-tag').addEventListener('click', function() {
-                const delTag = this.getAttribute('data-tag');
-                selectedTags.delete(delTag);
-
-                // 取消按钮高亮
-                document.querySelectorAll('.tag-btn').forEach(btn => {
-                    if (btn.getAttribute('data-tag') === delTag) {
-                        btn.classList.remove('active');
-                    }
-                });
-                updateSelectedTags();
+    function updateSelectOptionText() {
+        Object.entries(selectOptionText).forEach(([selectId, labels]) => {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            [...select.options].forEach(option => {
+                const config = labels[option.value];
+                if (!config) return;
+                option.text = currentLang === 'cn' ? config.cn : config.en;
             });
         });
-
-        // 重新应用语言显隐规则 (关键步骤，否则新加的元素不遵循当前语言)
-        if(typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    async function postTweet() {
-        const content = document.getElementById("tweetContent").value;
-        const fileInput = document.getElementById("paperFile");
-        const tags = document.getElementById("finalTags").value;
+    function updateTextareaPlaceholderText() {
+        document.querySelectorAll('textarea[data-placeholder-en]').forEach(textarea => {
+            const cn = textarea.getAttribute('data-placeholder-cn') || textarea.getAttribute('placeholder') || '';
+            const en = textarea.getAttribute('data-placeholder-en') || '';
+            textarea.placeholder = currentLang === 'cn' ? cn : en;
+        });
+    }
 
-        if (!content.trim()) {
-            showToast(currentLang === 'cn' ? "请填写描述内容！" : "Please fill in the description!");
+    function showToast(message, type = 'error') {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        setTimeout(() => toast.className = `toast ${type}`, 2200);
+    }
+
+    function getFieldValue(id) {
+        if (id === 'fileInput') return selectedFile ? '1' : '';
+        const element = document.getElementById(id);
+        return element ? String(element.value || '').trim() : '';
+    }
+
+    function updateQualityPanel() {
+        const filled = qualityFields.filter(field => getFieldValue(field.id)).length;
+        const percent = Math.round((filled / qualityFields.length) * 100);
+        document.getElementById('qualityScoreText').innerText = `${percent}%`;
+        document.getElementById('qualityFill').style.width = `${percent}%`;
+
+        const checklist = document.getElementById('qualityChecklist');
+        checklist.innerHTML = qualityFields.map(field => {
+            const done = Boolean(getFieldValue(field.id));
+            const label = currentLang === 'cn' ? field.labelCn : field.labelEn;
+            return `<div class="quality-item ${done ? 'ok' : 'missing'}">${done ? '✔' : '•'} ${label}${field.required ? (currentLang === 'cn' ? '（核心）' : ' (Core)') : ''}</div>`;
+        }).join('');
+
+        const qualityTip = document.getElementById('qualityTip');
+        if (percent >= 85) {
+            qualityTip.innerHTML = currentLang === 'cn'
+                ? '<span class="cn">条目已较完整，建议最后检查引用、附件与标签是否足够支持复查与传播。</span><span class="en">The entry is already quite complete. Do a final pass on references, attachment, and tags for better review and sharing.</span>'
+                : '<span class="cn">条目已较完整，建议最后检查引用、附件与标签是否足够支持复查与传播。</span><span class="en">The entry is already quite complete. Do a final pass on references, attachment, and tags for better review and sharing.</span>';
+        } else if (percent >= 50) {
+            qualityTip.innerHTML = currentLang === 'cn'
+                ? '<span class="cn">基础信息已具备，继续补充 DOI、引用、资源链接和附件可显著提升条目质量。</span><span class="en">The essentials are in place. Adding DOI, references, resource links, and attachment will significantly improve quality.</span>'
+                : '<span class="cn">基础信息已具备，继续补充 DOI、引用、资源链接和附件可显著提升条目质量。</span><span class="en">The essentials are in place. Adding DOI, references, resource links, and attachment will significantly improve quality.</span>';
+        } else {
+            qualityTip.innerHTML = currentLang === 'cn'
+                ? '<span class="cn">请补充标题、摘要、作者、机构、研究领域等核心元数据，系统会估算条目完整度。</span><span class="en">Please complete core metadata such as title, abstract, authors, institution, and research area. The system estimates entry completeness.</span>'
+                : '<span class="cn">请补充标题、摘要、作者、机构、研究领域等核心元数据，系统会估算条目完整度。</span><span class="en">Please complete core metadata such as title, abstract, authors, institution, and research area. The system estimates entry completeness.</span>';
+        }
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function updateSelectedTags() {
+        const container = document.getElementById('selectedTags');
+        container.innerHTML = selectedTags.map(tag => `
+            <span class="selected-tag-badge">${tag}<span class="btn-close-tag" onclick="removeTag('${tag.replace(/'/g, "\\'")}')">✕</span></span>
+        `).join('');
+        updateQualityPanel();
+    }
+
+    function toggleTag(button) {
+        const tag = button.dataset.tag;
+        if (selectedTags.includes(tag)) {
+            selectedTags = selectedTags.filter(item => item !== tag);
+            button.classList.remove('active');
+        } else {
+            selectedTags.push(tag);
+            button.classList.add('active');
+        }
+        updateSelectedTags();
+    }
+
+    function removeTag(tag) {
+        selectedTags = selectedTags.filter(item => item !== tag);
+        document.querySelectorAll('.tag-btn').forEach(btn => {
+            if (btn.dataset.tag === tag) btn.classList.remove('active');
+        });
+        updateSelectedTags();
+    }
+
+    async function runPublishAiHelper(task) {
+        const title = document.getElementById('tweetTitle').value.trim();
+        const content = document.getElementById('tweetContent').value.trim();
+        const warning = document.getElementById('aiHelperWarning');
+        const status = document.getElementById('aiHelperStatus');
+        warning.style.display = 'none';
+        warning.textContent = '';
+        if (!title || !content) {
+            warning.style.display = 'block';
+            warning.textContent = currentLang === 'cn'
+                ? '请先填写研究标题和摘要，再使用 AI 辅助。'
+                : 'Please fill in the research title and abstract before using AI assistance.';
+            return;
+        }
+        status.style.display = 'block';
+        status.innerHTML = currentLang === 'cn'
+            ? 'AI 正在处理中，请稍候...'
+            : 'AI is processing, please wait...';
+        try {
+            const lang = currentLang === 'cn' ? 'zh' : 'en';
+            const body = new URLSearchParams({ title, content, task, lang });
+            const response = await fetch('/api/ai/publish-helper', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const data = await response.json();
+            const result = String(data.result || '').trim();
+            if (!result) throw new Error('empty ai result');
+
+            if (task === 'keywords') {
+                document.getElementById('keywords').value = result;
+                status.innerHTML = currentLang === 'cn'
+                    ? `已自动提炼关键词：${result}`
+                    : `Keywords extracted: ${result}`;
+            } else if (task === 'polish') {
+                document.getElementById('tweetContent').value = result;
+                status.innerHTML = currentLang === 'cn'
+                    ? '摘要已完成 AI 润色，你可以在此基础上继续微调。'
+                    : 'The abstract has been polished by AI. You can continue refining it.';
+            }
+            updateQualityPanel();
+        } catch (error) {
+            console.error(error);
+            status.innerHTML = currentLang === 'cn'
+                ? 'AI 辅助失败，请稍后重试。'
+                : 'AI assistance failed. Please try again later.';
+        }
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        selectedFile = file || null;
+        const display = document.getElementById('fileNameDisplay');
+        if (selectedFile) {
+            display.style.display = 'inline-block';
+            display.textContent = selectedFile.name;
+        } else {
+            display.style.display = 'none';
+            display.textContent = '';
+        }
+        updateQualityPanel();
+    }
+
+    function validateForm() {
+        let valid = true;
+        const requiredMap = [
+            ['tweetTitle', 'warningTitle', currentLang === 'cn' ? '请输入研究标题' : 'Please enter a research title'],
+            ['tweetContent', 'warningContent', currentLang === 'cn' ? '请输入研究摘要或描述' : 'Please enter a research abstract or description'],
+            ['authors', 'warningAuthors', currentLang === 'cn' ? '请填写作者或团队信息' : 'Please enter authors or team information'],
+            ['researchArea', 'warningResearchArea', currentLang === 'cn' ? '请填写研究领域' : 'Please enter the research area']
+        ];
+
+        requiredMap.forEach(([fieldId, warningId, message]) => {
+            const field = document.getElementById(fieldId);
+            const warning = document.getElementById(warningId);
+            if (!field.value.trim()) {
+                field.classList.add('field-invalid');
+                warning.style.display = 'block';
+                warning.textContent = message;
+                valid = false;
+            } else {
+                field.classList.remove('field-invalid');
+                warning.style.display = 'none';
+                warning.textContent = '';
+            }
+        });
+
+        const doiField = document.getElementById('doi');
+        const doiWarning = document.getElementById('warningDoi');
+        if (doiField.value.trim() && doiField.value.trim().length < 4) {
+            doiField.classList.add('field-invalid');
+            doiWarning.style.display = 'block';
+            doiWarning.textContent = currentLang === 'cn' ? 'DOI / 标识长度过短，请检查' : 'DOI / identifier looks too short';
+            valid = false;
+        } else {
+            doiField.classList.remove('field-invalid');
+            doiWarning.style.display = 'none';
+            doiWarning.textContent = '';
+        }
+
+        return valid;
+    }
+
+    async function uploadFileIfNeeded() {
+        if (!selectedFile) return null;
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        const response = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) throw new Error('file upload failed');
+        return response.text();
+    }
+
+    function collectPayload() {
+        return {
+            userId: currentUserId,
+            title: document.getElementById('tweetTitle').value.trim(),
+            content: document.getElementById('tweetContent').value.trim(),
+            tags: selectedTags.join(','),
+            authors: document.getElementById('authors').value.trim(),
+            institution: document.getElementById('institution').value.trim(),
+            researchArea: document.getElementById('researchArea').value.trim(),
+            keywords: document.getElementById('keywords').value.trim(),
+            contentType: document.getElementById('contentType').value,
+            publicationType: document.getElementById('publicationType').value,
+            status: document.getElementById('status').value,
+            language: document.getElementById('language').value,
+            journalOrConference: document.getElementById('journalOrConference').value.trim(),
+            publicationDate: document.getElementById('publicationDate').value,
+            doi: document.getElementById('doi').value.trim(),
+            visibility: document.getElementById('visibility').value,
+            referencesText: document.getElementById('referencesText').value.trim(),
+            projectLinks: document.getElementById('projectLinks').value.trim()
+        };
+    }
+
+    function buildTweetFormData(payload) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && String(value).trim() !== '') {
+                formData.append(key, value);
+            }
+        });
+        if (selectedFile) {
+            formData.append('file', selectedFile);
+        }
+        return formData;
+    }
+
+    async function submitTweet() {
+        if (!currentUserId) {
+            location.href = 'login.html';
+            return;
+        }
+        if (!validateForm()) {
+            showToast(currentLang === 'cn' ? '请先完善必填信息' : 'Please complete the required information');
             return;
         }
 
-        const formData = new FormData();
-        formData.append("content", content);
-        formData.append("userId", userId);
-        formData.append("tags", tags); // 发送给后端
-        if (fileInput.files[0]) {
-            formData.append("file", fileInput.files[0]);
-        }
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = currentLang === 'cn' ? '提交中...' : 'Submitting...';
 
         try {
-            const submitBtn = document.querySelector('.submit-btn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = currentLang === 'cn' ? '发布中...' : 'Publishing...';
-
-            const response = await fetch('/api/tweets', {
+            const payload = collectPayload();
+            const url = editId ? `/api/tweets/${editId}/edit` : '/api/tweets';
+            const response = await fetch(url, {
                 method: 'POST',
-                body: formData
+                body: buildTweetFormData(payload)
             });
-            const result = await response.text();
-
-            if (result.includes("成功") || result.includes("success")) {
-                showToast(currentLang === 'cn' ? "发布成功！" : "Published successfully!", 'success');
-                setTimeout(() => {
-                    if(confirm(currentLang === 'cn' ? '发布成功！去查看管理页吗？' : 'Published! Go to manage page?')) {
-                        window.location.href = "content.html";
-                    } else {
-                        location.reload();
-                    }
-                }, 500);
-            } else {
-                showToast(currentLang === 'cn' ? "发布失败: " + result : "Failed: " + result);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+            const responseText = await response.text();
+            if (!response.ok || /(失败|failed|error)/i.test(responseText)) {
+                throw new Error(responseText || 'submit failed');
             }
-        } catch (e) {
-            showToast(currentLang === 'cn' ? "网络错误" : "Network error");
-            document.querySelector('.submit-btn').disabled = false;
+            showToast(currentLang === 'cn' ? '研究条目保存成功' : 'Research entry saved successfully', 'success');
+            setTimeout(() => {
+                location.href = 'content.html';
+            }, 900);
+        } catch (error) {
+            console.error(error);
+            showToast(currentLang === 'cn' ? '提交失败，请稍后重试' : 'Submission failed, please try again later');
+        } finally {
+            submitBtn.disabled = false;
+            updateFormText();
         }
     }
 
-    // 初始化
+    function updateFormText() {
+        updateSelectOptionText();
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.innerHTML = editId
+            ? '<span class="cn">保存修改</span><span class="en">Save Changes</span>'
+            : '<span class="cn">立即分享</span><span class="en">Share Now</span>';
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function updatePageModeText() {
+        const heading = document.getElementById('pageHeading');
+        const subtitle = document.getElementById('pageSubtitle');
+        if (editId) {
+            heading.innerHTML = '<span class="cn">继续完善研究条目</span><span class="en">Continue Improving This Research Entry</span>';
+            subtitle.innerHTML = '<span class="cn">在已有研究基础上补充元数据、引用、附件与开放传播信息，使条目更完整、更易被发现与复查。</span><span class="en">Build on the existing work by adding metadata, references, attachments, and sharing details so the entry becomes more complete, discoverable, and reviewable.</span>';
+        } else {
+            heading.innerHTML = '<span class="cn">发布结构化研究成果</span><span class="en">Publish Structured Research Work</span>';
+            subtitle.innerHTML = '<span class="cn">把普通帖子升级为可检索、可归档、可讨论的开放研究条目，便于后续发现、评价与知识积累。</span><span class="en">Turn a normal post into a searchable, archivable, and discussable open research entry for later discovery, evaluation, and reuse.</span>';
+        }
+        updateFormText();
+    }
+
+    async function loadExistingTweet() {
+        const params = new URLSearchParams(location.search);
+        editId = params.get('editId');
+        updatePageModeText();
+        if (!editId) return;
+        try {
+            const response = await fetch(`/api/tweets/${editId}`);
+            if (!response.ok) throw new Error('load failed');
+            const data = await response.json();
+            document.getElementById('tweetTitle').value = data.title || '';
+            document.getElementById('tweetContent').value = data.content || '';
+            document.getElementById('authors').value = data.authors || '';
+            document.getElementById('institution').value = data.institution || '';
+            document.getElementById('researchArea').value = data.researchArea || '';
+            document.getElementById('keywords').value = data.keywords || '';
+            document.getElementById('contentType').value = data.contentType || '';
+            document.getElementById('publicationType').value = data.publicationType || '';
+            document.getElementById('status').value = data.status || '';
+            document.getElementById('language').value = data.language || '';
+            document.getElementById('journalOrConference').value = data.journalOrConference || '';
+            document.getElementById('publicationDate').value = data.publicationDate || '';
+            document.getElementById('doi').value = data.doi || '';
+            document.getElementById('visibility').value = data.visibility || '公开';
+            document.getElementById('referencesText').value = data.referencesText || '';
+            document.getElementById('projectLinks').value = data.projectLinks || '';
+            selectedTags = (data.tags || '').split(',').map(tag => tag.trim()).filter(Boolean);
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.toggle('active', selectedTags.includes(btn.dataset.tag));
+            });
+            updateSelectedTags();
+            if (data.originalFilename) {
+                const display = document.getElementById('fileNameDisplay');
+                display.style.display = 'inline-block';
+                display.textContent = data.originalFilename;
+            }
+            updateQualityPanel();
+        } catch (error) {
+            console.error(error);
+            showToast(currentLang === 'cn' ? '加载研究条目失败' : 'Failed to load the research entry');
+        }
+    }
+
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            toggleTag(this);
+        });
+    });
+
+    [
+        'tweetTitle','tweetContent','authors','institution','researchArea','keywords','contentType','publicationType',
+        'status','language','journalOrConference','publicationDate','doi','visibility','referencesText','projectLinks'
+    ].forEach(id => {
+        const node = document.getElementById(id);
+        node.addEventListener('input', updateQualityPanel);
+        node.addEventListener('change', updateQualityPanel);
+    });
+
+    window.addEventListener('languageChange', function () {
+        currentLang = normalizeLang(localStorage.getItem('appLang') || 'cn');
+        updateSelectOptionText();
+        updateTextareaPlaceholderText();
+        updateFormText();
+        updatePageModeText();
+        updateQualityPanel();
+    });
+
+    currentLang = normalizeLang(currentLang);
+    updateSelectOptionText();
+    updateTextareaPlaceholderText();
     updateFormText();
-    // 如果有预设的 applyLang，立即执行一次确保初始状态正确
-    if(typeof applyLang === 'function') applyLang(currentLang);
+    updatePageModeText();
+    updateQualityPanel();
+    loadExistingTweet();
+    if (typeof applyLang === 'function') applyLang(currentLang);
 </script>
 </body>
 </html>

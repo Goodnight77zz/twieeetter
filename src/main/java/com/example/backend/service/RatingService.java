@@ -4,9 +4,12 @@ import com.example.backend.entity.*;
 import com.example.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 @Service
 public class RatingService {
@@ -15,7 +18,7 @@ public class RatingService {
     @Autowired private UserRepository userRepository;
     @Autowired private TweetRepository tweetRepository;
 
-    public void rateTweet(Long userId, Long tweetId, int s1, int s2, int s3) {
+    public void rateTweet(Long userId, Long tweetId, int s1, int s2, int s3, int s4, int s5) {
         User user = userRepository.findById(userId).orElseThrow();
         Tweet tweet = tweetRepository.findById(tweetId).orElseThrow();
 
@@ -30,8 +33,12 @@ public class RatingService {
         rating.setScore1(s1);
         rating.setScore2(s2);
         rating.setScore3(s3);
+        rating.setScore4(s4);
+        rating.setScore5(s5);
 
         ratingRepository.save(rating);
+        tweet.setLastInteractionTime(LocalDateTime.now());
+        tweetRepository.save(tweet);
         updateAuthorReputation(tweet.getAuthor());
     }
 
@@ -44,7 +51,7 @@ public class RatingService {
 
         for (TweetRating r : ratings) {
             double weight = r.getUser().getWeight();
-            double avgOfThisUser = (r.getScore1() + r.getScore2() + r.getScore3()) / 3.0;
+            double avgOfThisUser = (safeInt(r.getScore1()) + safeInt(r.getScore2()) + safeInt(r.getScore3()) + safeInt(r.getScore4()) + safeInt(r.getScore5())) / 5.0;
             totalWeightedScore += avgOfThisUser * weight;
             totalWeight += weight;
         }
@@ -52,37 +59,38 @@ public class RatingService {
         return totalWeight == 0 ? 0 : (totalWeightedScore / totalWeight);
     }
 
-    // 🔥 修改：返回类型改为 Map<String, Object> 以包含统计数量
     public Map<String, Object> getRadarScores(Long tweetId) {
         List<TweetRating> ratings = ratingRepository.findByTweetId(tweetId);
         Map<String, Object> result = new HashMap<>();
 
-        // 默认值
         result.put("s1", 0.0);
         result.put("s2", 0.0);
         result.put("s3", 0.0);
-        result.put("expertCount", 0); // 专家人数
-        result.put("expertScore", 0.0); // 专家平均分
+        result.put("s4", 0.0);
+        result.put("s5", 0.0);
+        result.put("expertCount", 0);
+        result.put("expertScore", 0.0);
+        result.put("ratingCount", 0);
 
         if (ratings.isEmpty()) return result;
 
-        double sum1 = 0, sum2 = 0, sum3 = 0;
+        double sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0;
         double totalWeight = 0;
 
-        // 专家统计变量
         int expertCount = 0;
         double expertTotalScore = 0;
 
         for (TweetRating r : ratings) {
             double weight = r.getUser().getWeight();
-            double avgOfThisUser = (r.getScore1() + r.getScore2() + r.getScore3()) / 3.0;
+            double avgOfThisUser = (safeInt(r.getScore1()) + safeInt(r.getScore2()) + safeInt(r.getScore3()) + safeInt(r.getScore4()) + safeInt(r.getScore5())) / 5.0;
 
-            sum1 += r.getScore1() * weight;
-            sum2 += r.getScore2() * weight;
-            sum3 += r.getScore3() * weight;
+            sum1 += safeInt(r.getScore1()) * weight;
+            sum2 += safeInt(r.getScore2()) * weight;
+            sum3 += safeInt(r.getScore3()) * weight;
+            sum4 += safeInt(r.getScore4()) * weight;
+            sum5 += safeInt(r.getScore5()) * weight;
             totalWeight += weight;
 
-            // 🔥 统计专家 (信誉分 >= 20 视为认证学者/专家)
             if (r.getUser().getReputation() >= 20) {
                 expertCount++;
                 expertTotalScore += avgOfThisUser;
@@ -93,13 +101,97 @@ public class RatingService {
             result.put("s1", Math.round(sum1 / totalWeight * 10.0) / 10.0);
             result.put("s2", Math.round(sum2 / totalWeight * 10.0) / 10.0);
             result.put("s3", Math.round(sum3 / totalWeight * 10.0) / 10.0);
+            result.put("s4", Math.round(sum4 / totalWeight * 10.0) / 10.0);
+            result.put("s5", Math.round(sum5 / totalWeight * 10.0) / 10.0);
         }
 
-        // 填入专家数据
         result.put("expertCount", expertCount);
         result.put("expertScore", expertCount > 0 ? Math.round(expertTotalScore / expertCount * 10.0) / 10.0 : 0.0);
+        result.put("ratingCount", ratings.size());
 
         return result;
+    }
+
+    public Map<String, Object> getEvaluationSignals(Tweet tweet, long likeCount, long commentCount) {
+        double avgScore = calculateAverageScore(tweet.getId());
+        Map<String, Object> radar = getRadarScores(tweet.getId());
+        long downloadCount = safeLong(tweet.getDownloadCount());
+        long viewCount = safeLong(tweet.getViewCount());
+        long shareCount = safeLong(tweet.getShareCount());
+        long bookmarkCount = safeLong(tweet.getBookmarkCount());
+        int ratingCount = ((Number) radar.getOrDefault("ratingCount", 0)).intValue();
+        long expertCount = ((Number) radar.getOrDefault("expertCount", 0)).longValue();
+        double expertScore = ((Number) radar.getOrDefault("expertScore", 0.0)).doubleValue();
+        LocalDateTime lastInteractionTime = tweet.getLastInteractionTime() != null ? tweet.getLastInteractionTime() : tweet.getCreateTime();
+        long recencyBoost = calculateRecencyBoost(lastInteractionTime);
+        long hotScore = Math.round(
+                likeCount * 3
+                        + commentCount * 4
+                        + downloadCount * 2
+                        + viewCount
+                        + shareCount * 5
+                        + bookmarkCount * 4
+                        + avgScore * 5
+                        + ratingCount * 2
+                        + expertCount * 3
+                        + recencyBoost
+        );
+
+        Map<String, Object> signals = new HashMap<>();
+        signals.put("likes", likeCount);
+        signals.put("comments", commentCount);
+        signals.put("downloads", downloadCount);
+        signals.put("views", viewCount);
+        signals.put("shares", shareCount);
+        signals.put("bookmarks", bookmarkCount);
+        signals.put("averageScore", Math.round(avgScore * 10.0) / 10.0);
+        signals.put("averageScoreText", String.format("%.1f", avgScore));
+        signals.put("ratingCount", ratingCount);
+        signals.put("expertCount", expertCount);
+        signals.put("expertScore", expertCount > 0 ? Math.round(expertScore * 10.0) / 10.0 : 0.0);
+        signals.put("hotScore", hotScore);
+        signals.put("freshnessLevel", resolveFreshnessLevel(lastInteractionTime));
+        signals.put("engagementLevel", resolveEngagementLevel(hotScore, ratingCount, commentCount, shareCount, bookmarkCount));
+        signals.put("lastInteractionTime", lastInteractionTime != null ? lastInteractionTime.toString() : null);
+        signals.put("updateTime", tweet.getUpdateTime() != null ? tweet.getUpdateTime().toString() : null);
+        signals.put("radar", radar);
+        return signals;
+    }
+
+    private int safeInt(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private long safeLong(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    private long calculateRecencyBoost(LocalDateTime lastInteractionTime) {
+        if (lastInteractionTime == null) {
+            return 0L;
+        }
+        long hours = Math.max(0, Duration.between(lastInteractionTime, LocalDateTime.now()).toHours());
+        if (hours < 24) return 18L;
+        if (hours < 72) return 10L;
+        if (hours < 168) return 4L;
+        return 0L;
+    }
+
+    private String resolveFreshnessLevel(LocalDateTime lastInteractionTime) {
+        if (lastInteractionTime == null) {
+            return "steady";
+        }
+        long hours = Math.max(0, Duration.between(lastInteractionTime, LocalDateTime.now()).toHours());
+        if (hours < 24) return "active";
+        if (hours < 168) return "recent";
+        return "steady";
+    }
+
+    private String resolveEngagementLevel(long hotScore, int ratingCount, long commentCount, long shareCount, long bookmarkCount) {
+        long deepSignals = ratingCount + commentCount + shareCount + bookmarkCount;
+        if (hotScore >= 80 || deepSignals >= 18) return "high";
+        if (hotScore >= 30 || deepSignals >= 6) return "medium";
+        return "emerging";
     }
 
     private void updateAuthorReputation(User author) {

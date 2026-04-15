@@ -2,129 +2,988 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>
-        <span class="cn">用户主页</span>
-        <span class="en">User Profile</span>
-    </title>
+    <title>用户主页</title>
     <link rel="stylesheet" href="common/lang-component.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 70px; }
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --line: #e2e8f0;
+            --line-soft: #edf2f7;
+            --text: #0f172a;
+            --muted: #64748b;
+            --brand: #22c1ee;
+            --brand-deep: #2563eb;
+            --brand-soft: #e0f2fe;
+            --danger-soft: #fee2e2;
+            --danger-text: #b91c1c;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: var(--text);
+            padding-top: 72px;
+        }
 
         .navbar {
-            position: fixed; top: 0; width: 100%; background: white; height: 60px;
-            display: flex; align-items: center; padding: 0 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box; z-index: 1000;
-        }
-        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; font-size: 16px; }
-
-        .container { max-width: 600px; margin: 20px auto; }
-
-        .profile-card {
-            background: white; border-radius: 16px; overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; position: relative;
-        }
-        .banner { height: 140px; background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); }
-
-        .profile-content { padding: 0 20px 25px; position: relative; }
-
-        .avatar-container {
-            width: 110px; height: 110px; border-radius: 50%; border: 4px solid white;
-            position: absolute; top: -55px; left: 20px; background: white;
-            overflow: hidden; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-
-        .action-area {
-            display: flex; justify-content: flex-end; padding-top: 15px;
-            margin-bottom: 10px; height: 40px;
-        }
-        .action-btn {
-            padding: 8px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px;
-        }
-        .btn-follow { background: #0f1419; color: white; border: none; }
-        .btn-follow:hover { background: #272c30; }
-        .btn-followed { background: white; border: 1px solid #cfd9de; color: #0f1419; transition: all 0.2s; }
-        .btn-followed:hover { border-color: #f4212e; color: #f4212e; background-color: #fef2f2; }
-        .btn-edit { background: white; border: 1px solid #cfd9de; color: #0f1419; }
-
-        .info-section { margin-top: 10px; }
-        .nickname { font-size: 22px; font-weight: 900; color: #0f1419; line-height: 1.2;}
-        .username { font-size: 15px; color: #536471; margin-bottom: 12px; display: block;}
-        .bio { font-size: 15px; color: #333; margin-bottom: 20px; line-height: 1.5; }
-
-        .stats { display: flex; gap: 20px; color: #536471; font-size: 15px; border-top: 1px solid #eee; padding-top: 15px;}
-        .stat-num { font-weight: bold; color: #0f1419; }
-
-        .section-header {
-            font-weight: 900; color: #333; font-size: 19px;
-            margin-bottom: 15px; padding-left: 5px;
-            border-left: 4px solid #1da1f2; line-height: 1;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+            z-index: 1000;
+            box-sizing: border-box;
         }
 
-        .tweet {
-            background: white; padding: 20px; border-radius: 12px;
-            margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #e1e8ed; cursor: pointer; transition: transform 0.2s;
+        .nav-left { display:flex; align-items:center; gap:20px; }
+        .brand {
+            font-size:24px;
+            font-weight:900;
+            color:#1da1f2;
+            text-decoration:none;
+            display:flex;
+            align-items:center;
+            gap:6px;
+            white-space:nowrap;
         }
-        .tweet:hover {
-            background-color: #fff; border-color: #dbeafe;
-            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+        .btn-create {
+            background: linear-gradient(90deg, #00a1d6, #00b5e5);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.2s ease;
+            white-space: nowrap;
+            border:none;
+        }
+
+        .btn-create:hover { transform: translateY(-1px); }
+        .nav-right { display:flex; align-items:center; gap:24px; }
+        .nav-item {
+            text-decoration: none;
+            color: #475569;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover { color:#1da1f2; }
+
+        .page-shell {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 0 18px 36px;
+        }
+
+        .hero {
+            position: relative;
+            border-radius: 0 0 26px 26px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+            background: var(--card);
+        }
+
+        .hero-cover {
+            min-height: 250px;
+            padding: 28px 32px 30px;
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 24%),
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.18), transparent 18%),
+                linear-gradient(135deg, #0ea5e9 0%, #2563eb 52%, #6d28d9 100%);
+            color: #fff;
+        }
+
+        .hero-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:22px;
+            flex-wrap:wrap;
+        }
+
+        .hero-main {
+            display:flex;
+            gap:18px;
+            align-items:flex-end;
+        }
+
+        .avatar {
+            width:94px;
+            height:94px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.18);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:36px;
+            font-weight:900;
+            border:3px solid rgba(255,255,255,0.55);
+            overflow:hidden;
+            box-shadow:0 10px 28px rgba(15,23,42,0.2);
+            flex-shrink: 0;
+        }
+
+        .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+        .name { font-size:34px; font-weight:900; margin-bottom:8px; }
+        .bio { font-size:14px; line-height:1.8; opacity:0.96; max-width:760px; }
+
+        .hero-actions {
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            align-items:center;
+        }
+
+        .primary-btn, .ghost-btn {
+            border:none;
+            border-radius:999px;
+            padding:12px 22px;
+            cursor:pointer;
+            font-size:14px;
+            font-weight:800;
+            text-decoration:none;
+            transition:all 0.22s ease;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+
+        .primary-btn {
+            background:#fff;
+            color:#2563eb;
+            box-shadow:0 6px 18px rgba(255,255,255,0.28);
+        }
+
+        .primary-btn:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(255,255,255,0.34); }
+
+        .ghost-btn {
+            background:rgba(255,255,255,0.14);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.28);
+        }
+
+        .ghost-btn:hover {
+            background:linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.32));
+            border-color:rgba(255,255,255,0.42);
+            transform:translateY(-1px);
+        }
+
+        .follow-btn.following {
+            background:rgba(255,255,255,0.2);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.35);
+            box-shadow:none;
+        }
+
+        .follow-btn.following:hover {
+            background:linear-gradient(90deg, #ef4444, #f97316);
+            color:#fff;
+            border-color:transparent;
+            box-shadow:0 10px 20px rgba(239,68,68,0.28);
+        }
+
+        .stats-grid {
+            display:grid;
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:16px;
+            margin-top:24px;
+        }
+
+        .stat-card {
+            background:rgba(255,255,255,0.14);
+            border:1px solid rgba(255,255,255,0.22);
+            border-radius:18px;
+            padding:18px;
+            min-height: 112px;
+        }
+
+        .stat-label { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; opacity:0.88; }
+        .stat-value { margin-top:10px; font-size:28px; font-weight:900; }
+        .stat-note { margin-top:8px; font-size:12px; opacity:0.88; }
+
+        .profile-tabs {
+            background: rgba(255,255,255,0.96);
+            border-top: 1px solid rgba(226, 232, 240, 0.9);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:18px;
+            padding: 0 26px;
+            min-height: 78px;
+            flex-wrap: wrap;
+        }
+
+        .tab-nav {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            padding: 12px 0;
+        }
+
+        .tab-button {
+            border:none;
+            background:transparent;
+            color:#334155;
+            font-size:16px;
+            font-weight:800;
+            padding: 16px 14px 18px;
+            border-bottom:3px solid transparent;
+            cursor:pointer;
+            transition: all 0.2s ease;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+
+        .tab-button:hover { color: var(--brand-deep); }
+        .tab-button.active {
+            color: var(--brand-deep);
+            border-bottom-color: var(--brand);
+        }
+
+        .tab-count {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:22px;
+            height:22px;
+            padding:0 7px;
+            border-radius:999px;
+            background:#eff6ff;
+            color:#2563eb;
+            font-size:12px;
+            font-weight:900;
+        }
+
+        .tab-search {
+            min-width: 240px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:#f8fafc;
+            border:1px solid var(--line);
+            border-radius:14px;
+            padding: 0 14px;
+            height: 46px;
+            color:#64748b;
+        }
+
+        .tab-search input {
+            border:none;
+            outline:none;
+            background:transparent;
+            width:100%;
+            font-size:14px;
+            color:#0f172a;
+        }
+
+        .tab-content { display:none; margin-top: 22px; }
+        .tab-content.active { display:block; }
+
+        .content-grid {
+            display:grid;
+            grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+            gap:22px;
+            align-items:start;
+        }
+
+        .sidebar-stack { display:flex; flex-direction:column; gap:22px; }
+
+        .panel {
+            background: var(--card);
+            border-radius: 22px;
+            box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+            padding: 22px;
+            border: 1px solid #edf2f7;
+        }
+
+        .panel-title { font-size:18px; font-weight:900; margin:0 0 16px; color:#0f172a; }
+        .panel-subtitle { color:#64748b; font-size:13px; line-height:1.7; margin-bottom:16px; }
+
+        .archive-hero {
+            background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+            border:1px solid #dbeafe;
+            border-radius:24px;
+            padding:22px;
+            box-shadow:0 16px 32px rgba(37,99,235,0.08);
+        }
+
+        .archive-hero-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+            flex-wrap:wrap;
+            margin-bottom:16px;
+        }
+
+        .archive-hero-title { font-size:20px; font-weight:900; color:#0f172a; margin:0; }
+        .archive-hero-subtitle { color:#64748b; font-size:13px; line-height:1.7; max-width:760px; }
+        .archive-pill {
+            padding:9px 14px;
+            border-radius:999px;
+            background:linear-gradient(90deg,#eff6ff,#dbeafe);
+            color:#1d4ed8;
+            font-size:12px;
+            font-weight:800;
+            border:1px solid #bfdbfe;
+        }
+
+        .archive-summary {
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:16px;
+        }
+
+        .archive-stat-card {
+            background:#fff;
+            border:1px solid #e2e8f0;
+            border-radius:18px;
+            padding:18px;
+            box-shadow:0 8px 20px rgba(15,23,42,0.05);
+            min-height:138px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+        }
+
+        .archive-stat-label { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; font-weight:800; }
+        .archive-stat-value { margin-top:10px; font-size:26px; font-weight:900; color:#0f172a; }
+        .archive-stat-sub { margin-top:8px; font-size:12px; color:#64748b; line-height:1.6; }
+
+        .chip-cloud { display:flex; flex-wrap:wrap; gap:10px; }
+        .chip {
+            padding:8px 12px;
+            border-radius:999px;
+            background:#eff6ff;
+            color:#2563eb;
+            font-size:13px;
+            font-weight:700;
+            border:1px solid #dbeafe;
+        }
+
+        .metric-list { display:flex; flex-direction:column; gap:12px; }
+        .metric-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+        .metric-name { color:#334155; font-size:14px; font-weight:700; }
+        .metric-value { color:#0f172a; font-size:14px; font-weight:900; }
+        .metric-bar { margin-top:8px; height:8px; border-radius:999px; background:#e2e8f0; overflow:hidden; }
+        .metric-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#2563eb); }
+
+        .sub-card-list { display:flex; flex-direction:column; gap:12px; }
+        .sub-card { border:1px solid #e2e8f0; border-radius:16px; padding:14px; background:#f8fafc; }
+        .sub-title { font-size:14px; font-weight:800; color:#0f172a; margin-bottom:6px; }
+        .sub-meta { font-size:12px; color:#64748b; line-height:1.7; }
+
+        .subscription-panel { background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%); border:1px solid #dbeafe; }
+        .subscription-list { display:flex; flex-direction:column; gap:12px; }
+        .subscription-item {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+            padding:16px;
+            border:1px solid #dbeafe;
+            border-radius:18px;
+            background:#f8fbff;
+        }
+
+        .subscription-item-main { flex:1; min-width:0; }
+        .subscription-item-title { font-size:15px; font-weight:900; color:#1e3a8a; margin-bottom:6px; }
+        .subscription-item-meta { font-size:12px; color:#64748b; line-height:1.7; }
+        .subscription-item-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .subscription-btn {
+            border:none;
+            border-radius:999px;
+            padding:10px 14px;
+            cursor:pointer;
+            font-size:12px;
+            font-weight:800;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            transition:all .18s ease;
+        }
+
+        .subscription-btn.view { background:#e0f2fe; color:#0369a1; }
+        .subscription-btn.view:hover { background:#bae6fd; }
+        .subscription-btn.remove { background:#fee2e2; color:#b91c1c; }
+        .subscription-btn.remove:hover { background:#fecaca; }
+        .subscription-status { margin-top:14px; font-size:12px; color:#475569; }
+
+        .feed-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-bottom:18px;
+            flex-wrap:wrap;
+        }
+
+        .feed-filters { display:flex; gap:10px; flex-wrap:wrap; }
+        select.filter-select {
+            border:1px solid #dbe3ec;
+            border-radius:12px;
+            padding:10px 12px;
+            background:#f8fafc;
+            font-size:13px;
+            color:#334155;
+        }
+
+        .entry-list { display:flex; flex-direction:column; gap:16px; }
+        .entry-card {
+            border:1px solid #e5e7eb;
+            border-radius:18px;
+            padding:18px;
+            background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%);
+            cursor:pointer;
+            transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .entry-card:hover {
+            transform:translateY(-2px);
+            border-color:#bfdbfe;
+            box-shadow:0 12px 25px rgba(59,130,246,0.09);
+        }
+
+        .entry-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:16px;
+            flex-wrap:wrap;
+        }
+
+        .entry-title { font-size:20px; font-weight:900; color:#0f172a; margin:0 0 10px; line-height:1.45; }
+        .entry-summary { color:#475569; font-size:14px; line-height:1.8; margin-bottom:14px; }
+        .badge-row, .meta-row { display:flex; flex-wrap:wrap; gap:8px; }
+        .entry-badge { padding:6px 10px; border-radius:999px; font-size:12px; font-weight:800; }
+        .entry-badge.type { background:#ede9fe; color:#6d28d9; }
+        .entry-badge.status { background:#dcfce7; color:#15803d; }
+        .entry-badge.lang { background:#fef3c7; color:#b45309; }
+        .entry-meta { padding:8px 10px; border-radius:12px; background:#f8fafc; color:#334155; border:1px solid #e2e8f0; font-size:12px; }
+
+        .quality-box {
+            min-width:160px;
+            background:#f8fbff;
+            border:1px solid #dbeafe;
+            border-radius:16px;
+            padding:14px;
+        }
+
+        .quality-label { color:#1d4ed8; font-size:12px; font-weight:800; margin-bottom:8px; }
+        .quality-value { font-size:24px; font-weight:900; color:#0f172a; }
+        .quality-track { margin-top:10px; height:8px; border-radius:999px; background:#dbeafe; overflow:hidden; }
+        .quality-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#38bdf8,#2563eb); }
+
+        .favorites-shell {
+            display:grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .folder-list { display:flex; flex-direction:column; gap:10px; }
+        .folder-item {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            padding:14px 16px;
+            border-radius:16px;
+            border:1px solid transparent;
+            background:#f8fafc;
+            cursor:pointer;
+            transition: all .18s ease;
+        }
+
+        .folder-item:hover {
+            border-color:#bfdbfe;
+            background:#f5fbff;
+        }
+
+        .folder-item.active {
+            background: linear-gradient(135deg, #e0f2fe, #eff6ff);
+            border-color:#93c5fd;
+            color:#1d4ed8;
+        }
+
+        .folder-name { font-size:14px; font-weight:800; }
+        .folder-count { font-size:13px; color:#64748b; font-weight:800; }
+
+        .favorite-highlight {
+            display:grid;
+            grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+            gap:18px;
+            align-items:center;
+            margin-bottom:18px;
+        }
+
+        .favorite-preview {
+            background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+            border-radius:20px;
+            min-height:180px;
+            display:flex;
+            flex-direction:column;
+            justify-content:flex-end;
+            padding:20px;
+            color:#0f172a;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .favorite-preview::before {
+            content:'';
+            position:absolute;
+            right:-30px;
+            top:-30px;
+            width:140px;
+            height:140px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.28);
+        }
+
+        .favorite-preview-title {
+            position:relative;
+            font-size:22px;
+            font-weight:900;
+            line-height:1.4;
+            margin:0;
+        }
+
+        .favorite-preview-meta {
+            position:relative;
+            margin-top:10px;
+            font-size:13px;
+            color:#1e3a8a;
+            line-height:1.7;
+        }
+
+        .favorite-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+
+        .favorite-grid {
+            display:grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap:16px;
+        }
+
+        .favorite-card {
+            background:#fff;
+            border:1px solid var(--line);
+            border-radius:18px;
+            padding:16px;
+            box-shadow:0 8px 20px rgba(15,23,42,0.04);
+            cursor:pointer;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .favorite-card:hover {
+            transform:translateY(-2px);
+            border-color:#bfdbfe;
+            box-shadow:0 14px 26px rgba(37,99,235,0.08);
+        }
+
+        .favorite-card-title {
+            font-size:16px;
+            font-weight:900;
+            line-height:1.55;
+            color:#0f172a;
+            margin-bottom:10px;
+        }
+
+        .favorite-card-summary {
+            font-size:13px;
+            color:#475569;
+            line-height:1.8;
+            min-height:70px;
+            margin-bottom:12px;
+        }
+
+        .favorite-card-meta {
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-bottom:10px;
+        }
+
+        .favorite-pill {
+            padding:6px 10px;
+            border-radius:999px;
+            background:#f8fafc;
+            border:1px solid var(--line);
+            font-size:12px;
+            color:#334155;
+            font-weight:700;
+        }
+
+        .favorite-card-time {
+            font-size:12px;
+            color:#64748b;
+            line-height:1.7;
+        }
+
+        .favorites-toolbar {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:18px;
+        }
+
+        .toolbar-pills { display:flex; gap:10px; flex-wrap:wrap; }
+        .toolbar-pill {
+            padding:8px 12px;
+            border-radius:999px;
+            background:#eff6ff;
+            color:#2563eb;
+            font-size:12px;
+            font-weight:800;
+            border:1px solid #dbeafe;
+        }
+
+        .empty-box {
+            padding:34px 18px;
+            border:1px dashed #cbd5e1;
+            border-radius:16px;
+            text-align:center;
+            color:#64748b;
+            background:#f8fafc;
+        }
+
+        @media (max-width: 1100px) {
+            .favorite-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .content-grid,
+            .favorites-shell,
+            .favorite-highlight { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 860px) {
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .profile-tabs { padding: 0 18px; }
+            .tab-search { width: 100%; min-width: 0; }
+            .archive-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding-top: 66px; }
+            .navbar { padding: 0 10px; }
+            .nav-item span, .btn-create span { display:none; }
+            .hero-cover { padding: 22px 18px 24px; }
+            .hero-main { align-items:flex-start; }
+            .name { font-size: 28px; }
+            .stats-grid,
+            .archive-summary,
+            .favorite-grid { grid-template-columns: 1fr; }
+            .entry-top { flex-direction:column; }
+            .quality-box { width:100%; }
+            .tab-button { padding-left: 10px; padding-right: 10px; }
         }
     </style>
 </head>
 <body>
-
 <div class="navbar">
-    <a href="javascript:history.back()" class="nav-link">⬅
-        <span class="cn">返回</span>
-        <span class="en">Back</span>
-    </a>
-    <a href="index.html" class="nav-link">🏠
-        <span class="cn">广场</span>
-        <span class="en">Plaza</span>
-    </a>
+    <div class="nav-left">
+        <a class="brand" href="index.html">开放学术交流平台</a>
+        <a href="dashboard.html" class="btn-create">
+            <i class="fas fa-bolt"></i>
+            <span class="cn">进入创作中心</span>
+            <span class="en">Creator Center</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <a class="nav-item" href="archive.html"><i class="fas fa-box-archive"></i><span class="cn">知识归档</span><span class="en">Archive</span></a>
+        <a class="nav-item" href="search.html"><i class="fas fa-search"></i><span class="cn">检索</span><span class="en">Search</span></a>
+    </div>
 </div>
 
-<div class="container">
-    <div class="profile-card">
-        <div class="banner"></div>
-        <div class="profile-content">
-            <div class="avatar-container">
-                <img id="pAvatar" src="https://via.placeholder.com/100" class="avatar-img">
+<div class="page-shell">
+    <div class="hero">
+        <div class="hero-cover">
+            <div class="hero-top">
+                <div class="hero-main">
+                    <div class="avatar" id="avatarBox">U</div>
+                    <div>
+                        <div class="name" id="userName">-</div>
+                        <div class="bio" id="userBio">
+                            <span class="cn">正在加载研究者信息...</span>
+                            <span class="en">Loading researcher profile...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-actions" id="heroActions">
+                    <button id="followBtn" class="primary-btn follow-btn" onclick="toggleFollow()">
+                        <span class="cn">关注</span><span class="en">Follow</span>
+                    </button>
+                    <a id="editProfileBtn" href="profile.html" class="primary-btn" style="display:none;">
+                        <i class="fas fa-pen"></i>
+                        <span class="cn">编辑资料</span><span class="en">Edit Profile</span>
+                    </a>
+                    <a href="index.html" class="ghost-btn"><i class="fas fa-arrow-left"></i><span class="cn">返回广场</span><span class="en">Back to Plaza</span></a>
+                </div>
             </div>
-
-            <div id="actionArea" class="action-area"></div>
-
-            <div class="info-section">
-                <div id="pNickname" class="nickname">Loading...</div>
-                <span id="pUsername" class="username">@...</span>
-                <div id="pBio" class="bio"></div>
-
-                <div class="stats">
-                    <span>
-                        <span id="statTweet" class="stat-num">0</span>
-                        <span class="cn">研究</span><span class="en">Research</span>
-                    </span>
-                    <span>
-                        <span id="statFollower" class="stat-num">0</span>
-                        <span class="cn">粉丝</span><span class="en">Followers</span>
-                    </span>
-                    <span>
-                        <span id="statFollowing" class="stat-num">0</span>
-                        <span class="cn">关注</span><span class="en">Following</span>
-                    </span>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label"><span class="cn">知识条目</span><span class="en">Entries</span></div>
+                    <div class="stat-value" id="statEntries">0</div>
+                    <div class="stat-note"><span class="cn">公开成果总量</span><span class="en">Published research items</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label"><span class="cn">平均完整度</span><span class="en">Avg. Quality</span></div>
+                    <div class="stat-value" id="statQuality">0%</div>
+                    <div class="stat-note"><span class="cn">元数据结构化程度</span><span class="en">Metadata structure level</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label"><span class="cn">关注</span><span class="en">Following</span></div>
+                    <div class="stat-value" id="followingCount">0</div>
+                    <div class="stat-note"><span class="cn">持续关注的研究者</span><span class="en">Researchers this user follows</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label"><span class="cn">粉丝</span><span class="en">Followers</span></div>
+                    <div class="stat-value" id="followersCount">0</div>
+                    <div class="stat-note"><span class="cn">关注该主页的用户数</span><span class="en">Followers of this profile</span></div>
                 </div>
             </div>
         </div>
+
+        <div class="profile-tabs">
+            <div class="tab-nav">
+                <button class="tab-button active" data-tab="home" onclick="switchTab('home')">
+                    <i class="fas fa-house"></i>
+                    <span class="cn">主页</span><span class="en">Home</span>
+                </button>
+                <button class="tab-button" data-tab="entries" onclick="switchTab('entries')">
+                    <i class="fas fa-file-lines"></i>
+                    <span class="cn">成果</span><span class="en">Entries</span>
+                    <span class="tab-count" id="entriesTabCount">0</span>
+                </button>
+                <button class="tab-button" data-tab="favorites" onclick="switchTab('favorites')">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="cn">我的收藏</span><span class="en">Favorites</span>
+                    <span class="tab-count" id="favoritesTabCount">0</span>
+                </button>
+                <button class="tab-button" data-tab="subscriptions" onclick="switchTab('subscriptions')">
+                    <i class="fas fa-bell"></i>
+                    <span class="cn">订阅</span><span class="en">Subscriptions</span>
+                    <span class="tab-count" id="subscriptionsTabCount">0</span>
+                </button>
+                <button class="tab-button" data-tab="highlights" onclick="switchTab('highlights')">
+                    <i class="fas fa-star"></i>
+                    <span class="cn">精选</span><span class="en">Highlights</span>
+                </button>
+            </div>
+            <label class="tab-search">
+                <i class="fas fa-search"></i>
+                <input id="profileSearchInput" type="text" placeholder="搜索成果、领域、作者" data-placeholder-en="Search entries, areas, authors" oninput="handleSearchInput()">
+            </label>
+        </div>
     </div>
 
-    <div>
-        <div class="section-header">
-            <span class="cn">全部研究成果</span>
-            <span class="en">All Research Achievements</span>
+    <section id="tab-home" class="tab-content active">
+        <div class="archive-hero">
+            <div class="archive-hero-top">
+                <div>
+                    <h3 class="archive-hero-title"><span class="cn">研究档案总览</span><span class="en">Research Archive Overview</span></h3>
+                    <div class="archive-hero-subtitle"><span class="cn">将研究方向、作品体量、社区评分与标签热度整合为统一的学术档案摘要，作为个人主页首页模块展示。</span><span class="en">A unified academic summary that combines research direction, work volume, community ratings, and tag activity for the profile homepage.</span></div>
+                </div>
+                <div class="archive-pill" id="interestDominantPill"><span class="cn">兴趣画像分析中</span><span class="en">Interest profile pending</span></div>
+            </div>
+            <div class="archive-summary" style="margin-bottom:16px;">
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">核心兴趣领域</span><span class="en">Dominant Interest</span></div>
+                    <div class="archive-stat-value" id="interestDominant">-</div>
+                    <div class="archive-stat-sub" id="interestDominantSub"><span class="cn">基于订阅、收藏与发文行为聚合</span><span class="en">Aggregated from subscriptions, favorites, and publications</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">画像摘要</span><span class="en">Profile Summary</span></div>
+                    <div class="archive-stat-value" id="interestSummaryTitle">-</div>
+                    <div class="archive-stat-sub" id="interestSummaryText"><span class="cn">系统将解释兴趣领域是如何形成的</span><span class="en">The system will explain how the interest profile is formed</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">兴趣信号数量</span><span class="en">Interest Signals</span></div>
+                    <div class="archive-stat-value" id="interestSignalCount">0</div>
+                    <div class="archive-stat-sub"><span class="cn">订阅、收藏、发文共同构成画像输入</span><span class="en">Subscriptions, favorites, and publications contribute to the profile</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">订阅领域数</span><span class="en">Subscribed Areas</span></div>
+                    <div class="archive-stat-value" id="interestSubscriptionCount">0</div>
+                    <div class="archive-stat-sub" id="interestSubscriptionSub"><span class="cn">尚未形成稳定订阅兴趣</span><span class="en">No stable subscription interests yet</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">收藏偏好领域</span><span class="en">Favorite Focus</span></div>
+                    <div class="archive-stat-value" id="favoriteFocusArea">-</div>
+                    <div class="archive-stat-sub" id="favoriteFocusSub"><span class="cn">根据收藏成果的研究方向统计</span><span class="en">Derived from favorited research areas</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">发文偏好领域</span><span class="en">Publishing Focus</span></div>
+                    <div class="archive-stat-value" id="publishFocusArea">-</div>
+                    <div class="archive-stat-sub" id="publishFocusSub"><span class="cn">根据公开成果的研究方向统计</span><span class="en">Derived from published research areas</span></div>
+                </div>
+            </div>
+            <div class="archive-summary">
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">研究方向</span><span class="en">Research Direction</span></div>
+                    <div class="archive-stat-value" id="archiveDirection">-</div>
+                    <div class="archive-stat-sub" id="archiveDirectionSub"><span class="cn">基于公开成果自动归纳</span><span class="en">Auto-derived from public works</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">成果数量</span><span class="en">Research Works</span></div>
+                    <div class="archive-stat-value" id="archiveWorkCount">0</div>
+                    <div class="archive-stat-sub"><span class="cn">累计公开研究成果条目</span><span class="en">Published research records</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">平均评分</span><span class="en">Average Rating</span></div>
+                    <div class="archive-stat-value" id="archiveAvgScore">0.0</div>
+                    <div class="archive-stat-sub"><span class="cn">来自社区评分的平均值</span><span class="en">Community rating average</span></div>
+                </div>
+                <div class="archive-stat-card">
+                    <div class="archive-stat-label"><span class="cn">热门标签</span><span class="en">Hot Tags</span></div>
+                    <div class="archive-stat-value" id="archiveHotTags">-</div>
+                    <div class="archive-stat-sub"><span class="cn">出现频率最高的研究标签</span><span class="en">Most frequent research tags</span></div>
+                </div>
+            </div>
         </div>
-        <div id="tweetList"></div>
-    </div>
+
+        <div class="content-grid" style="margin-top:22px;">
+            <div class="sidebar-stack">
+                <div class="panel">
+                    <h3 class="panel-title"><span class="cn">研究画像</span><span class="en">Research Profile</span></h3>
+                    <div class="panel-subtitle"><span class="cn">根据公开知识条目自动生成研究方向、发表类型与语言分布。</span><span class="en">Automatically generated from the author’s public knowledge entries.</span></div>
+                    <div class="chip-cloud" id="areaChips"></div>
+                </div>
+
+                <div class="panel">
+                    <h3 class="panel-title"><span class="cn">发表类型分布</span><span class="en">Publication Types</span></h3>
+                    <div class="metric-list" id="typeMetrics"></div>
+                </div>
+
+                <div class="panel">
+                    <h3 class="panel-title"><span class="cn">语言与状态</span><span class="en">Language & Status</span></h3>
+                    <div class="sub-card-list" id="languageStatusBox"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-stack">
+                <div class="panel">
+                    <div class="feed-header">
+                        <div>
+                            <h3 class="panel-title" style="margin-bottom:6px;"><span class="cn">最近成果</span><span class="en">Recent Entries</span></h3>
+                            <div class="panel-subtitle" style="margin-bottom:0;"><span class="cn">首页默认展示最近发布的研究成果，支持快速查看作者的最新内容。</span><span class="en">The profile home highlights the latest research entries for quick browsing.</span></div>
+                        </div>
+                        <button class="subscription-btn view" type="button" onclick="switchTab('entries')">
+                            <i class="fas fa-arrow-right"></i>
+                            <span class="cn">查看全部成果</span><span class="en">View All Entries</span>
+                        </button>
+                    </div>
+                    <div class="entry-list" id="homeEntryList"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="feed-header">
+                        <div>
+                            <h3 class="panel-title" style="margin-bottom:6px;"><span class="cn">收藏预览</span><span class="en">Favorite Preview</span></h3>
+                            <div class="panel-subtitle" style="margin-bottom:0;"><span class="cn">像 B 站个人主页一样，将收藏作为独立标签，同时在主页提供入口与预览。</span><span class="en">Just like a Bilibili-style profile, favorites are also exposed as a dedicated tab with a preview here.</span></div>
+                        </div>
+                        <button class="subscription-btn view" type="button" onclick="switchTab('favorites')">
+                            <i class="fas fa-bookmark"></i>
+                            <span class="cn">进入我的收藏</span><span class="en">Open Favorites</span>
+                        </button>
+                    </div>
+                    <div class="entry-list" id="homeFavoritesPreview"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-entries" class="tab-content">
+        <div class="panel">
+            <div class="feed-header">
+                <div>
+                    <h3 class="panel-title" style="margin-bottom:6px;"><span class="cn">知识条目列表</span><span class="en">Knowledge Entries</span></h3>
+                    <div class="panel-subtitle" style="margin-bottom:0;"><span class="cn">按结构化元数据展示该研究者的成果，支持研究方向与发表类型筛选。</span><span class="en">Entries are shown as structured research records with filters by area and publication type.</span></div>
+                </div>
+                <div class="feed-filters">
+                    <select id="areaFilter" class="filter-select" onchange="renderEntries()"></select>
+                    <select id="typeFilter" class="filter-select" onchange="renderEntries()"></select>
+                </div>
+            </div>
+            <div class="entry-list" id="tweetList"></div>
+        </div>
+    </section>
+
+    <section id="tab-favorites" class="tab-content">
+        <div class="panel">
+            <div class="favorites-shell">
+                <div class="sidebar-stack">
+                    <div class="panel" style="padding:18px;">
+                        <h3 class="panel-title"><span class="cn">我的收藏夹</span><span class="en">Favorite Folders</span></h3>
+                        <div class="panel-subtitle"><span class="cn">当前按研究方向自动分组，模拟个人主页中的收藏夹侧栏。</span><span class="en">Favorites are grouped by research area to simulate a folder-style sidebar.</span></div>
+                        <div class="folder-list" id="favoriteFolderList"></div>
+                    </div>
+                </div>
+                <div class="sidebar-stack">
+                    <div class="panel">
+                        <div class="favorites-toolbar">
+                            <div>
+                                <h3 class="panel-title" style="margin-bottom:6px;"><span class="cn">收藏内容</span><span class="en">Favorite Collection</span></h3>
+                                <div class="panel-subtitle" style="margin-bottom:0;"><span class="cn">独立标签页展示全部收藏成果，并支持顶部搜索联动。</span><span class="en">This standalone tab shows all favorite items and works with the global profile search.</span></div>
+                            </div>
+                            <div class="toolbar-pills">
+                                <div class="toolbar-pill" id="favoritesSummaryCount">0 条收藏</div>
+                                <div class="toolbar-pill" id="favoritesSummaryArea">0 个领域</div>
+                            </div>
+                        </div>
+                        <div class="favorite-highlight" id="favoriteHighlight"></div>
+                        <div class="favorite-grid" id="favoriteGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-subscriptions" class="tab-content">
+        <div class="panel subscription-panel" id="subscriptions">
+            <h3 class="panel-title"><span class="cn">我的研究领域订阅</span><span class="en">My Research Area Subscriptions</span></h3>
+            <div class="panel-subtitle"><span class="cn">管理你关注的研究方向。新成果发布后，系统会向你发送站内通知。</span><span class="en">Manage the research directions you follow. The platform will send in-app notifications when new work is published.</span></div>
+            <div class="subscription-list" id="subscriptionList"></div>
+            <div class="subscription-status" id="subscriptionStatus"></div>
+        </div>
+    </section>
+
+    <section id="tab-highlights" class="tab-content">
+        <div class="panel">
+            <div class="feed-header">
+                <div>
+                    <h3 class="panel-title" style="margin-bottom:6px;"><span class="cn">代表性成果</span><span class="en">Representative Works</span></h3>
+                    <div class="panel-subtitle" style="margin-bottom:0;"><span class="cn">根据元数据完整度与信息丰富度优先展示最能代表该研究者风格的成果。</span><span class="en">Representative works are selected based on metadata completeness and information richness.</span></div>
+                </div>
+            </div>
+            <div class="sub-card-list" id="highlightList"></div>
+        </div>
+    </section>
 </div>
 
 <div class="lang-selector" id="langSelector">
@@ -134,179 +993,779 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" onclick="switchLang('zh')">中文</button>
-        <button class="lang-option" onclick="switchLang('en')">English</button>
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">English</button>
     </div>
 </div>
 
 <script src="common/lang-component.js"></script>
-
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const targetUserId = params.get("id");
-    const currentUserId = localStorage.getItem("userId");
+    const params = new URLSearchParams(location.search);
+    const currentUserId = localStorage.getItem('userId');
+    const targetUserId = params.get('id') || currentUserId;
+    let currentLang = localStorage.getItem('appLang') || 'cn';
+    let isFollowing = false;
+    let knowledgeEntries = [];
+    let archiveStats = null;
+    let interestProfile = null;
+    let mySubscriptions = [];
+    let favoriteEntries = [];
+    let activeTab = 'home';
+    let favoriteFolder = 'all';
+    let profileSearchKeyword = '';
 
-    if (!targetUserId) {
-        alert("参数错误 / Parameter Error");
-        location.href = "index.html";
+    function safeText(value, fallback = '-') {
+        return value && String(value).trim() ? String(value).trim() : fallback;
     }
 
-    // 监听语言切换
-    window.addEventListener('languageChange', function() {
-        const currentLang = localStorage.getItem('appLang') || 'cn';
-        loadTweets();
-        renderButton();
-        updateBioText();
-        updateStatsText(); // 确保统计数字下的文字也更新
-    });
-
-    async function loadProfile() {
-        const res = await fetch(`/api/users/${targetUserId}`);
-        const user = await res.json();
-
-        document.getElementById("pNickname").innerText = user.nickname || user.username;
-        document.getElementById("pUsername").innerText = "@" + user.username;
-        document.getElementById("pBio").setAttribute("data-bio", user.bio || "");
-        updateBioText();
-
-        if(user.avatar) document.getElementById("pAvatar").src = "/uploads/" + user.avatar;
-
-        const statsRes = await fetch(`/api/users/${targetUserId}/stats`);
-        const stats = await statsRes.json();
-        document.getElementById("statTweet").innerText = stats.tweetCount;
-        document.getElementById("statFollower").innerText = stats.followerCount;
-        document.getElementById("statFollowing").innerText = stats.followingCount;
-
-        renderButton();
+    function normalizeText(value) {
+        return String(value || '').trim().toLowerCase();
     }
 
-    function updateBioText() {
-        const bioEl = document.getElementById("pBio");
-        const rawBio = bioEl.getAttribute("data-bio");
-        const currentLang = localStorage.getItem('appLang') || 'cn';
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-        if (rawBio) {
-            bioEl.innerText = rawBio;
-        } else {
-            bioEl.innerText = currentLang === 'cn' ? '这个人很懒，什么都没写。' : 'This person is lazy and hasn\'t written anything.';
+    function setSubscriptionStatus(message, isError = false) {
+        const box = document.getElementById('subscriptionStatus');
+        if (!box) return;
+        box.style.color = isError ? '#b91c1c' : '#475569';
+        box.innerHTML = message || '';
+    }
+
+    function splitItems(raw) {
+        if (!raw) return [];
+        return raw.split(/[,;，；\n]/).map(item => item.trim()).filter(Boolean);
+    }
+
+    function calcCompleteness(entry) {
+        const fields = [
+            entry.title,
+            entry.content,
+            entry.authors,
+            entry.institution,
+            entry.researchArea,
+            entry.keywords,
+            entry.contentType,
+            entry.publicationType,
+            entry.status,
+            entry.language,
+            entry.journalOrConference,
+            entry.publicationDate,
+            entry.doi,
+            entry.referencesText,
+            entry.projectLinks,
+            entry.originalFilename
+        ];
+        const filled = fields.filter(Boolean).length;
+        return Math.round((filled / fields.length) * 100);
+    }
+
+    function groupCount(list, getter) {
+        const map = new Map();
+        list.forEach(item => {
+            const key = getter(item);
+            if (!key) return;
+            map.set(key, (map.get(key) || 0) + 1);
+        });
+        return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    }
+
+    function formatDate(dateText) {
+        if (!dateText) return '-';
+        return dateText.replace('T', ' ').split('.')[0];
+    }
+
+    function matchesProfileSearch(item) {
+        if (!profileSearchKeyword) return true;
+        const keyword = profileSearchKeyword.toLowerCase();
+        const fields = [
+            item.title,
+            item.content,
+            item.researchArea,
+            item.authors,
+            item.institution,
+            item.publicationType,
+            item.status,
+            item.language,
+            item.keywords
+        ].map(value => String(value || '').toLowerCase());
+        return fields.some(value => value.includes(keyword));
+    }
+
+    function updateSearchPlaceholder() {
+        const input = document.getElementById('profileSearchInput');
+        if (!input) return;
+        const cnText = input.getAttribute('placeholder');
+        const enText = input.getAttribute('data-placeholder-en');
+        input.placeholder = currentLang === 'cn' ? cnText : enText;
+    }
+
+    function handleSearchInput() {
+        const input = document.getElementById('profileSearchInput');
+        profileSearchKeyword = String(input?.value || '').trim();
+        renderEntries();
+        renderHomeEntries();
+        renderHomeFavoritesPreview();
+        renderFavorites();
+    }
+
+    function switchTab(tabName) {
+        activeTab = tabName;
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.classList.toggle('active', section.id === `tab-${tabName}`);
+        });
+        if (tabName === 'favorites') {
+            renderFavorites();
+        } else if (tabName === 'entries') {
+            renderEntries();
         }
+        if (typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    // 更新统计栏文字（防止动态生成后丢失样式）
-    function updateStatsText() {
-        if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
+    function getFollowTexts(following, hoverCancel = false) {
+        if (following) {
+            return {
+                cn: hoverCancel ? '取消关注' : '已关注',
+                en: hoverCancel ? 'Unfollow' : 'Following'
+            };
+        }
+        return {
+            cn: '关注',
+            en: 'Follow'
+        };
     }
 
-    async function renderButton() {
-        const area = document.getElementById("actionArea");
+    function setFollowButtonText(hoverCancel = false) {
+        const followBtn = document.getElementById('followBtn');
+        const texts = getFollowTexts(isFollowing, hoverCancel);
+        followBtn.innerHTML = `<span class="cn">${texts.cn}</span><span class="en">${texts.en}</span>`;
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
 
-        // 1. 判断是否是自己
-        if (targetUserId == currentUserId) {
-            area.innerHTML = `
-                <button class="action-btn btn-edit" onclick="location.href='profile.html'">
-                    <span class="cn">编辑资料</span>
-                    <span class="en">Edit Profile</span>
-                </button>`;
+    function renderActionButtons() {
+        const followBtn = document.getElementById('followBtn');
+        const editBtn = document.getElementById('editProfileBtn');
+        const isSelf = currentUserId && String(currentUserId) === String(targetUserId);
 
-            // 🔥 关键修复：插入HTML后立即应用语言规则
-            if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
+        if (isSelf) {
+            followBtn.style.display = 'none';
+            editBtn.style.display = 'inline-flex';
+        } else {
+            editBtn.style.display = 'none';
+            followBtn.style.display = 'inline-flex';
+            followBtn.classList.toggle('following', isFollowing);
+            setFollowButtonText(false);
+        }
+
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function findLatestEntryByArea(area) {
+        const normalized = normalizeText(area);
+        return [...knowledgeEntries]
+            .filter(item => normalizeText(item.researchArea) === normalized)
+            .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))[0] || null;
+    }
+
+    function openSubscriptionArea(area) {
+        const entry = findLatestEntryByArea(area);
+        if (entry?.id) {
+            location.href = `detail.html?id=${entry.id}`;
+            return;
+        }
+        location.href = `search.html?researchArea=${encodeURIComponent(area)}`;
+    }
+
+    function getActiveList() {
+        const area = document.getElementById('areaFilter')?.value || '';
+        const type = document.getElementById('typeFilter')?.value || '';
+        return knowledgeEntries.filter(item => {
+            const areaMatch = !area || safeText(item.researchArea, '') === area;
+            const typeMatch = !type || safeText(item.publicationType, '') === type;
+            return areaMatch && typeMatch && matchesProfileSearch(item);
+        });
+    }
+
+    function populateFilters() {
+        const areaSelect = document.getElementById('areaFilter');
+        const typeSelect = document.getElementById('typeFilter');
+        if (!areaSelect || !typeSelect) return;
+        const currentArea = areaSelect.value;
+        const currentType = typeSelect.value;
+        const areas = [...new Set(knowledgeEntries.map(item => safeText(item.researchArea, '')).filter(Boolean))];
+        const types = [...new Set(knowledgeEntries.map(item => safeText(item.publicationType, '')).filter(Boolean))];
+        const allArea = currentLang === 'cn' ? '全部研究领域' : 'All Areas';
+        const allType = currentLang === 'cn' ? '全部发表类型' : 'All Types';
+        areaSelect.innerHTML = `<option value="">${allArea}</option>` + areas.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+        typeSelect.innerHTML = `<option value="">${allType}</option>` + types.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+        areaSelect.value = areas.includes(currentArea) ? currentArea : '';
+        typeSelect.value = types.includes(currentType) ? currentType : '';
+    }
+
+    function renderArchiveSummary() {
+        const direction = archiveStats?.researchDirection || (currentLang === 'cn' ? '待补充' : 'TBD');
+        const topAreas = Array.isArray(archiveStats?.topResearchAreas) ? archiveStats.topResearchAreas.filter(Boolean) : [];
+        const hotTags = Array.isArray(archiveStats?.hotTags) ? archiveStats.hotTags.filter(Boolean) : [];
+
+        document.getElementById('archiveDirection').innerText = direction;
+        document.getElementById('archiveDirectionSub').innerHTML = topAreas.length
+            ? `<span class="cn">重点领域：${topAreas.join(' / ')}</span><span class="en">Top areas: ${topAreas.join(' / ')}</span>`
+            : `<span class="cn">基于公开成果自动归纳</span><span class="en">Auto-derived from public works</span>`;
+        document.getElementById('archiveWorkCount').innerText = archiveStats?.workCount ?? knowledgeEntries.length;
+        document.getElementById('archiveAvgScore').innerText = Number(archiveStats?.averageScore || 0).toFixed(1);
+        document.getElementById('archiveHotTags').innerText = hotTags.length ? hotTags.slice(0, 2).join(' · ') : '-';
+    }
+
+    function renderInterestProfile() {
+        const dominant = safeText(interestProfile?.dominantInterest, currentLang === 'cn' ? '待生成' : 'Pending');
+        const signalCount = Number(interestProfile?.interestSignalCount || 0);
+        const subscriptionAreas = Array.isArray(interestProfile?.subscriptionAreas) ? interestProfile.subscriptionAreas.filter(Boolean) : [];
+        const favoriteTopAreas = Array.isArray(interestProfile?.favoriteTopAreas) ? interestProfile.favoriteTopAreas.filter(Boolean) : [];
+        const publishedTopAreas = Array.isArray(interestProfile?.publishedTopAreas) ? interestProfile.publishedTopAreas.filter(Boolean) : [];
+        const followingAreaHints = Array.isArray(interestProfile?.followingAreaHints) ? interestProfile.followingAreaHints.filter(Boolean) : [];
+        const signalModel = Array.isArray(interestProfile?.signalModel) ? interestProfile.signalModel : [];
+        const dominantSub = signalCount > 0
+            ? (currentLang === 'cn'
+                ? `综合订阅、收藏、发文、关注作者与标签线索后，当前最强兴趣信号集中在 ${dominant}`
+                : `After combining subscriptions, favorites, publications, followed-author hints, and tag signals, the strongest interest now points to ${dominant}`)
+            : (currentLang === 'cn' ? '当前可用行为信号不足，画像会在后续互动后逐步完善' : 'Not enough behavior signals yet. The profile will improve as more interactions happen.');
+
+        document.getElementById('interestDominant').innerText = dominant;
+        document.getElementById('interestDominantSub').innerText = dominantSub;
+        document.getElementById('interestSignalCount').innerText = signalCount;
+        document.getElementById('interestSubscriptionCount').innerText = subscriptionAreas.length;
+        document.getElementById('interestSubscriptionSub').innerText = subscriptionAreas.length
+            ? subscriptionAreas.slice(0, 3).join(' / ')
+            : (currentLang === 'cn' ? '尚未形成稳定订阅兴趣' : 'No stable subscription interests yet');
+        document.getElementById('favoriteFocusArea').innerText = favoriteTopAreas[0] || '-';
+        document.getElementById('favoriteFocusSub').innerText = favoriteTopAreas.length
+            ? (currentLang === 'cn' ? `收藏偏好：${favoriteTopAreas.join(' / ')}${followingAreaHints.length ? `；关注作者线索：${followingAreaHints.join(' / ')}` : ''}` : `Favorite areas: ${favoriteTopAreas.join(' / ')}${followingAreaHints.length ? `; followed-author hints: ${followingAreaHints.join(' / ')}` : ''}`)
+            : (currentLang === 'cn' ? '暂无收藏偏好数据' : 'No favorite preference data yet');
+        document.getElementById('publishFocusArea').innerText = publishedTopAreas[0] || '-';
+        document.getElementById('publishFocusSub').innerText = publishedTopAreas.length
+            ? (currentLang === 'cn' ? `发文偏好：${publishedTopAreas.join(' / ')}；模型：${signalModel.join(' / ')}` : `Publishing areas: ${publishedTopAreas.join(' / ')}; model: ${signalModel.join(' / ')}`)
+            : (currentLang === 'cn' ? '暂无发文偏好数据' : 'No publishing preference data yet');
+        document.getElementById('interestSummaryTitle').innerText = dominant;
+        document.getElementById('interestSummaryText').innerText = safeText(interestProfile?.profileSummary, currentLang === 'cn' ? '系统将解释兴趣领域是如何形成的' : 'The system will explain how the interest profile is formed');
+        document.getElementById('interestDominantPill').innerHTML = interestProfile?.interestProfileReady
+            ? `<span class="cn">兴趣画像：${escapeHtml(dominant)}</span><span class="en">Interest: ${escapeHtml(dominant)}</span>`
+            : `<span class="cn">兴趣画像分析中</span><span class="en">Interest profile pending</span>`;
+    }
+
+    function renderResearchProfile() {
+        const topAreas = groupCount(knowledgeEntries, item => safeText(item.researchArea, '')).slice(0, 8);
+        const areaBox = document.getElementById('areaChips');
+        areaBox.innerHTML = topAreas.length
+            ? topAreas.map(([name, count]) => `<div class="chip">${escapeHtml(name)} · ${count}</div>`).join('')
+            : `<div class="empty-box"><span class="cn">暂无研究方向标签</span><span class="en">No research area tags</span></div>`;
+
+        const typeMetrics = groupCount(knowledgeEntries, item => safeText(item.publicationType, '')).slice(0, 6);
+        const maxType = typeMetrics.length ? typeMetrics[0][1] : 1;
+        document.getElementById('typeMetrics').innerHTML = typeMetrics.length
+            ? typeMetrics.map(([name, count]) => `
+                <div>
+                    <div class="metric-row">
+                        <div class="metric-name">${escapeHtml(name)}</div>
+                        <div class="metric-value">${count}</div>
+                    </div>
+                    <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.round(count / maxType * 100)}%"></div></div>
+                </div>
+            `).join('')
+            : `<div class="empty-box"><span class="cn">暂无发表类型数据</span><span class="en">No publication type data</span></div>`;
+
+        const languages = groupCount(knowledgeEntries, item => safeText(item.language, '')).slice(0, 3);
+        const statuses = groupCount(knowledgeEntries, item => safeText(item.status, '')).slice(0, 3);
+        document.getElementById('languageStatusBox').innerHTML = `
+            <div class="sub-card">
+                <div class="sub-title"><span class="cn">语言分布</span><span class="en">Languages</span></div>
+                <div class="sub-meta">${languages.length ? languages.map(([name, count]) => `${escapeHtml(name)} · ${count}`).join(' / ') : (currentLang === 'cn' ? '暂无语言信息' : 'No language metadata')}</div>
+            </div>
+            <div class="sub-card">
+                <div class="sub-title"><span class="cn">研究状态</span><span class="en">Research Status</span></div>
+                <div class="sub-meta">${statuses.length ? statuses.map(([name, count]) => `${escapeHtml(name)} · ${count}`).join(' / ') : (currentLang === 'cn' ? '暂无状态信息' : 'No status metadata')}</div>
+            </div>
+        `;
+
+        const highlights = [...knowledgeEntries]
+            .sort((a, b) => calcCompleteness(b) - calcCompleteness(a))
+            .slice(0, 6);
+        document.getElementById('highlightList').innerHTML = highlights.length
+            ? highlights.map(item => `
+                <div class="sub-card" onclick="location.href='detail.html?id=${item.id}'" style="cursor:pointer;">
+                    <div class="sub-title">${escapeHtml(safeText(item.title, currentLang === 'cn' ? '未命名成果' : 'Untitled Entry'))}</div>
+                    <div class="sub-meta">${escapeHtml(safeText(item.researchArea, currentLang === 'cn' ? '未标注领域' : 'Area Unknown'))} · ${escapeHtml(safeText(item.publicationType, currentLang === 'cn' ? '未标注类型' : 'Type Unknown'))} · ${calcCompleteness(item)}%</div>
+                </div>
+            `).join('')
+            : `<div class="empty-box"><span class="cn">暂无代表性成果</span><span class="en">No representative works</span></div>`;
+
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function renderEntries() {
+        const list = getActiveList();
+        const container = document.getElementById('tweetList');
+        if (!list.length) {
+            container.innerHTML = `<div class="empty-box"><span class="cn">当前筛选条件下暂无知识条目</span><span class="en">No knowledge entries under current filters</span></div>`;
+            if (typeof applyLang === 'function') applyLang(currentLang);
             return;
         }
 
-        // 2. 判断是否已关注
-        const res = await fetch(`/api/users/${currentUserId}/following`);
-        const myFriends = await res.json();
-        const isFollowing = myFriends.some(u => u.id == targetUserId);
+        container.innerHTML = list.map(item => {
+            const score = calcCompleteness(item);
+            const authorText = splitItems(item.authors).slice(0, 3).join(', ') || (currentLang === 'cn' ? '未标注作者' : 'No authors');
+            const langText = safeText(item.language, currentLang === 'cn' ? '语言未标注' : 'Language Unknown');
+            return `
+                <div class="entry-card" onclick="location.href='detail.html?id=${item.id}'">
+                    <div class="entry-top">
+                        <div style="flex:1; min-width:0;">
+                            <h4 class="entry-title">${escapeHtml(safeText(item.title, currentLang === 'cn' ? '未命名知识条目' : 'Untitled Knowledge Entry'))}</h4>
+                            <div class="entry-summary">${escapeHtml(safeText(item.content, currentLang === 'cn' ? '暂无摘要' : 'No abstract available'))}</div>
+                            <div class="badge-row" style="margin-bottom:10px;">
+                                <span class="entry-badge type">${escapeHtml(safeText(item.publicationType, currentLang === 'cn' ? '未分类' : 'Unclassified'))}</span>
+                                <span class="entry-badge status">${escapeHtml(safeText(item.status, currentLang === 'cn' ? '状态未知' : 'Status Unknown'))}</span>
+                                <span class="entry-badge lang">${escapeHtml(langText)}</span>
+                            </div>
+                            <div class="meta-row">
+                                <div class="entry-meta"><span class="cn">作者</span><span class="en">Authors</span>: ${escapeHtml(authorText)}</div>
+                                <div class="entry-meta"><span class="cn">机构</span><span class="en">Institution</span>: ${escapeHtml(safeText(item.institution, currentLang === 'cn' ? '未填写' : 'Not Provided'))}</div>
+                                <div class="entry-meta"><span class="cn">领域</span><span class="en">Area</span>: ${escapeHtml(safeText(item.researchArea, currentLang === 'cn' ? '未填写' : 'Not Provided'))}</div>
+                                <div class="entry-meta"><span class="cn">时间</span><span class="en">Time</span>: ${escapeHtml(formatDate(item.createTime))}</div>
+                                ${item.doi ? `<div class="entry-meta">DOI: ${escapeHtml(item.doi)}</div>` : ''}
+                                ${item.originalFilename ? `<div class="entry-meta">📎 ${escapeHtml(item.originalFilename)}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="quality-box">
+                            <div class="quality-label"><span class="cn">元数据完整度</span><span class="en">Metadata Quality</span></div>
+                            <div class="quality-value">${score}%</div>
+                            <div class="quality-track"><div class="quality-fill" style="width:${score}%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
-        if (isFollowing) {
-            area.innerHTML = `
-                <button class="action-btn btn-followed" onclick="toggleFollow(false)"
-                    onmouseover="showUnfollowText(this)" onmouseout="showFollowedText(this)">
-                    <span class="cn">已关注</span>
-                    <span class="en">Followed</span>
-                </button>`;
-        } else {
-            area.innerHTML = `
-                <button class="action-btn btn-follow" onclick="toggleFollow(true)">
-                    <span class="cn">关注</span>
-                    <span class="en">Follow</span>
-                </button>`;
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function renderHomeEntries() {
+        const list = [...knowledgeEntries]
+            .filter(matchesProfileSearch)
+            .sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0))
+            .slice(0, 3);
+        const container = document.getElementById('homeEntryList');
+        if (!list.length) {
+            container.innerHTML = `<div class="empty-box"><span class="cn">暂无可展示的最新成果</span><span class="en">No recent entries available</span></div>`;
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+        container.innerHTML = list.map(item => `
+            <div class="sub-card" onclick="location.href='detail.html?id=${item.id}'" style="cursor:pointer;">
+                <div class="sub-title">${escapeHtml(safeText(item.title, currentLang === 'cn' ? '未命名成果' : 'Untitled Entry'))}</div>
+                <div class="sub-meta">${escapeHtml(safeText(item.researchArea, currentLang === 'cn' ? '未标注领域' : 'Area Unknown'))} · ${escapeHtml(formatDate(item.createTime))}</div>
+                <div class="sub-meta">${escapeHtml(safeText(item.content, currentLang === 'cn' ? '暂无摘要' : 'No abstract available')).slice(0, 120)}</div>
+            </div>
+        `).join('');
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function getFilteredFavoriteEntries() {
+        return favoriteEntries.filter(item => {
+            const folderMatch = favoriteFolder === 'all' || safeText(item.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized') === favoriteFolder;
+            return folderMatch && matchesProfileSearch(item);
+        });
+    }
+
+    function setFavoriteFolder(folder) {
+        favoriteFolder = folder;
+        renderFavorites();
+    }
+
+    function renderFavoriteFolders() {
+        const container = document.getElementById('favoriteFolderList');
+        const groups = groupCount(favoriteEntries, item => safeText(item.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized'));
+        const allText = currentLang === 'cn' ? '全部收藏' : 'All Favorites';
+        const items = [{ name: 'all', count: favoriteEntries.length }].concat(groups.map(([name, count]) => ({ name, count })));
+        if (!favoriteEntries.length) {
+            container.innerHTML = `<div class="empty-box"><span class="cn">暂无收藏夹内容</span><span class="en">No favorites yet</span></div>`;
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+        if (favoriteFolder !== 'all' && !items.some(item => item.name === favoriteFolder)) {
+            favoriteFolder = 'all';
+        }
+        container.innerHTML = items.map(item => {
+            const label = item.name === 'all' ? allText : item.name;
+            const isActive = favoriteFolder === item.name;
+            return `
+                <div class="folder-item ${isActive ? 'active' : ''}" onclick="setFavoriteFolder(${JSON.stringify(item.name)})">
+                    <div class="folder-name">${escapeHtml(label)}</div>
+                    <div class="folder-count">${item.count}</div>
+                </div>
+            `;
+        }).join('');
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function renderHomeFavoritesPreview() {
+        const list = [...favoriteEntries].filter(matchesProfileSearch).slice(0, 3);
+        const container = document.getElementById('homeFavoritesPreview');
+        if (!list.length) {
+            container.innerHTML = `<div class="empty-box"><span class="cn">暂无收藏成果，去详情页点击收藏后会出现在这里。</span><span class="en">No favorites yet. Favorite items from detail pages and they will appear here.</span></div>`;
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+        container.innerHTML = list.map(item => `
+            <div class="sub-card" onclick="location.href='detail.html?id=${item.id}'" style="cursor:pointer;">
+                <div class="sub-title">${escapeHtml(safeText(item.title, currentLang === 'cn' ? '未命名收藏成果' : 'Untitled Favorite'))}</div>
+                <div class="sub-meta">${escapeHtml(safeText(item.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized'))} · ${escapeHtml(formatDate(item.favoriteCreateTime || item.createTime))}</div>
+                <div class="sub-meta">${escapeHtml(safeText(item.content, currentLang === 'cn' ? '暂无摘要' : 'No abstract available')).slice(0, 120)}</div>
+            </div>
+        `).join('');
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    function renderFavorites() {
+        renderFavoriteFolders();
+        const filtered = getFilteredFavoriteEntries();
+        const areaCount = new Set(favoriteEntries.map(item => safeText(item.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized'))).size;
+        document.getElementById('favoritesSummaryCount').innerText = currentLang === 'cn' ? `${favoriteEntries.length} 条收藏` : `${favoriteEntries.length} favorites`;
+        document.getElementById('favoritesSummaryArea').innerText = currentLang === 'cn' ? `${areaCount} 个领域` : `${areaCount} areas`;
+
+        const highlightBox = document.getElementById('favoriteHighlight');
+        const grid = document.getElementById('favoriteGrid');
+
+        if (!filtered.length) {
+            highlightBox.innerHTML = '';
+            grid.innerHTML = `<div class="empty-box" style="grid-column:1/-1;"><span class="cn">当前收藏夹下暂无内容</span><span class="en">No favorites in the selected folder</span></div>`;
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
         }
 
-        // 🔥 关键修复：插入HTML后立即应用语言规则
-        if(typeof applyLang === 'function') applyLang(localStorage.getItem('appLang') || 'cn');
+        const latest = [...filtered].sort((a, b) => new Date(b.favoriteCreateTime || b.createTime || 0) - new Date(a.favoriteCreateTime || a.createTime || 0))[0];
+        highlightBox.innerHTML = `
+            <div class="favorite-preview" onclick="location.href='detail.html?id=${latest.id}'" style="cursor:pointer;">
+                <h4 class="favorite-preview-title">${escapeHtml(safeText(latest.title, currentLang === 'cn' ? '未命名收藏成果' : 'Untitled Favorite'))}</h4>
+                <div class="favorite-preview-meta">${escapeHtml(safeText(latest.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized'))}<br>${escapeHtml(formatDate(latest.favoriteCreateTime || latest.createTime))}</div>
+            </div>
+            <div>
+                <h3 class="panel-title" style="margin-bottom:8px;"><span class="cn">当前收藏夹简介</span><span class="en">Current Folder Snapshot</span></h3>
+                <div class="panel-subtitle" style="margin-bottom:10px;">
+                    <span class="cn">按研究方向组织你的收藏成果，像个人主页收藏夹一样独立查看与切换。</span>
+                    <span class="en">Favorites are organized by research area so they can be explored like separate folders.</span>
+                </div>
+                <div class="toolbar-pills">
+                    <div class="toolbar-pill">${currentLang === 'cn' ? `当前筛选：${favoriteFolder === 'all' ? '全部收藏' : favoriteFolder}` : `Current: ${favoriteFolder === 'all' ? 'All Favorites' : favoriteFolder}`}</div>
+                    <div class="toolbar-pill">${currentLang === 'cn' ? `结果：${filtered.length} 条` : `Results: ${filtered.length}`}</div>
+                </div>
+                <div class="favorite-actions">
+                    <button class="subscription-btn view" type="button" onclick="location.href='detail.html?id=${latest.id}'">
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                        <span class="cn">查看最新收藏</span><span class="en">Open Latest</span>
+                    </button>
+                    <button class="subscription-btn remove" type="button" onclick="location.href='archive.html'">
+                        <i class="fas fa-box-archive"></i>
+                        <span class="cn">进入知识归档</span><span class="en">Open Archive</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        grid.innerHTML = filtered.map(item => `
+            <div class="favorite-card" onclick="location.href='detail.html?id=${item.id}'">
+                <div class="favorite-card-title">${escapeHtml(safeText(item.title, currentLang === 'cn' ? '未命名收藏成果' : 'Untitled Favorite'))}</div>
+                <div class="favorite-card-summary">${escapeHtml(safeText(item.content, currentLang === 'cn' ? '暂无摘要' : 'No abstract available')).slice(0, 140)}</div>
+                <div class="favorite-card-meta">
+                    <span class="favorite-pill">${escapeHtml(safeText(item.researchArea, currentLang === 'cn' ? '未分类领域' : 'Uncategorized'))}</span>
+                    <span class="favorite-pill">${escapeHtml(safeText(item.publicationType, currentLang === 'cn' ? '未分类' : 'Unclassified'))}</span>
+                </div>
+                <div class="favorite-card-time">
+                    <div><span class="cn">收藏时间</span><span class="en">Favorited</span>: ${escapeHtml(formatDate(item.favoriteCreateTime || item.createTime))}</div>
+                    <div><span class="cn">作者</span><span class="en">Authors</span>: ${escapeHtml(splitItems(item.authors).slice(0, 2).join(', ') || (currentLang === 'cn' ? '未标注作者' : 'No authors'))}</div>
+                </div>
+            </div>
+        `).join('');
+
+        if (typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    function showUnfollowText(btn) {
-        // 鼠标悬停时手动修改双语标签的内容
-        const cnSpan = btn.querySelector('.cn');
-        const enSpan = btn.querySelector('.en');
-        if(cnSpan) cnSpan.innerText = "取消关注";
-        if(enSpan) enSpan.innerText = "Unfollow";
+    function renderSubscriptions() {
+        const list = document.getElementById('subscriptionList');
+        if (!list) return;
+
+        const isSelf = currentUserId && String(currentUserId) === String(targetUserId);
+        if (!isSelf) {
+            list.innerHTML = `<div class="empty-box"><span class="cn">只有你自己可以管理研究领域订阅。</span><span class="en">Only you can manage your own research-area subscriptions.</span></div>`;
+            setSubscriptionStatus('');
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+
+        if (!mySubscriptions.length) {
+            list.innerHTML = `<div class="empty-box"><span class="cn">你还没有订阅任何研究领域，可以从研究详情页进入订阅。</span><span class="en">You have not subscribed to any research areas yet. You can subscribe from a research detail page.</span></div>`;
+            setSubscriptionStatus(`<span class="cn">提示：在成果详情页点击“订阅领域”后，这里会自动显示。</span><span class="en">Tip: after clicking “Subscribe” on a detail page, the area will appear here automatically.</span>`);
+            if (typeof applyLang === 'function') applyLang(currentLang);
+            return;
+        }
+
+        list.innerHTML = mySubscriptions.map(item => {
+            const area = safeText(item.targetValue, currentLang === 'cn' ? '未命名领域' : 'Unnamed Area');
+            const matched = findLatestEntryByArea(area);
+            const latestText = matched
+                ? (currentLang === 'cn' ? `最近相关成果：${safeText(matched.title, '未命名成果')}` : `Latest related work: ${safeText(matched.title, 'Untitled work')}`)
+                : (currentLang === 'cn' ? '当前档案中暂无该领域成果，可前往搜索页查看。' : 'No matching work in this profile yet. You can open the search page.');
+            const createdText = item.createTime
+                ? `${currentLang === 'cn' ? '订阅时间' : 'Subscribed at'}：${formatDate(item.createTime)}`
+                : `${currentLang === 'cn' ? '订阅已启用' : 'Subscription is active'}`;
+            return `
+                <div class="subscription-item">
+                    <div class="subscription-item-main">
+                        <div class="subscription-item-title">${escapeHtml(area)}</div>
+                        <div class="subscription-item-meta">${escapeHtml(createdText)}</div>
+                        <div class="subscription-item-meta">${escapeHtml(latestText)}</div>
+                    </div>
+                    <div class="subscription-item-actions">
+                        <button class="subscription-btn view" type="button" onclick="openSubscriptionArea(${JSON.stringify(area)})">
+                            <i class="fas fa-arrow-up-right-from-square"></i>
+                            <span class="cn">查看内容</span><span class="en">Open</span>
+                        </button>
+                        <button class="subscription-btn remove" type="button" onclick="removeSubscription(${item.id}, ${JSON.stringify(area)})">
+                            <i class="fas fa-xmark"></i>
+                            <span class="cn">取消订阅</span><span class="en">Unsubscribe</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        setSubscriptionStatus(`<span class="cn">你当前共订阅 ${mySubscriptions.length} 个研究领域。</span><span class="en">You are currently subscribed to ${mySubscriptions.length} research areas.</span>`);
+        if (typeof applyLang === 'function') applyLang(currentLang);
     }
 
-    function showFollowedText(btn) {
-        // 鼠标移出时恢复
-        const cnSpan = btn.querySelector('.cn');
-        const enSpan = btn.querySelector('.en');
-        if(cnSpan) cnSpan.innerText = "已关注";
-        if(enSpan) enSpan.innerText = "Followed";
+    async function loadArchiveStats() {
+        try {
+            const res = await fetch(`/api/users/${targetUserId}/research-archive`);
+            archiveStats = await res.json();
+            renderArchiveSummary();
+        } catch (e) {
+            console.error('Failed to load research archive stats', e);
+            archiveStats = null;
+            renderArchiveSummary();
+        }
     }
 
-    async function toggleFollow(doFollow) {
-        const lang = localStorage.getItem('appLang') || 'cn';
-        const confirmText = lang === 'cn' ? '确定取关吗？' : 'Are you sure you want to unfollow?';
+    async function loadInterestProfile() {
+        try {
+            const res = await fetch(`/api/users/${targetUserId}/interest-profile`);
+            interestProfile = await res.json();
+        } catch (e) {
+            console.error('Failed to load interest profile', e);
+            interestProfile = null;
+        }
+        renderInterestProfile();
+    }
 
-        if (!doFollow && !confirm(confirmText)) return;
+    async function loadProfile() {
+        const [userRes, statsRes] = await Promise.all([
+            fetch(`/api/users/${targetUserId}`),
+            fetch(`/api/users/${targetUserId}/stats`)
+        ]);
+        const user = await userRes.json();
+        const stats = await statsRes.json();
+        const displayName = safeText(user.nickname || user.name || user.username, 'User');
+        document.getElementById('userName').innerText = displayName;
+        const avatarBox = document.getElementById('avatarBox');
+        if (user.avatar) {
+            avatarBox.innerHTML = `<img src="/uploads/${user.avatar}" alt="${escapeHtml(displayName)}">`;
+        } else {
+            avatarBox.textContent = displayName.charAt(0).toUpperCase();
+        }
+        document.getElementById('userBio').innerHTML = `
+            <span class="cn">${escapeHtml(safeText(user.bio, '这位研究者暂未填写个人简介。'))}</span>
+            <span class="en">${escapeHtml(safeText(user.bio, 'This researcher has not provided a biography yet.'))}</span>
+        `;
+        document.getElementById('followersCount').innerText = stats.followerCount || 0;
+        document.getElementById('followingCount').innerText = stats.followingCount || 0;
+        renderActionButtons();
+        renderSubscriptions();
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
 
+    async function loadFollowStatus() {
+        const isSelf = currentUserId && String(currentUserId) === String(targetUserId);
+        if (!currentUserId || isSelf) {
+            isFollowing = false;
+            renderActionButtons();
+            return;
+        }
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/follow-status?targetUserId=${targetUserId}`);
+            if (!res.ok) throw new Error('Failed to load follow status');
+            const data = await res.json();
+            isFollowing = !!data.following;
+        } catch (error) {
+            console.error('Failed to load follow status', error);
+            isFollowing = false;
+        }
+        renderActionButtons();
+    }
+
+    async function toggleFollow() {
+        if (!currentUserId) {
+            alert(currentLang === 'cn' ? '请先登录' : 'Please login first');
+            return;
+        }
+        if (String(currentUserId) === String(targetUserId)) return;
+
+        const doFollow = !isFollowing;
         const url = doFollow
             ? `/api/users/${currentUserId}/follow?targetUserId=${targetUserId}`
             : `/api/users/${currentUserId}/unfollow?targetUserId=${targetUserId}`;
 
-        const res = await fetch(url, { method: 'POST' });
-        const msg = await res.text();
-
-        if(msg.includes("成功") || msg.includes("success") || msg.includes("取消") || msg.includes("cancelled")) {
-            renderButton();
-            loadProfile();
+        try {
+            const res = await fetch(url, { method: 'POST' });
+            const msg = await res.text();
+            if (res.ok || msg.includes('成功') || msg.includes('success') || msg.includes('取消') || msg.includes('cancelled')) {
+                isFollowing = doFollow;
+                renderActionButtons();
+                document.getElementById('followersCount').innerText = Math.max(0, Number(document.getElementById('followersCount').innerText || 0) + (doFollow ? 1 : -1));
+            } else {
+                alert(msg || (currentLang === 'cn' ? '操作失败' : 'Operation failed'));
+            }
+        } catch (e) {
+            alert(currentLang === 'cn' ? '网络错误，关注操作失败' : 'Network error, follow operation failed');
         }
     }
 
     async function loadTweets() {
         const res = await fetch(`/api/tweets/user/${targetUserId}`);
-        const list = await res.json();
-        const container = document.getElementById("tweetList");
-        const currentLang = localStorage.getItem('appLang') || 'cn';
-
-        if (list.length === 0) {
-            container.innerHTML = `
-                <div style='padding:40px; text-align:center; color:#999'>
-                    <span class="cn">暂无发布记录</span>
-                    <span class="en">No publication records</span>
-                </div>`;
-            if(typeof applyLang === 'function') applyLang(currentLang);
-            return;
-        }
-
-        container.innerHTML = "";
-        list.forEach(t => {
-            const timeStr = t.createTime.replace('T', ' ').split('.')[0];
-            let fileHtml = t.originalFilename ? `<div style="font-size:13px; color:#1da1f2; margin-top:8px; font-weight:bold;">📎 ${t.originalFilename}</div>` : '';
-
-            container.innerHTML += `
-                <div class="tweet" onclick="location.href='detail.html?id=${t.id}'">
-                    <div style="color:#536471; font-size:13px; margin-bottom:8px;">${timeStr}</div>
-                    <div style="font-size:16px; line-height:1.6; color:#0f1419;">${t.content}</div>
-                    ${fileHtml}
-                </div>
-            `;
-        });
-
-        if(typeof applyLang === 'function') applyLang(currentLang);
+        knowledgeEntries = await res.json();
+        document.getElementById('statEntries').innerText = knowledgeEntries.length;
+        document.getElementById('entriesTabCount').innerText = knowledgeEntries.length;
+        const avgQuality = knowledgeEntries.length
+            ? Math.round(knowledgeEntries.reduce((sum, item) => sum + calcCompleteness(item), 0) / knowledgeEntries.length)
+            : 0;
+        document.getElementById('statQuality').innerText = `${avgQuality}%`;
+        populateFilters();
+        renderArchiveSummary();
+        renderResearchProfile();
+        renderEntries();
+        renderHomeEntries();
     }
 
-    loadProfile();
-    loadTweets();
+    async function loadMySubscriptions() {
+        const isSelf = currentUserId && String(currentUserId) === String(targetUserId);
+        if (!isSelf) {
+            mySubscriptions = [];
+            document.getElementById('subscriptionsTabCount').innerText = '0';
+            renderSubscriptions();
+            return [];
+        }
+        try {
+            const res = await fetch(`/api/subscriptions/my?userId=${currentUserId}`);
+            if (!res.ok) throw new Error('Failed to load subscriptions');
+            const data = await res.json();
+            mySubscriptions = Array.isArray(data) ? data : [];
+            setSubscriptionStatus('');
+        } catch (error) {
+            console.error(error);
+            mySubscriptions = [];
+            setSubscriptionStatus(`<span class="cn">订阅列表加载失败，请稍后重试。</span><span class="en">Failed to load subscriptions. Please try again later.</span>`, true);
+        }
+        document.getElementById('subscriptionsTabCount').innerText = mySubscriptions.length;
+        renderSubscriptions();
+        return mySubscriptions;
+    }
+
+    async function removeSubscription(id, area) {
+        if (!currentUserId) {
+            alert(currentLang === 'cn' ? '请先登录' : 'Please login first');
+            return;
+        }
+        try {
+            setSubscriptionStatus(`<span class="cn">正在取消“${escapeHtml(area)}”的订阅...</span><span class="en">Removing subscription for “${escapeHtml(area)}”...</span>`);
+            const res = await fetch(`/api/subscriptions/${id}?userId=${currentUserId}`, { method: 'DELETE' });
+            const result = await res.json().catch(() => ({}));
+            if (!res.ok || result.success === false) {
+                throw new Error(result.message || 'Delete failed');
+            }
+            mySubscriptions = mySubscriptions.filter(item => Number(item.id) !== Number(id));
+            document.getElementById('subscriptionsTabCount').innerText = mySubscriptions.length;
+            renderSubscriptions();
+            setSubscriptionStatus(`<span class="cn">已取消订阅“${escapeHtml(area)}”。</span><span class="en">Unsubscribed from “${escapeHtml(area)}”.</span>`);
+        } catch (error) {
+            console.error(error);
+            setSubscriptionStatus(`<span class="cn">取消订阅失败，请稍后重试。</span><span class="en">Failed to unsubscribe. Please try again later.</span>`, true);
+        }
+    }
+
+    async function loadFavorites() {
+        const isSelf = currentUserId && String(currentUserId) === String(targetUserId);
+        if (!isSelf) {
+            favoriteEntries = [];
+            document.getElementById('favoritesTabCount').innerText = '0';
+            renderHomeFavoritesPreview();
+            renderFavorites();
+            return [];
+        }
+        try {
+            const res = await fetch(`/api/tweets/favorites?userId=${currentUserId}`);
+            if (!res.ok) throw new Error('Failed to load favorites');
+            const data = await res.json();
+            favoriteEntries = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Failed to load favorites', error);
+            favoriteEntries = [];
+        }
+        document.getElementById('favoritesTabCount').innerText = favoriteEntries.length;
+        renderHomeFavoritesPreview();
+        renderFavorites();
+        return favoriteEntries;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const followBtn = document.getElementById('followBtn');
+        followBtn.addEventListener('mouseenter', () => {
+            if (isFollowing) setFollowButtonText(true);
+        });
+        followBtn.addEventListener('mouseleave', () => {
+            if (isFollowing) setFollowButtonText(false);
+        });
+
+        updateSearchPlaceholder();
+        loadFollowStatus();
+        loadProfile();
+        loadArchiveStats();
+        loadInterestProfile();
+        loadTweets();
+        loadMySubscriptions();
+        loadFavorites();
+        switchTab('home');
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    });
+
+    window.addEventListener('languageChange', () => {
+        currentLang = localStorage.getItem('appLang') || 'cn';
+        updateSearchPlaceholder();
+        populateFilters();
+        renderActionButtons();
+        renderArchiveSummary();
+        renderInterestProfile();
+        renderResearchProfile();
+        renderEntries();
+        renderHomeEntries();
+        renderHomeFavoritesPreview();
+        renderFavorites();
+        renderSubscriptions();
+    });
 </script>
 </body>
 </html>

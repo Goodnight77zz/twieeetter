@@ -120,6 +120,44 @@
     // 当前语言状态
     let currentLang = localStorage.getItem('appLang') || 'cn';
 
+    function getAvatarInitial(user) {
+        const source = String(user?.nickname || user?.username || user?.email || 'U').trim();
+        return source ? source.charAt(0).toUpperCase() : 'U';
+    }
+
+    function buildDefaultAvatarDataUri(user, size = 50) {
+        const initial = getAvatarInitial(user);
+        const palette = [
+            ['#60a5fa', '#2563eb'],
+            ['#818cf8', '#4f46e5'],
+            ['#34d399', '#059669'],
+            ['#f59e0b', '#d97706'],
+            ['#f472b6', '#db2777'],
+            ['#22d3ee', '#0891b2']
+        ];
+        const seedText = String(user?.username || user?.nickname || user?.id || initial);
+        const seed = seedText.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        const [startColor, endColor] = palette[seed % palette.length];
+        const safeInitial = initial.replace(/[<&>"']/g, '');
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="${startColor}" />
+                        <stop offset="100%" stop-color="${endColor}" />
+                    </linearGradient>
+                </defs>
+                <rect width="${size}" height="${size}" rx="${Math.round(size / 2)}" fill="url(#g)" />
+                <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${Math.round(size * 0.42)}" font-weight="700" fill="#ffffff">${safeInitial}</text>
+            </svg>
+        `;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function getAvatarSrc(user, size = 50) {
+        return user?.avatar ? `/uploads/${user.avatar}` : buildDefaultAvatarDataUri(user, size);
+    }
+
     // 监听语言切换事件，重新加载列表更新文本
     window.addEventListener('languageChange', function() {
         currentLang = localStorage.getItem('appLang') || 'cn';
@@ -142,7 +180,7 @@
         }
 
         users.forEach(user => {
-            const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/50';
+            const avatar = getAvatarSrc(user, 50);
             const nickname = user.nickname || user.username;
 
             // 加了 user-info 的包裹层

@@ -5,7 +5,9 @@ import com.example.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -31,5 +33,15 @@ public class NotificationController {
     public String markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
         return "success";
+    }
+
+    // 一键标记全部已读
+    @PostMapping("/mark-all-read")
+    public Map<String, Object> markAllAsRead(@RequestParam Long userId) {
+        int updatedCount = notificationService.markAllAsRead(userId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success", true);
+        result.put("updatedCount", updatedCount);
+        return result;
     }
 }

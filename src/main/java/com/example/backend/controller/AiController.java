@@ -20,9 +20,9 @@ public class AiController {
     @Autowired
     private AiService aiService;
 
-    // 🔥 修改点：增加了 lang 参数，默认值为 zh
-    @PostMapping("/evaluate/{tweetId}")
-    public Map<String, String> evaluatePaper(
+    @PostMapping("/{task}/{tweetId}")
+    public Map<String, String> runAiTask(
+            @PathVariable String task,
             @PathVariable Long tweetId,
             @RequestParam(defaultValue = "zh") String lang
     ) {
@@ -31,14 +31,56 @@ public class AiController {
 
         String filePath = tweet.getFilePath();
         if (filePath == null || filePath.isEmpty()) {
-            return Map.of("result", "该研究没有上传附件，AI 无法评审。");
+            return Map.of("result", "该研究没有上传附件，AI 无法分析。", "task", task);
         }
 
         String extractedText = fileService.extractTextFromFile(filePath);
+        String aiResponse;
+        switch (task.toLowerCase()) {
+            case "summary":
+                aiResponse = aiService.callAiSummary(extractedText, lang);
+                break;
+            case "discussion":
+                aiResponse = aiService.callAiDiscussionGuide(extractedText, lang);
+                break;
+            case "review":
+            case "evaluate":
+            default:
+                aiResponse = aiService.callAiReview(extractedText, lang);
+                break;
+        }
 
-        // 🔥 修改点：把 lang 传给 Service
-        String aiResponse = aiService.callAiReview(extractedText, lang);
+        return Map.of("result", aiResponse, "task", task);
+    }
 
-        return Map.of("result", aiResponse);
+    @PostMapping("/publish-helper")
+    public Map<String, String> runPublishHelper(
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam String task,
+            @RequestParam(defaultValue = "zh") String lang
+    ) {
+        String aiResponse;
+        switch (task.toLowerCase()) {
+            case "keywords":
+                aiResponse = aiService.extractKeywords(title, content, lang);
+                break;
+            case "polish":
+                aiResponse = aiService.polishAbstract(title, content, lang);
+                break;
+            default:
+                aiResponse = "Unsupported publish helper task";
+                break;
+        }
+        return Map.of("result", aiResponse, "task", task);
+    }
+
+    @PostMapping("/search-helper")
+    public Map<String, String> runSearchHelper(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "zh") String lang
+    ) {
+        String aiResponse = aiService.parseSearchIntent(query, lang);
+        return Map.of("result", aiResponse, "task", "search-helper");
     }
 }

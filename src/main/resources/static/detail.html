@@ -3,106 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <span class="cn">文献详情 & AI 评审</span>
-        <span class="en">Literature Details & AI Review</span>
-    </title>
+    <title>Research Work Details & AI Review</title>
     <link rel="stylesheet" href="common/lang-component.css">
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        /* 全局布局 */
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding-top: 60px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
-
-        /* 导航栏 */
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f5f7; margin: 0; padding-top: 60px; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
         .navbar { position: fixed; top: 0; width: 100%; background: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000; box-sizing: border-box; }
-        .brand { color: #1da1f2; font-weight: 900; font-size: 24px; text-decoration: none; margin-right: 10px;}
-        .back-link { color: #555; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 5px;}
-
-        /* 主布局 */
-        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-
-        /* 左侧面板 (可滚动) */
-        .left-panel { flex: 2; background: white; border-radius: 10px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; }
-
-        /* 右侧面板 */
-        .right-panel { flex: 1; background: white; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; }
-
-        /* 头部信息 */
-        .header { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
-        .title-area { display: flex; justify-content: space-between; align-items: flex-start; }
-        .title-label { background: #eefaff; color: #00a1d6; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .avg-score-badge { background: #ffc107; color: #000; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 5px; }
-        .meta-info { color: #777; font-size: 13px; margin-top: 8px; display: flex; gap: 10px; align-items: center; }
-        .avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover;}
-        .content-body { font-size: 15px; line-height: 1.6; color: #333; white-space: pre-wrap; margin-bottom: 20px; }
-
-        /* === 🔥🔥🔥 PDF 预览核心修复 🔥🔥🔥 === */
-        #pdfViewer {
-            width: 100%;
-            /* 强制高度 900px，确保能展示完整的一页 */
-            height: 900px !important;
-            min-height: 900px;
-            border: 1px solid #e1e8ed;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-        }
-
-        /* 文件卡片 */
-        .file-card { background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 30px; text-align: center; margin-top: 10px; }
+        .brand { color: #1da1f2; font-weight: 900; font-size: 24px; text-decoration: none; margin-right: 10px; }
+        .back-link { color: #555; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; max-width: 1500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .left-panel { flex: 2.1; background: white; border-radius: 16px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; }
+        .right-panel { flex: 1; background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; }
+        .header { border-bottom: 1px solid #eee; padding-bottom: 18px; margin-bottom: 18px; }
+        .title-area { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .title-label { background: #eefaff; color: #00a1d6; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+        .avg-score-badge { background: #fff7cc; color: #8a5b00; padding: 7px 14px; border-radius: 999px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 5px; border: 1px solid #ffe08a; }
+        .research-title { font-size: 30px; font-weight: 800; color: #17212b; line-height: 1.4; margin: 14px 0 10px; }
+        .meta-info { color: #64748b; font-size: 13px; margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+        .signal-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        .signal-actions { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+        .signal-action-btn { border: 1px solid #dbe7f5; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); color: #1e293b; border-radius: 999px; padding: 11px 18px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, color 0.18s ease; }
+        .signal-action-btn i { font-size: 14px; }
+        .signal-action-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12); border-color: #93c5fd; color: #1d4ed8; }
+        .signal-action-btn:active { transform: translateY(0); }
+        .signal-action-btn.bookmarked { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #93c5fd; color: #1d4ed8; box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16); }
+        .subscription-banner { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #eff6ff, #f8fbff); border: 1px solid #bfdbfe; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .subscription-banner-text { flex: 1; min-width: 220px; }
+        .subscription-banner-title { font-size: 14px; font-weight: 800; color: #1e3a8a; display: flex; align-items: center; gap: 8px; }
+        .subscription-banner-desc { margin-top: 6px; color: #475569; font-size: 13px; line-height: 1.7; }
+        .subscription-banner-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .subscription-btn { border: none; border-radius: 999px; padding: 10px 16px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.18s ease; }
+        .subscription-btn.primary { background: linear-gradient(90deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18); }
+        .subscription-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 12px 22px rgba(37, 99, 235, 0.22); }
+        .subscription-btn.secondary { background: white; color: #334155; border: 1px solid #cbd5e1; }
+        .subscription-btn.secondary:hover { background: #f8fafc; }
+        .subscription-btn[disabled] { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+        .subscription-status { width: 100%; font-size: 12px; color: #475569; }
+        .signal-trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+        .signal-trust-card { background: white; border: 1px solid #dbeafe; border-radius: 14px; padding: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06); }
+        .signal-trust-label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .signal-trust-value { font-size: 20px; font-weight: 900; color: #0f172a; }
+        .signal-trust-subtext { margin-top: 6px; font-size: 12px; color: #64748b; line-height: 1.5; }
+        .signal-chip { display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; }
+        .signal-summary-panel { background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%); border: 1px solid #dbeafe; border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+        .signal-summary-title { font-size: 15px; font-weight: 800; color: #1e3a8a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .author-insight-panel { background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 18px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08); }
+        .author-insight-title { font-size: 15px; font-weight: 800; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .author-insight-layout { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .author-insight-chart { flex: 1.15; min-width: 320px; height: 320px; position: relative; background: rgba(255,255,255,0.78); border: 1px solid #dbeafe; border-radius: 18px; padding: 18px; box-sizing: border-box; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); }
+        .author-insight-stats { flex: 0.95; min-width: 220px; display: flex; flex-direction: column; gap: 10px; }
+        .signal-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
+        .signal-summary-card { background: white; border: 1px solid #dbeafe; border-radius: 14px; padding: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06); }
+        .signal-summary-label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .signal-summary-value { font-size: 22px; font-weight: 900; color: #0f172a; }
+        .signal-summary-subtext { margin-top: 6px; font-size: 12px; color: #64748b; line-height: 1.5; }
+        .completeness-card { margin-bottom: 18px; padding: 16px 18px; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%); border: 1px solid #dbeafe; }
+        .completeness-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .completeness-title { font-size: 14px; font-weight: 800; color: #1e3a8a; }
+        .completeness-score { font-size: 14px; font-weight: 800; color: #1d4ed8; }
+        .completeness-track { width: 100%; height: 8px; background: #dbeafe; border-radius: 999px; overflow: hidden; }
+        .completeness-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #2563eb); border-radius: 999px; }
+        .completeness-note { margin-top: 8px; font-size: 12px; color: #64748b; }
+        .metadata-section { margin-bottom: 22px; }
+        .section-heading { font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+        .metadata-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .meta-card { background: #fafcff; border: 1px solid #e8eef5; border-radius: 12px; padding: 14px; }
+        .meta-card-label { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 700; }
+        .meta-card-value { font-size: 14px; color: #1e293b; line-height: 1.6; word-break: break-word; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag-item { background: #eef6ff; color: #1d4ed8; border: 1px solid #cfe1ff; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700; }
+        .link-list { display: flex; flex-direction: column; gap: 8px; }
+        .resource-link { color: #1d4ed8; text-decoration: none; font-weight: 600; word-break: break-all; }
+        .resource-link:hover { text-decoration: underline; }
+        .related-section { margin: 24px 0 4px; }
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+        .related-card { background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%); border: 1px solid #dceafe; border-radius: 14px; padding: 16px; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; display: flex; flex-direction: column; gap: 10px; }
+        .related-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12); border-color: #bfdbfe; }
+        .related-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .related-badge { display: inline-flex; align-items: center; gap: 6px; background: #eaf4ff; color: #2563eb; border: 1px solid #cfe1ff; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 800; }
+        .related-link { color: inherit; text-decoration: none; }
+        .related-title { font-size: 16px; font-weight: 800; color: #172554; line-height: 1.5; margin: 0; }
+        .related-title:hover { color: #1d4ed8; }
+        .related-meta { display: flex; flex-wrap: wrap; gap: 8px; color: #64748b; font-size: 12px; }
+        .related-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .related-chip { display: inline-flex; align-items: center; gap: 5px; background: white; border: 1px solid #e2e8f0; border-radius: 999px; color: #475569; padding: 5px 10px; font-size: 11px; font-weight: 700; }
+        .related-summary { color: #334155; font-size: 13px; line-height: 1.7; }
+        .related-empty { border: 1px dashed #cbd5e1; border-radius: 14px; padding: 18px; background: #f8fafc; color: #64748b; font-size: 13px; text-align: center; }
+        #pdfViewer { width: 100%; height: 900px !important; min-height: 900px; border: 1px solid #e1e8ed; border-radius: 8px; background-color: #f8f9fa; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        .file-card { background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 12px; padding: 30px; text-align: center; margin-top: 10px; }
         .file-icon { font-size: 48px; margin-bottom: 10px; display: block; }
-
-        /* 互动按钮 */
-        .interaction-bar { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; gap: 20px; }
+        .file-name { font-weight: 800; color: #0f172a; margin-bottom: 8px; word-break: break-word; }
+        .file-tip { color: #64748b; font-size: 13px; line-height: 1.6; }
+        .interaction-bar { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .btn-like { display: flex; align-items: center; gap: 5px; cursor: pointer; color: #536471; font-size: 14px; border: none; background: none; }
         .btn-like.liked { color: #f91880; font-weight: bold; }
         .btn-like svg { width: 20px; height: 20px; fill: currentColor; }
-
-        .download-btn { background: #0f1419; color: white; text-decoration: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block; transition: 0.2s; }
-
-        /* 评分卡片 */
-        .rating-card { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #e1e8ed; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .rating-title { font-weight: bold; font-size: 14px; margin-bottom: 15px; color: #333; border-left: 3px solid #ffc107; padding-left: 8px;}
-        .rating-area { display: flex; gap: 30px; margin-bottom: 15px; }
-        .rating-item { display: flex; flex-direction: column; align-items: center; }
+        .rating-card { background: white; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #e1e8ed; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .rating-title { font-weight: bold; font-size: 14px; margin-bottom: 15px; color: #333; border-left: 3px solid #ffc107; padding-left: 8px; }
+        .rating-area { display: flex; gap: 30px; margin-bottom: 15px; flex-wrap: wrap; }
+        .rating-item { display: flex; flex-direction: column; align-items: center; max-width: 180px; }
         .rating-label { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .rating-hint { font-size: 12px; line-height: 1.5; color: #64748b; text-align: center; margin-top: 8px; min-height: 54px; }
+        .rating-hint .en { display: block; margin-top: 4px; }
         .star-group { color: #ddd; cursor: pointer; font-size: 20px; }
         .star-group .active { color: #ffc107; }
         .btn-rate-submit { background: #ffc107; color: #000; border: none; padding: 6px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
-
-        /* 仪表盘样式 */
+        .trust-explanation-card { margin-top: 20px; padding: 18px; border-radius: 14px; border: 1px solid #dbeafe; background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%); }
+        .trust-explanation-title { font-size: 15px; font-weight: 800; color: #1e3a8a; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .trust-explanation-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(191, 219, 254, 0.85); }
+        .trust-explanation-section:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+        .trust-section-label { font-size: 13px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .trust-explanation-body { color: #334155; font-size: 13px; line-height: 1.8; }
+        .trust-highlight-list { margin: 10px 0 0; padding-left: 18px; color: #475569; font-size: 13px; line-height: 1.8; }
+        .author-improvement-panel { margin-top: 20px; padding: 18px; border-radius: 14px; border: 1px solid #bfdbfe; background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%); box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08); }
+        .author-improvement-title { font-size: 15px; font-weight: 800; color: #1e40af; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .author-improvement-intro { color: #475569; font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+        .author-improvement-list { margin: 0; padding-left: 18px; color: #334155; font-size: 13px; line-height: 1.8; }
         .analysis-card { background: white; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #cce5ff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .analysis-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #0056b3; border-left: 4px solid #0056b3; padding-left: 10px; }
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; }
-        .stat-label { font-size: 13px; color: #666; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+        .stat-label { font-size: 13px; color: #666; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .stat-val { font-size: 16px; font-weight: 900; color: #333; font-family: 'Arial', sans-serif; }
         .expert-row { background: #fff8e6; border: 1px solid #ffeeba; }
         .expert-val { color: #d68b00; }
-
-        /* 评论区 */
         .comment-section { margin-top: 30px; }
-        .comment-title { font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #0f1419; }
-        .comment-input-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .comment-input { flex: 1; padding: 10px; border: 1px solid #cfd9de; border-radius: 20px; outline: none; font-size: 14px; }
-        .btn-submit { background: #1da1f2; color: white; border: none; padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-        .comment-list { display: flex; flex-direction: column; gap: 15px; }
-        .c-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer;}
-        .c-content { background: #f7f9f9; padding: 10px 15px; border-radius: 0 12px 12px 12px; flex: 1; }
-        .c-name { font-weight: bold; color: #0f1419; margin-right: 5px; cursor: pointer;}
+        .comment-panel { border: 1px solid #dbe7f5; border-radius: 18px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); overflow: hidden; }
+        .comment-panel-header { padding: 18px 20px; border-bottom: 1px solid #e6eef7; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .comment-title { font-weight: 800; font-size: 16px; margin-bottom: 6px; color: #0f1419; }
+        .comment-subtitle { font-size: 13px; color: #64748b; line-height: 1.6; }
+        .comment-summary-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .comment-summary-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #dbe7f5; border-radius: 999px; background: #ffffff; padding: 7px 12px; font-size: 12px; font-weight: 700; color: #334155; cursor: pointer; transition: all .2s ease; }
+        .comment-summary-chip:hover { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+        .comment-summary-chip.active { border-color: #2563eb; background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1d4ed8; box-shadow: 0 8px 18px rgba(37,99,235,.12); }
+        .comment-input-area { padding: 18px 20px; border-bottom: 1px solid #e6eef7; display: flex; flex-direction: column; gap: 12px; }
+        .comment-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .comment-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .comment-filter-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .comment-type-group, .comment-sort-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .comment-toolbar-label { font-size: 12px; font-weight: 800; color: #475569; }
+        .comment-select { border: 1px solid #cfd9de; background: #fff; color: #1e293b; border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; outline: none; min-width: 150px; }
+        .comment-select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.18); }
+        .comment-mode-tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #eef6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; font-size: 12px; font-weight: 800; }
+        .comment-guidance { font-size: 12px; color: #64748b; }
+        .comment-input-box { display: flex; gap: 10px; margin-bottom: 0; }
+        .comment-input { flex: 1; padding: 12px 14px; border: 1px solid #cfd9de; border-radius: 14px; outline: none; font-size: 14px; background: #fff; }
+        .comment-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2); }
+        .btn-submit { background: linear-gradient(90deg, #1d4ed8, #2563eb); color: white; border: none; padding: 0 20px; border-radius: 14px; font-weight: 800; cursor: pointer; min-width: 96px; }
+        .comment-section-group { padding: 8px 0 0; }
+        .comment-group-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 10px; }
+        .comment-group-title { font-size: 14px; font-weight: 900; color: #0f172a; display: inline-flex; align-items: center; gap: 8px; }
+        .comment-group-title.featured { color: #8a5b00; }
+        .comment-group-subtitle { font-size: 12px; color: #64748b; }
+        .comment-group-count { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 800; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .comment-divider { margin: 8px 20px 0; height: 1px; background: linear-gradient(90deg, rgba(226,232,240,0), rgba(226,232,240,1), rgba(226,232,240,0)); }
+        .comment-empty { margin: 16px 20px 20px; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 18px; text-align: center; background: #f8fafc; color: #64748b; font-size: 13px; }
+        .comment-card { display: flex; gap: 12px; padding: 18px 20px; border-top: 1px solid #eef2f7; }
+        .comment-card:first-child { border-top: none; }
+        .comment-card.reply { margin-left: 48px; padding-top: 14px; padding-bottom: 14px; background: rgba(248, 250, 252, 0.9); }
+        .comment-card.author-priority { background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%); border-left: 4px solid #2563eb; }
+        .comment-card.top-scholar { background: linear-gradient(180deg, #fffdf5 0%, #fff7db 100%); border-left: 4px solid #f59e0b; box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.14); }
+        .comment-card.top-scholar.reply { background: linear-gradient(180deg, #fffef8 0%, #fff9e8 100%); }
+        .c-scholar-note { margin-bottom: 10px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #fff7cc; color: #8a5b00; border: 1px solid #facc15; padding: 5px 10px; font-size: 11px; font-weight: 800; }
+        .comment-main { flex: 1; min-width: 0; }
+        .c-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; flex-shrink: 0; }
+        .c-content { background: transparent; padding: 0; border-radius: 0; flex: 1; }
+        .c-priority-note { margin-bottom: 10px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 5px 10px; font-size: 11px; font-weight: 800; }
+        .c-quote-context { margin-bottom: 10px; padding: 10px 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; font-size: 12px; line-height: 1.6; }
+        .c-quote-context strong { color: #1e293b; }
+        .mention-text { color: #1d4ed8; font-weight: 800; background: rgba(219, 234, 254, 0.65); padding: 1px 6px; border-radius: 999px; }
+        .c-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .c-author-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .c-name { font-weight: 800; color: #0f1419; margin-right: 0; cursor: pointer; }
+        .c-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 800; }
+        .c-badge.author { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .c-badge.reply { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .c-badge.scholar { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+        .c-badge.scholar.top { background: linear-gradient(90deg, #fff7cc, #ffef9c); color: #8a5b00; border: 1px solid #facc15; }
+        .c-badge.accepted { background: linear-gradient(90deg, #dcfce7, #bbf7d0); color: #166534; border: 1px solid #86efac; }
+        .c-badge.type { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .c-badge.type.question { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .c-badge.type.suggestion { background: #dcfce7; color: #166534; border-color: #86efac; }
+        .c-badge.type.resource { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+        .c-badge.type.correction { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+        .c-badge.featured { background: linear-gradient(90deg, #fff7cc, #ffef9c); color: #8a5b00; border: 1px solid #facc15; }
         .c-time { color: #536471; font-size: 12px; }
-        .c-text { margin-top: 5px; color: #333; line-height: 1.4; }
-        .reply-container { margin-left: 48px; margin-top: 8px; background: #f8f9fa; border-radius: 8px; padding: 10px; }
-        .comment-actions { display: flex; gap: 15px; margin-top: 5px; font-size: 12px; color: #999; }
-        .action-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
-        .action-btn:hover { color: #1da1f2; }
-        .action-btn.active-up { color: #f91880; }
-        .action-btn.active-down { color: #536471; font-weight: bold; }
-
-        /* AI 面板 */
+        .c-text { margin-top: 8px; color: #334155; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
+        .c-actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .comment-action-btn { border: 1px solid #dbe7f5; background: #fff; color: #334155; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .comment-action-btn:hover { border-color: #93c5fd; color: #1d4ed8; background: #f8fbff; }
+        .comment-action-btn.active { color: #1d4ed8; border-color: #93c5fd; background: #eff6ff; }
+        .comment-reply-box { margin-top: 12px; display: none; gap: 8px; }
+        .comment-reply-box.active { display: flex; }
+        .comment-reply-input { flex: 1; border: 1px solid #cfd9de; border-radius: 12px; padding: 10px 12px; font-size: 13px; outline: none; }
+        .comment-reply-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.18); }
+        .comment-reply-submit { border: none; border-radius: 12px; padding: 0 14px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; }
+        .comment-reply-cancel { border: 1px solid #cbd5e1; border-radius: 12px; padding: 0 14px; background: #fff; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; }
         .ai-header { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
-        .ai-title { margin:0; color:#1e293b; display: flex; align-items: center; font-size: 18px; }
+        .ai-title { margin: 0; color: #1e293b; display: flex; align-items: center; font-size: 18px; }
         .ai-controls { display: flex; gap: 10px; width: 100%; }
         .ai-lang-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; flex: 1; }
         .ai-btn { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; flex: 1; }
@@ -110,23 +209,23 @@
         .loader { display: none; text-align: center; margin-top: 50px; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         @media (max-width: 992px) {
             .main-layout { flex-direction: column; gap: 15px; padding: 15px; }
             .left-panel, .right-panel { flex: none; width: 100%; padding: 20px; }
-            /* 移动端稍微小一点 */
+            .metadata-grid { grid-template-columns: 1fr; }
+            .related-grid { grid-template-columns: 1fr; }
             iframe { height: 500px !important; }
+            .title-area { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-
 <div class="navbar">
     <div style="display:flex; align-items:center;">
-        <a href="index.html" class="brand">Twieeetter</a>
+        <a href="index.html" class="brand">开放学术交流平台</a>
         <span style="color:#999; font-size:14px;">
-            <span class="cn">| 智能科研平台</span>
-            <span class="en">| Research Platform</span>
+            <span class="cn">| 开放研究平台</span>
+            <span class="en">| Open Research Platform</span>
         </span>
     </div>
     <a href="javascript:history.back()" class="back-link">⬅
@@ -135,15 +234,16 @@
 </div>
 
 <div class="main-layout">
-    <!-- 左侧 -->
     <div class="left-panel">
         <div class="header">
             <div class="title-area">
                 <div>
                     <span class="title-label">
-                        <span class="cn">研究成果</span>
-                        <span class="en">Research Achievement</span>
+                        <i class="fas fa-book-open"></i>
+                        <span class="cn">研究成果详情</span>
+                        <span class="en">Research Work Detail</span>
                     </span>
+                    <div class="research-title" id="researchTitle">Loading...</div>
                 </div>
                 <div class="avg-score-badge">
                     <i class="fas fa-star"></i>
@@ -151,187 +251,347 @@
                     <small>/ 5.0</small>
                 </div>
             </div>
-
             <div class="meta-info">
                 <img id="authorAvatar" src="" class="avatar">
                 <span id="authorName">Loading...</span>
                 <span id="publishTime">...</span>
             </div>
+            <div class="signal-row">
+                <span class="signal-chip"><i class="fas fa-heart"></i><span id="signalLikes">0</span><span class="cn">点赞</span><span class="en">Likes</span></span>
+                <span class="signal-chip"><i class="fas fa-comment"></i><span id="signalComments">0</span><span class="cn">评论</span><span class="en">Comments</span></span>
+                <span class="signal-chip"><i class="fas fa-download"></i><span id="signalDownloads">0</span><span class="cn">下载</span><span class="en">Downloads</span></span>
+                <span class="signal-chip"><i class="fas fa-eye"></i><span id="signalViews">0</span><span class="cn">浏览</span><span class="en">Views</span></span>
+                <span class="signal-chip"><i class="fas fa-share-nodes"></i><span id="signalShares">0</span><span class="cn">分享</span><span class="en">Shares</span></span>
+                <span class="signal-chip"><i class="fas fa-bookmark"></i><span id="signalBookmarks">0</span><span class="cn">收藏</span><span class="en">Bookmarks</span></span>
+                <span class="signal-chip"><i class="fas fa-fire"></i><span id="signalHot">0</span><span class="cn">热度</span><span class="en">Hot Score</span></span>
+            </div>
+            <div class="signal-actions">
+                <button type="button" class="signal-action-btn" onclick="shareResearch()"><i class="fas fa-share-nodes"></i><span class="cn">分享这项研究</span><span class="en">Share this work</span></button>
+                <button type="button" class="signal-action-btn" id="bookmarkBtn" onclick="bookmarkResearch()"><i class="fas fa-bookmark"></i><span class="cn">收藏以便稍后阅读</span><span class="en">Bookmark for later</span></button>
+            </div>
+            <div class="subscription-banner" id="detailSubscriptionBox" style="display:none;">
+                <div class="subscription-banner-text">
+                    <div class="subscription-banner-title">
+                        <i class="fas fa-bell"></i>
+                        <span class="cn">订阅这个研究领域</span>
+                        <span class="en">Subscribe to this research area</span>
+                    </div>
+                    <div class="subscription-banner-desc" id="detailSubscriptionDesc">
+                        <span class="cn">当该领域有新的研究成果发布时，你会收到站内通知。</span>
+                        <span class="en">You will receive in-app notifications when new research is published in this area.</span>
+                    </div>
+                </div>
+                <div class="subscription-banner-actions">
+                    <button type="button" class="subscription-btn primary" id="detailSubscribeBtn" onclick="subscribeCurrentResearchArea()">
+                        <i class="fas fa-plus"></i>
+                        <span class="cn">订阅领域</span>
+                        <span class="en">Subscribe</span>
+                    </button>
+                    <button type="button" class="subscription-btn secondary" id="detailManageSubscriptionsBtn" onclick="goToMySubscriptions()">
+                        <i class="fas fa-list"></i>
+                        <span class="cn">我的订阅</span>
+                        <span class="en">My Subscriptions</span>
+                    </button>
+                </div>
+                <div class="subscription-status" id="detailSubscriptionStatus"></div>
+            </div>
         </div>
 
-        <div class="content-body" id="mainContent">
-            <span class="cn">加载中...</span><span class="en">Loading...</span>
+        <div id="authorInsightPanel" class="author-insight-panel" style="display:none;">
+            <div class="author-insight-title"><i class="fas fa-chart-pie"></i><span class="cn">作者评分与专家反馈</span><span class="en">Author Rating & Expert Feedback</span></div>
+            <div class="author-insight-layout">
+                <div class="author-insight-chart"><canvas id="radarChart"></canvas></div>
+                <div class="author-insight-stats">
+                    <div class="stat-row"><span class="stat-label"><i class="fas fa-star" style="color:#2563eb"></i> <span class="cn">综合评分</span><span class="en">Average Score</span></span><span class="stat-val" id="dispScore" style="color: #2563eb;">0.0</span></div>
+                    <div class="stat-row"><span class="stat-label"><i class="fas fa-users" style="color:#2563eb"></i> <span class="cn">评分人数</span><span class="en">Ratings</span></span><span class="stat-val" id="dispRatingCount">0</span></div>
+                    <div class="stat-row expert-row"><span class="stat-label"><i class="fas fa-user-graduate" style="color:#1d4ed8"></i> <span class="cn">专家评审数</span><span class="en">Expert Reviews</span></span><span class="stat-val expert-val" id="dispExpertCount">0</span></div>
+                    <div class="stat-row expert-row"><span class="stat-label"><i class="fas fa-award" style="color:#1d4ed8"></i> <span class="cn">专家评分</span><span class="en">Expert Rating</span></span><span class="stat-val expert-val" id="dispExpertScore">0.0</span></div>
+                </div>
+            </div>
         </div>
 
-        <h4 style="margin-bottom:10px;">
-            <span class="cn">📄 附件内容</span>
-            <span class="en">📄 Attachment</span>
-        </h4>
+        <div id="publicSignalPanel" class="signal-summary-panel">
+            <div class="signal-summary-title"><i class="fas fa-chart-line"></i><span class="cn">社区评价信号</span><span class="en">Community Evaluation Signals</span></div>
+            <div class="signal-summary-grid">
+                <div class="signal-summary-card">
+                    <div class="signal-summary-label"><i class="fas fa-star"></i><span class="cn">综合评分</span><span class="en">Average Score</span></div>
+                    <div class="signal-summary-value" id="summaryAverageScore">0.0</div>
+                    <div class="signal-summary-subtext"><span class="cn">基于社区评分加权计算</span><span class="en">Weighted from community ratings</span></div>
+                </div>
+                <div class="signal-summary-card">
+                    <div class="signal-summary-label"><i class="fas fa-users"></i><span class="cn">评分人数</span><span class="en">Ratings</span></div>
+                    <div class="signal-summary-value" id="summaryRatingCount">0</div>
+                    <div class="signal-summary-subtext" id="summaryRatingNote"><span class="cn">已有 0 人参与评分</span><span class="en">0 community ratings submitted</span></div>
+                </div>
+                <div class="signal-summary-card">
+                    <div class="signal-summary-label"><i class="fas fa-user-graduate"></i><span class="cn">专家评审</span><span class="en">Expert Reviews</span></div>
+                    <div class="signal-summary-value" id="summaryExpertCount">0</div>
+                    <div class="signal-summary-subtext" id="summaryExpertScoreText"><span class="cn">专家平均分 0.0 / 5</span><span class="en">Expert average 0.0 / 5</span></div>
+                </div>
+                <div class="signal-summary-card">
+                    <div class="signal-summary-label"><i class="fas fa-fire"></i><span class="cn">社区热度</span><span class="en">Hot Score</span></div>
+                    <div class="signal-summary-value" id="summaryHotScore">0</div>
+                    <div class="signal-summary-subtext"><span class="cn">由点赞、评论、下载、浏览、分享和评分共同形成</span><span class="en">Driven by likes, comments, downloads, views, shares, and ratings</span></div>
+                </div>
+            </div>
+            <div class="signal-trust-grid">
+                <div class="signal-trust-card">
+                    <div class="signal-trust-label"><i class="fas fa-eye"></i><span class="cn">可见度</span><span class="en">Visibility</span></div>
+                    <div class="signal-trust-value" id="summaryViews">0</div>
+                    <div class="signal-trust-subtext"><span class="cn">累计浏览次数</span><span class="en">Total page views</span></div>
+                </div>
+                <div class="signal-trust-card">
+                    <div class="signal-trust-label"><i class="fas fa-share-nodes"></i><span class="cn">分享传播</span><span class="en">Sharing</span></div>
+                    <div class="signal-trust-value" id="summaryShares">0</div>
+                    <div class="signal-trust-subtext"><span class="cn">被研究者或读者转发分享</span><span class="en">Shared by readers and researchers</span></div>
+                </div>
+                <div class="signal-trust-card">
+                    <div class="signal-trust-label"><i class="fas fa-bookmark"></i><span class="cn">收藏意愿</span><span class="en">Bookmarks</span></div>
+                    <div class="signal-trust-value" id="summaryBookmarks">0</div>
+                    <div class="signal-trust-subtext"><span class="cn">加入稍后阅读或长期跟踪</span><span class="en">Saved for later reading or tracking</span></div>
+                </div>
+                <div class="signal-trust-card">
+                    <div class="signal-trust-label"><i class="fas fa-bolt"></i><span class="cn">互动状态</span><span class="en">Engagement</span></div>
+                    <div class="signal-trust-value" id="summaryEngagement">-</div>
+                    <div class="signal-trust-subtext" id="summaryFreshness"><span class="cn">最近互动时间 -</span><span class="en">Last interaction -</span></div>
+                </div>
+            </div>
+        </div>
 
-        <!-- 🔥 预览窗口：已通过 CSS 强制加大高度 -->
+        <div class="summary-card">
+            <div class="summary-title"><span class="cn">研究摘要 / 描述</span><span class="en">Research Abstract / Description</span></div>
+            <div class="content-body" id="mainContent"><span class="cn">加载中...</span><span class="en">Loading...</span></div>
+        </div>
+
+        <div class="completeness-card">
+            <div class="completeness-top">
+                <div class="completeness-title"><span class="cn">条目完整度</span><span class="en">Entry Completeness</span></div>
+                <div class="completeness-score" id="completenessText">0%</div>
+            </div>
+            <div class="completeness-track"><div class="completeness-fill" id="completenessFill" style="width:0%"></div></div>
+            <div class="completeness-note"><span class="cn">根据标题、摘要、作者、机构、研究领域、成果形式、引用和资源链接等元数据估算。</span><span class="en">Estimated from metadata such as title, abstract, authors, institution, research area, work format, references, and resource links.</span></div>
+        </div>
+
+        <div class="metadata-section">
+            <h4 class="section-heading">🧾 <span class="cn">研究元数据</span><span class="en">Research Metadata</span></h4>
+            <div class="metadata-grid">
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">作者 / 团队</span><span class="en">Authors / Team</span></div><div class="meta-card-value" id="metaAuthors">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">所属机构</span><span class="en">Institution</span></div><div class="meta-card-value" id="metaInstitution">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">研究领域</span><span class="en">Research Area</span></div><div class="meta-card-value" id="metaResearchArea">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">关键词</span><span class="en">Keywords</span></div><div class="meta-card-value" id="metaKeywords">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">内容类型</span><span class="en">Content Type</span></div><div class="meta-card-value" id="metaContentType">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">成果形式</span><span class="en">Work Format</span></div><div class="meta-card-value" id="metaPublicationType">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">研究状态</span><span class="en">Research Status</span></div><div class="meta-card-value" id="metaStatus">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">语言</span><span class="en">Language</span></div><div class="meta-card-value" id="metaLanguage">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">期刊 / 会议 / 分享渠道</span><span class="en">Journal / Conference / Sharing Venue</span></div><div class="meta-card-value" id="metaVenue">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">公开日期</span><span class="en">Public Release Date</span></div><div class="meta-card-value" id="metaPublicationDate">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">DOI / 标识</span><span class="en">DOI / Identifier</span></div><div class="meta-card-value" id="metaDoi">-</div></div>
+                <div class="meta-card"><div class="meta-card-label"><span class="cn">可见范围</span><span class="en">Visibility</span></div><div class="meta-card-value" id="metaVisibility">-</div></div>
+            </div>
+        </div>
+
+        <div class="metadata-section">
+            <h4 class="section-heading">🏷️ <span class="cn">标签与资源</span><span class="en">Tags & Resources</span></h4>
+            <div class="meta-card" style="margin-bottom:12px;">
+                <div class="meta-card-label"><span class="cn">主题标签</span><span class="en">Tags</span></div>
+                <div class="tag-list" id="tagList"></div>
+            </div>
+            <div class="meta-card" style="margin-bottom:12px;">
+                <div class="meta-card-label"><span class="cn">项目链接 / 数据集 / 代码仓库</span><span class="en">Project Links / Dataset / Repository</span></div>
+                <div class="link-list" id="projectLinksBox"></div>
+            </div>
+            <div class="meta-card">
+                <div class="meta-card-label"><span class="cn">参考文献</span><span class="en">References</span></div>
+                <div class="meta-card-value" id="referencesBox">-</div>
+            </div>
+        </div>
+
+        <div class="related-section">
+            <h4 class="section-heading">🧭 <span class="cn">相关推荐</span><span class="en">Related Research</span></h4>
+            <div id="relatedResearchList" class="related-grid"></div>
+        </div>
+
+        <h4 style="margin-bottom:10px;"><span class="cn">📄 附件内容</span><span class="en">📄 Attachment</span></h4>
         <iframe id="pdfViewer" src="" style="display:none;"></iframe>
-
         <div id="docCard" class="file-card" style="display: none;">
             <span class="file-icon">📝</span>
             <div class="file-name" id="docName">filename.doc</div>
-            <div class="file-tip">
-                <span class="cn">该文件格式暂不支持在线预览，但 AI 仍可读取内容。</span>
-                <span class="en">Online preview not supported, but AI can still read it.</span>
-            </div>
+            <div class="file-tip"><span class="cn">该文件格式暂不支持在线预览，但 AI 仍可读取内容。</span><span class="en">Online preview is not supported for this format, but AI can still read its content.</span></div>
         </div>
-        <div id="noFileTip" style="display:none; color:#999; padding:20px; text-align:center; background:#fafafa;">
-            <span class="cn">无附件文档</span><span class="en">No Attachment</span>
-        </div>
+        <div id="noFileTip" style="display:none; color:#999; padding:20px; text-align:center; background:#fafafa; border-radius:12px;"><span class="cn">无附件文档</span><span class="en">No Attachment</span></div>
 
-        <!-- 互动栏 -->
         <div class="interaction-bar">
             <button id="likeBtn" class="btn-like" onclick="toggleLike()">
                 <svg viewBox="0 0 24 24"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg>
                 <span id="likeCount">0</span>
             </button>
-
             <a id="downloadBtn" href="#" class="btn-like" target="_blank" style="text-decoration: none; display: none;">
                 <i class="fas fa-download" style="font-size: 18px;"></i>
-                <span style="margin-left: 5px;">
-                    <span class="cn">下载</span><span class="en">Download</span>
-                </span>
+                <span style="margin-left: 5px;"><span class="cn">下载</span><span class="en">Download</span></span>
                 <span id="downloadCount" style="margin-left: 5px; font-weight: bold; font-size: 12px; background: #eee; padding: 1px 6px; border-radius: 10px;">0</span>
             </a>
         </div>
 
-        <!-- 读者打分卡片 -->
         <div id="readerRatingCard" class="rating-card" style="display:none;">
-            <div class="rating-title">
-                <span class="cn">我的学术评分 (可修改)</span>
-                <span class="en">My Academic Rating (Editable)</span>
-            </div>
-
+            <div class="rating-title"><span class="cn">我的学术评分（可修改）</span><span class="en">My Academic Rating (Editable)</span></div>
             <div class="rating-area">
                 <div class="rating-item">
                     <span class="rating-label"><span class="cn">创新性</span><span class="en">Innovation</span></span>
                     <div class="star-group" id="starGroup1">
-                        <i class="far fa-star" onclick="setRate(1, 1)"></i>
-                        <i class="far fa-star" onclick="setRate(1, 2)"></i>
-                        <i class="far fa-star" onclick="setRate(1, 3)"></i>
-                        <i class="far fa-star" onclick="setRate(1, 4)"></i>
-                        <i class="far fa-star" onclick="setRate(1, 5)"></i>
+                        <i class="far fa-star" onclick="setRate(1, 1)"></i><i class="far fa-star" onclick="setRate(1, 2)"></i><i class="far fa-star" onclick="setRate(1, 3)"></i><i class="far fa-star" onclick="setRate(1, 4)"></i><i class="far fa-star" onclick="setRate(1, 5)"></i>
                     </div>
                     <input type="hidden" id="score1" value="0">
+                    <div class="rating-hint"><span class="cn">是否提出了新的问题、方法或研究视角。</span><span class="en">Whether the work introduces a new problem, method, or research perspective.</span></div>
                 </div>
                 <div class="rating-item">
-                    <span class="rating-label"><span class="cn">方法论</span><span class="en">Methodology</span></span>
+                    <span class="rating-label"><span class="cn">方法严谨性</span><span class="en">Method Rigor</span></span>
                     <div class="star-group" id="starGroup2">
-                        <i class="far fa-star" onclick="setRate(2, 1)"></i>
-                        <i class="far fa-star" onclick="setRate(2, 2)"></i>
-                        <i class="far fa-star" onclick="setRate(2, 3)"></i>
-                        <i class="far fa-star" onclick="setRate(2, 4)"></i>
-                        <i class="far fa-star" onclick="setRate(2, 5)"></i>
+                        <i class="far fa-star" onclick="setRate(2, 1)"></i><i class="far fa-star" onclick="setRate(2, 2)"></i><i class="far fa-star" onclick="setRate(2, 3)"></i><i class="far fa-star" onclick="setRate(2, 4)"></i><i class="far fa-star" onclick="setRate(2, 5)"></i>
                     </div>
                     <input type="hidden" id="score2" value="0">
+                    <div class="rating-hint"><span class="cn">研究设计、分析流程和论证过程是否规范可靠。</span><span class="en">Whether the study design, analysis process, and reasoning are methodologically sound.</span></div>
                 </div>
                 <div class="rating-item">
-                    <span class="rating-label"><span class="cn">实用性</span><span class="en">Utility</span></span>
+                    <span class="rating-label"><span class="cn">证据充分性</span><span class="en">Evidence Strength</span></span>
                     <div class="star-group" id="starGroup3">
-                        <i class="far fa-star" onclick="setRate(3, 1)"></i>
-                        <i class="far fa-star" onclick="setRate(3, 2)"></i>
-                        <i class="far fa-star" onclick="setRate(3, 3)"></i>
-                        <i class="far fa-star" onclick="setRate(3, 4)"></i>
-                        <i class="far fa-star" onclick="setRate(3, 5)"></i>
+                        <i class="far fa-star" onclick="setRate(3, 1)"></i><i class="far fa-star" onclick="setRate(3, 2)"></i><i class="far fa-star" onclick="setRate(3, 3)"></i><i class="far fa-star" onclick="setRate(3, 4)"></i><i class="far fa-star" onclick="setRate(3, 5)"></i>
                     </div>
                     <input type="hidden" id="score3" value="0">
+                    <div class="rating-hint"><span class="cn">数据、实验或论据是否足够支持当前结论。</span><span class="en">Whether the data, experiments, or arguments are sufficient to support the conclusion.</span></div>
+                </div>
+                <div class="rating-item">
+                    <span class="rating-label"><span class="cn">可复现性</span><span class="en">Reproducibility</span></span>
+                    <div class="star-group" id="starGroup4">
+                        <i class="far fa-star" onclick="setRate(4, 1)"></i><i class="far fa-star" onclick="setRate(4, 2)"></i><i class="far fa-star" onclick="setRate(4, 3)"></i><i class="far fa-star" onclick="setRate(4, 4)"></i><i class="far fa-star" onclick="setRate(4, 5)"></i>
+                    </div>
+                    <input type="hidden" id="score4" value="0">
+                    <div class="rating-hint"><span class="cn">是否提供了足够信息供他人复核、重复验证或延伸研究。</span><span class="en">Whether enough information is provided for others to verify, reproduce, or extend the work.</span></div>
+                </div>
+                <div class="rating-item">
+                    <span class="rating-label"><span class="cn">应用/传播价值</span><span class="en">Application & Reach</span></span>
+                    <div class="star-group" id="starGroup5">
+                        <i class="far fa-star" onclick="setRate(5, 1)"></i><i class="far fa-star" onclick="setRate(5, 2)"></i><i class="far fa-star" onclick="setRate(5, 3)"></i><i class="far fa-star" onclick="setRate(5, 4)"></i><i class="far fa-star" onclick="setRate(5, 5)"></i>
+                    </div>
+                    <input type="hidden" id="score5" value="0">
+                    <div class="rating-hint"><span class="cn">是否具有实际应用潜力、跨场景传播能力或公共讨论价值。</span><span class="en">Whether the work has practical application potential, dissemination value, or broader public relevance.</span></div>
                 </div>
             </div>
+            <div style="text-align: right;"><button class="btn-rate-submit" onclick="submitRating()"><span class="cn">提交评分</span><span class="en">Submit Rating</span></button></div>
+        </div>
 
-            <div style="text-align: right;">
-                <button class="btn-rate-submit" onclick="submitRating()">
-                    <span class="cn">提交评分</span><span class="en">Submit Rating</span>
-                </button>
+        <div id="trustExplanationCard" class="trust-explanation-card">
+            <div class="trust-explanation-title"><i class="fas fa-shield-halved"></i><span class="cn">可信度解释</span><span class="en">Credibility Explanation</span></div>
+            <div class="trust-explanation-section">
+                <div class="trust-section-label"><i class="fas fa-circle-info"></i><span class="cn">总体判断</span><span class="en">Overall Judgement</span></div>
+                <div class="trust-explanation-body" id="trustExplanationText">x`
+                    <span class="cn">系统正在整理该研究的社区评价信号。</span>
+                    <span class="en">The platform is organizing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         the community signals for this work.</span>
+                </div>
+            </div>
+            <div class="trust-explanation-section">
+                <div class="trust-section-label"><i class="fas fa-triangle-exclamation"></i><span class="cn">风险提示</span><span class="en">Risk Alerts</span></div>
+                <ul class="trust-highlight-list" id="trustRiskList"></ul>
+            </div>
+            <div class="trust-explanation-section">
+                <div class="trust-section-label"><i class="fas fa-list-check"></i><     span class="cn">建议动作</span><span class="en">Recommended Actions</span></div>
+                <ul class="trust-highlight-list" id="trustActionList"></ul>
             </div>
         </div>
 
-        <!-- 🔥 作者仪表盘 (新增专家数据) -->
-        <div id="authorDashboard" class="analysis-card" style="display:none;">
-            <h4 class="analysis-title">
-                <span class="cn">学术影响力仪表盘</span>
-                <span class="en">Impact Analysis Dashboard</span>
-            </h4>
-
-            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px; height: 250px; position: relative;">
-                    <canvas id="radarChart"></canvas>
-                </div>
-
-                <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
-                    <div class="stat-row">
-                        <span class="stat-label">📥 <span class="cn">下载量</span><span class="en">Downloads</span></span>
-                        <span class="stat-val" id="dispDownload">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">❤️ <span class="cn">被引/点赞</span><span class="en">Likes/Cites</span></span>
-                        <span class="stat-val" id="dispLike">0</span>
-                    </div>
-
-                    <!-- 🔥 新增：专家数据行 -->
-                    <div class="stat-row expert-row">
-                        <span class="stat-label"><i class="fas fa-user-graduate" style="color:#d68b00"></i> <span class="cn">专家评审数</span><span class="en">Expert Reviews</span></span>
-                        <span class="stat-val expert-val" id="dispExpertCount">0</span>
-                    </div>
-                    <div class="stat-row expert-row">
-                        <span class="stat-label"><i class="fas fa-star" style="color:#d68b00"></i> <span class="cn">专家评分</span><span class="en">Expert Rating</span></span>
-                        <span class="stat-val expert-val" id="dispExpertScore">0.0</span>
-                    </div>
-
-                    <div class="stat-row">
-                        <span class="stat-label">⭐ <span class="cn">综合评分</span><span class="en">Rating</span></span>
-                        <span class="stat-val" id="dispScore" style="color: #ffc107;">0.0</span>
-                    </div>
-                </div>
+        <div id="authorImprovementPanel" class="author-improvement-panel" style="display:none;">
+            <div class="author-improvement-title"><i class="fas fa-screwdriver-wrench"></i><span class="cn">作者如何改进这篇研究</span><span class="en">How the Author Can Improve This Work</span></div>
+            <div class="author-improvement-intro" id="authorImprovementIntro">
+                <span class="cn">系统会根据当前社区反馈，整理出更适合作者立即执行的改进建议。</span>
+                <span class="en">The platform will organize actionable next steps for the author based on current community feedback.</span>
             </div>
+            <ul id="authorImprovementList" class="author-improvement-list"></ul>
         </div>
-
+ 
         <div class="comment-section" id="commentSection">
-            <div class="comment-title">
-                <span class="cn">讨论区</span>
-                <span class="en">Discussion</span>
+            <div class="comment-panel">
+                <div class="comment-panel-header">
+                    <div>
+                        <div class="comment-title"><i class="fas fa-comments" style="color:#2563eb; margin-right:8px;"></i><span class="cn">学术讨论区</span><span class="en">Academic Discussion</span></div>
+                        <div class="comment-subtitle">
+                            <span class="cn">围绕问题、建议、补充资料和错误指出展开更聚焦的研究交流。</span>
+                            <span class="en">Discuss questions, suggestions, supporting material, and possible issues in a more research-focused way.</span>
+                        </div>
+                    </div>
+                    <div class="comment-summary-chips">
+                        <button type="button" class="comment-summary-chip" data-quick-filter="all" onclick="applyCommentQuickFilter('all')"><i class="fas fa-comment-dots"></i><span id="commentCountChip">0</span><span class="cn">条讨论</span><span class="en">threads</span></button>
+                        <button type="button" class="comment-summary-chip" data-quick-filter="replies" onclick="applyCommentQuickFilter('replies')"><i class="fas fa-reply"></i><span id="commentReplyChip">0</span><span class="cn">条回复</span><span class="en">replies</span></button>
+                        <button type="button" class="comment-summary-chip" data-quick-filter="accepted" onclick="applyCommentQuickFilter('accepted')"><i class="fas fa-circle-check"></i><span id="commentAcceptedChip">0</span><span class="cn">已采纳</span><span class="en">accepted</span></button>
+                        <button type="button" class="comment-summary-chip" data-quick-filter="featured" onclick="applyCommentQuickFilter('featured')"><i class="fas fa-award"></i><span id="commentFeaturedChip">0</span><span class="cn">高价值</span><span class="en">featured</span></button>
+                        <button type="button" class="comment-summary-chip" data-quick-filter="question" onclick="applyCommentQuickFilter('question')"><i class="fas fa-circle-question"></i><span id="commentQuestionChip">0</span><span class="cn">问题</span><span class="en">questions</span></button>
+                        <button type="button" class="comment-summary-chip" data-quick-filter="suggestion" onclick="applyCommentQuickFilter('suggestion')"><i class="fas fa-lightbulb"></i><span id="commentSuggestionChip">0</span><span class="cn">建议</span><span class="en">suggestions</span></button>
+                    </div>
+                </div>
+                <div class="comment-input-area">
+                    <div class="comment-meta-row">
+                        <span class="comment-mode-tag"><i class="fas fa-flask"></i><span class="cn">研究讨论模式</span><span class="en">Research discussion mode</span></span>
+                        <span class="comment-guidance"><span class="cn">建议优先写清问题、证据、建议或补充资料。</span><span class="en">Tip: focus on questions, evidence, suggestions, or supporting materials.</span></span>
+                    </div>
+                    <div class="comment-toolbar">
+                        <div class="comment-type-group">
+                            <span class="comment-toolbar-label"><span class="cn">讨论类型</span><span class="en">Type</span></span>
+                            <select id="commentTypeSelect" class="comment-select">
+                                <option value="discussion">学术讨论 / Discussion</option>
+                                <option value="question">问题 / Question</option>
+                                <option value="suggestion">建议 / Suggestion</option>
+                                <option value="resource">补充资料 / Resource</option>
+                                <option value="correction">错误指出 / Correction</option>
+                            </select>
+                        </div>
+                        <div class="comment-filter-group">
+                            <div class="comment-sort-group">
+                                <span class="comment-toolbar-label"><span class="cn">排序方式</span><span class="en">Sort</span></span>
+                                <select id="commentSortSelect" class="comment-select" onchange="loadComments()">
+                                    <option value="latest">最新优先 / Latest</option>
+                                    <option value="helpful">最有帮助 / Most Helpful</option>
+                                </select>
+                            </div>
+                            <div class="comment-sort-group">
+                                <span class="comment-toolbar-label"><span class="cn">筛选</span><span class="en">Filter</span></span>
+                                <select id="commentFilterSelect" class="comment-select" onchange="loadComments()">
+                                    <option value="all">全部讨论 / All</option>
+                                    <option value="question">只看问题 / Questions</option>
+                                    <option value="suggestion">只看建议 / Suggestions</option>
+                                    <option value="resource">只看资料 / Resources</option>
+                                    <option value="correction">只看纠错 / Corrections</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-input-box">
+                        <input type="text" id="commentInput" class="comment-input" placeholder="输入你的看法..." data-placeholder-en="Enter your thoughts...">
+                        <button class="btn-submit" onclick="submitComment()"><span class="cn">发送</span><span class="en">Send</span></button>
+                    </div>
+                </div>
+                <div id="commentList" class="comment-list"></div>
             </div>
-            <div class="comment-input-box">
-                <input type="text" id="commentInput" class="comment-input" placeholder="输入你的看法..." data-placeholder-en="Enter your thoughts...">
-                <button class="btn-submit" onclick="submitComment()">
-                    <span class="cn">发送</span><span class="en">Send</span>
-                </button>
-            </div>
-            <div id="commentList" class="comment-list"></div>
         </div>
     </div>
 
-    <!-- 右侧 AI 面板 -->
     <div class="right-panel">
         <div class="ai-header">
-            <h3 class="ai-title">
-                🤖 <span class="cn">AI 智能评审</span><span class="en">AI Review</span>
-            </h3>
+            <h3 class="ai-title">🤖 <span class="cn">AI 研究助手</span><span class="en">AI Research Assistant</span></h3>
             <div class="ai-controls">
                 <select id="aiLangSelect" class="ai-lang-select">
-                    <option value="zh">🇨🇳 中文评审 (Chinese)</option>
-                    <option value="en">🇺🇸 English Review</option>
+                    <option value="zh">🇨🇳 中文模式 (Chinese)</option>
+                    <option value="en">🇺🇸 English Mode</option>
                 </select>
-                <button id="aiBtn" class="ai-btn" onclick="startAiReview()">
-                    <span class="cn">✨ 开始评估</span>
-                    <span class="en">✨ Start</span>
-                </button>
+                <button id="aiBtn" class="ai-btn" onclick="startAiTask('review')"><span class="cn">✨ AI评审</span><span class="en">✨ Review</span></button>
+            </div>
+            <div class="ai-controls" style="margin-top:-4px;">
+                <button class="ai-btn" style="background:linear-gradient(90deg,#0ea5e9,#2563eb);" onclick="startAiTask('summary')"><span class="cn">🧠 AI导读</span><span class="en">🧠 Summary</span></button>
+                <button class="ai-btn" style="background:linear-gradient(90deg,#10b981,#059669);" onclick="startAiTask('discussion')"><span class="cn">💬 讨论引导</span><span class="en">💬 Discuss</span></button>
             </div>
         </div>
         <div class="ai-result-box" id="aiOutput">
-            <p style="color:#94a3b8; text-align:center; margin-top:50px;">
-                <span class="cn">点击上方按钮，<br>AI 将自动阅读左侧论文并生成评审报告。</span>
-                <span class="en">Click the button above,<br>AI will read the paper and generate a review report.</span>
-            </p>
+            <p style="color:#94a3b8; text-align:center; margin-top:40px;"><span class="cn">你可以让 AI 从三个场景辅助当前研究：<br>生成评审意见、提炼导读摘要、生成讨论切入点。</span><span class="en">You can ask AI to support this research in three scenarios:<br>reviewing the work, generating a reading summary, and suggesting discussion angles.</span></p>
             <div class="loader" id="loader">
                 <div class="spinner"></div>
-                <div style="margin-top:15px; color:#6366f1;">
-                    <span class="cn">AI 正在分析...<br>(约15-30秒)</span>
-                    <span class="en">AI analyzing...<br>(approx 15-30s)</span>
-                </div>
+                <div style="margin-top:15px; color:#6366f1;"><span class="cn">AI 正在分析...<br>(约15-30秒)</span><span class="en">AI analyzing...<br>(approx 15-30s)</span></div>
             </div>
         </div>
     </div>
@@ -350,61 +610,717 @@
 </div>
 
 <script src="common/lang-component.js"></script>
-
 <script>
     const params = new URLSearchParams(window.location.search);
     const tweetId = params.get("id");
     const currentUserId = localStorage.getItem("userId");
-
     let myRadarChart = null;
+    let currentTweetCache = null;
+    let currentSignalsCache = null;
+    let detailSubscriptions = [];
 
     loadDetail();
 
     window.addEventListener('languageChange', function() {
         const lang = localStorage.getItem('appLang') || 'zh';
         document.getElementById("commentInput").placeholder = lang === 'zh' ? "输入你的看法..." : "Enter your thoughts...";
+        if (currentTweetCache) {
+            updateCompletenessCard(currentTweetCache);
+        }
+        if (typeof myRadarChart !== 'undefined') loadDetail();
     });
+
+    function safeText(value, fallback = '-') {
+        return value && String(value).trim() ? value : fallback;
+    }
+
+    function getAvatarInitial(user) {
+        const source = String(user?.nickname || user?.username || user?.email || 'U').trim();
+        return source ? source.charAt(0).toUpperCase() : 'U';
+    }
+
+    function buildDefaultAvatarDataUri(user, size = 64) {
+        const initial = getAvatarInitial(user);
+        const palette = [
+            ['#60a5fa', '#2563eb'],
+            ['#818cf8', '#4f46e5'],
+            ['#34d399', '#059669'],
+            ['#f59e0b', '#d97706'],
+            ['#f472b6', '#db2777'],
+            ['#22d3ee', '#0891b2']
+        ];
+        const seedText = String(user?.username || user?.nickname || user?.id || initial);
+        const seed = seedText.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        const [startColor, endColor] = palette[seed % palette.length];
+        const safeInitial = initial.replace(/[<&>"']/g, '');
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="${startColor}" />
+                        <stop offset="100%" stop-color="${endColor}" />
+                    </linearGradient>
+                </defs>
+                <rect width="${size}" height="${size}" rx="${Math.round(size / 2)}" fill="url(#g)" />
+                <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${Math.round(size * 0.42)}" font-weight="700" fill="#ffffff">${safeInitial}</text>
+            </svg>
+        `;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function getAvatarSrc(user, size = 64) {
+        return user?.avatar ? `/uploads/${user.avatar}` : buildDefaultAvatarDataUri(user, size);
+    }
+
+    function normalizeSubscriptionValue(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function getCurrentResearchArea() {
+        return String(currentTweetCache?.researchArea || '').trim();
+    }
+
+    function setSubscriptionStatus(message, isError = false) {
+        const status = document.getElementById('detailSubscriptionStatus');
+        if (!status) return;
+        status.style.color = isError ? '#b91c1c' : '#475569';
+        status.innerHTML = message || '';
+    }
+
+    function goToMySubscriptions() {
+        const profileOwnerId = currentTweetCache?.author?.id || currentTweetCache?.userId || currentUserId;
+        if (!profileOwnerId) {
+            alert('请先登录后查看我的订阅');
+            return;
+        }
+        window.location.href = `user_profile.html?id=${profileOwnerId}#subscriptions`;
+    }
+
+    function updateDetailSubscriptionUi() {
+        const box = document.getElementById('detailSubscriptionBox');
+        const btn = document.getElementById('detailSubscribeBtn');
+        const desc = document.getElementById('detailSubscriptionDesc');
+        if (!box || !btn || !desc) return;
+
+        const area = getCurrentResearchArea();
+        if (!area) {
+            box.style.display = 'none';
+            return;
+        }
+
+        box.style.display = 'flex';
+        const isLoggedIn = !!currentUserId;
+        const normalizedArea = normalizeSubscriptionValue(area);
+        const alreadySubscribed = detailSubscriptions.some(item => normalizeSubscriptionValue(item.researchArea || item.targetValue) === normalizedArea);
+
+        desc.innerHTML = `
+            <span class="cn">当前研究领域：${escapeHtml(area)}。订阅后，当该领域有新的研究成果发布时，你会收到站内通知。</span>
+            <span class="en">Current research area: ${escapeHtml(area)}. After subscribing, you will receive in-app notifications when new work is published in this area.</span>
+        `;
+
+        if (!isLoggedIn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-lock"></i><span class="cn">登录后订阅</span><span class="en">Login to subscribe</span>`;
+            setSubscriptionStatus(`<span class="cn">请先登录，再订阅研究领域。</span><span class="en">Please log in before subscribing.</span>`);
+            return;
+        }
+
+        btn.disabled = alreadySubscribed;
+        btn.innerHTML = alreadySubscribed
+            ? `<i class="fas fa-check"></i><span class="cn">已订阅</span><span class="en">Subscribed</span>`
+            : `<i class="fas fa-plus"></i><span class="cn">订阅领域</span><span class="en">Subscribe</span>`;
+
+        setSubscriptionStatus(alreadySubscribed
+            ? `<span class="cn">你已订阅“${escapeHtml(area)}”，后续新成果会通知你。</span><span class="en">You have already subscribed to “${escapeHtml(area)}”. Future work in this area will notify you.</span>`
+            : `<span class="cn">点击“订阅领域”即可跟踪该研究方向。</span><span class="en">Click “Subscribe” to follow this research area.</span>`
+        );
+    }
+
+    async function loadMySubscriptions() {
+        if (!currentUserId) {
+            detailSubscriptions = [];
+            updateDetailSubscriptionUi();
+            return [];
+        }
+        try {
+            const res = await fetch(`/api/subscriptions/my?userId=${currentUserId}`);
+            if (!res.ok) throw new Error('Subscription fetch failed');
+            const data = await res.json();
+            detailSubscriptions = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error(error);
+            detailSubscriptions = [];
+            setSubscriptionStatus(`<span class="cn">订阅信息加载失败，请稍后重试。</span><span class="en">Failed to load subscriptions. Please try again later.</span>`, true);
+        }
+        updateDetailSubscriptionUi();
+        return detailSubscriptions;
+    }
+
+    async function subscribeCurrentResearchArea() {
+        const area = getCurrentResearchArea();
+        if (!currentUserId) {
+            alert('请先登录后再订阅');
+            return;
+        }
+        if (!area) {
+            setSubscriptionStatus(`<span class="cn">当前成果没有可订阅的研究领域。</span><span class="en">This work does not have a subscribable research area.</span>`, true);
+            return;
+        }
+
+        const btn = document.getElementById('detailSubscribeBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i><span class="cn">订阅中...</span><span class="en">Subscribing...</span>`;
+        }
+        setSubscriptionStatus(`<span class="cn">正在为你订阅“${escapeHtml(area)}”...</span><span class="en">Subscribing you to “${escapeHtml(area)}”...</span>`);
+
+        try {
+            const body = new URLSearchParams({ userId: currentUserId, researchArea: area });
+            const res = await fetch('/api/subscriptions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            const result = await res.json().catch(() => ({}));
+            if (!res.ok || result.success === false) {
+                throw new Error(result.message || 'Subscription failed');
+            }
+            const normalizedArea = normalizeSubscriptionValue(area);
+            const createdSubscription = result && typeof result === 'object'
+                ? { id: result.id || Date.now(), researchArea: area }
+                : { id: Date.now(), researchArea: area };
+            if (!detailSubscriptions.some(item => normalizeSubscriptionValue(item.researchArea) === normalizedArea)) {
+                detailSubscriptions = [...detailSubscriptions, createdSubscription];
+            }
+            updateDetailSubscriptionUi();
+            setSubscriptionStatus(`<span class="cn">订阅成功，后续“${escapeHtml(area)}”领域的新成果会通知你。</span><span class="en">Subscribed successfully. Future work in “${escapeHtml(area)}” will notify you.</span>`);
+            loadMySubscriptions().then(() => updateDetailSubscriptionUi());
+        } catch (error) {
+            console.error(error);
+            if (btn) btn.disabled = false;
+            setSubscriptionStatus(`<span class="cn">订阅失败，请稍后重试。</span><span class="en">Subscription failed. Please try again later.</span>`, true);
+        }
+        updateDetailSubscriptionUi();
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function calcMetadataCompleteness(tweet) {
+        const fields = [
+            tweet.title,
+            tweet.content,
+            tweet.authors,
+            tweet.institution,
+            tweet.researchArea,
+            tweet.keywords,
+            tweet.contentType,
+            tweet.publicationType,
+            tweet.status,
+            tweet.language,
+            tweet.journalOrConference,
+            tweet.publicationDate,
+            tweet.doi,
+            tweet.referencesText,
+            tweet.projectLinks,
+            tweet.originalFilename
+        ];
+        const filled = fields.filter(value => value && String(value).trim()).length;
+        return Math.round((filled / fields.length) * 100);
+    }
+
+    function computeHotScore(tweet, avgScore, likeCount, commentCount) {
+        const likes = Number(likeCount || 0);
+        const comments = Number(commentCount || 0);
+        const downloads = Number(tweet.downloadCount || 0);
+        const rating = Number(avgScore || 0);
+        return Math.round(likes * 3 + comments * 4 + downloads * 2 + rating * 5);
+    }
+
+    function updateCompletenessCard(tweet) {
+        const score = calcMetadataCompleteness(tweet);
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const isCn = lang === 'zh' || lang === 'cn';
+        document.getElementById('completenessFill').style.width = `${score}%`;
+        document.getElementById('completenessText').innerText = `${score}% ${score >= 85 ? (isCn ? '· 高完整度' : '· High') : score >= 60 ? (isCn ? '· 中等完整度' : '· Medium') : (isCn ? '· 待补充' : '· Needs Work')}`;
+    }
+
+    function renderTagBadges(rawText) {
+        const list = document.getElementById('tagList');
+        list.innerHTML = '';
+        const tags = rawText ? rawText.split(',').map(item => item.trim()).filter(Boolean) : [];
+        if (tags.length === 0) {
+            list.innerHTML = '<span class="meta-card-value">-</span>';
+            return;
+        }
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'tag-item';
+            span.textContent = tag;
+            list.appendChild(span);
+        });
+    }
+
+    function renderProjectLinks(rawText) {
+        const box = document.getElementById('projectLinksBox');
+        box.innerHTML = '';
+        const links = rawText ? rawText.split(/\r?\n|,|;/).map(item => item.trim()).filter(Boolean) : [];
+        if (links.length === 0) {
+            box.innerHTML = '<span class="meta-card-value">-</span>';
+            return;
+        }
+        links.forEach(link => {
+            const anchor = document.createElement('a');
+            anchor.className = 'resource-link';
+            anchor.href = /^https?:\/\//i.test(link) ? link : `https://${link}`;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.textContent = link;
+            box.appendChild(anchor);
+        });
+    }
+
+    function formatSignalLevel(level) {
+        const mapping = {
+            high: { cn: '高互动', en: 'High' },
+            medium: { cn: '中等互动', en: 'Medium' },
+            emerging: { cn: '初步积累', en: 'Emerging' },
+            active: { cn: '活跃', en: 'Active' },
+            recent: { cn: '近期活跃', en: 'Recent' },
+            steady: { cn: '持续可见', en: 'Steady' }
+        };
+        return mapping[level] || { cn: '-', en: '-' };
+    }
+
+    function formatDateTimeText(value) {
+        if (!value) return '-';
+        return String(value).replace('T', ' ').split('.')[0];
+    }
+
+    function updateSignalSummary(signals) {
+        currentSignalsCache = signals || null;
+        const safeSignals = signals || {};
+        const averageScore = safeSignals.averageScoreText || '0.0';
+        const ratingCount = Number(safeSignals.ratingCount || 0);
+        const expertCount = Number(safeSignals.expertCount || 0);
+        const expertScore = Number(safeSignals.expertScore || 0).toFixed(1);
+        const hotScore = Number(safeSignals.hotScore || 0);
+        const views = Number(safeSignals.views || 0);
+        const shares = Number(safeSignals.shares || 0);
+        const bookmarks = Number(safeSignals.bookmarks || 0);
+        const engagement = formatSignalLevel(safeSignals.engagementLevel);
+        const freshness = formatSignalLevel(safeSignals.freshnessLevel);
+        const lastInteractionTime = formatDateTimeText(safeSignals.lastInteractionTime);
+
+        document.getElementById('summaryAverageScore').innerText = averageScore;
+        document.getElementById('summaryRatingCount').innerText = ratingCount;
+        document.getElementById('summaryExpertCount').innerText = expertCount;
+        document.getElementById('summaryHotScore').innerText = hotScore;
+        document.getElementById('summaryViews').innerText = views;
+        document.getElementById('summaryShares').innerText = shares;
+        document.getElementById('summaryBookmarks').innerText = bookmarks;
+        document.getElementById('summaryEngagement').innerHTML = `<span class="cn">${engagement.cn}</span><span class="en">${engagement.en}</span>`;
+        document.getElementById('summaryFreshness').innerHTML = `
+            <span class="cn">${freshness.cn} · 最近互动 ${lastInteractionTime}</span>
+            <span class="en">${freshness.en} · Last interaction ${lastInteractionTime}</span>
+        `;
+
+        document.getElementById('summaryRatingNote').innerHTML = `
+            <span class="cn">已有 ${ratingCount} 人参与评分</span>
+            <span class="en">${ratingCount} community ratings submitted</span>
+        `;
+        document.getElementById('summaryExpertScoreText').innerHTML = `
+            <span class="cn">专家平均分 ${expertScore} / 5</span>
+            <span class="en">Expert average ${expertScore} / 5</span>
+        `;
+    }
+
+    async function loadSignals() {
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/signals`);
+            if (!res.ok) throw new Error('Signal fetch failed');
+            const signals = await res.json();
+            updateSignalSummary(signals);
+            return signals;
+        } catch (error) {
+            console.error(error);
+            updateSignalSummary(null);
+            return null;
+        }
+    }
+
+    function getRelatedSummary(tweet) {
+        const text = (tweet.content || '').trim();
+        if (!text) return '-';
+        return text.length > 110 ? `${text.slice(0, 110)}...` : text;
+    }
+
+    function buildRelatedChips(tweet) {
+        const chips = [];
+        if (tweet.researchArea) {
+            chips.push(`<span class="related-chip"><i class="fas fa-flask"></i>${escapeHtml(tweet.researchArea)}</span>`);
+        }
+        if (tweet.contentType) {
+            chips.push(`<span class="related-chip"><i class="fas fa-layer-group"></i>${escapeHtml(tweet.contentType)}</span>`);
+        }
+        if (tweet.publicationType) {
+            chips.push(`<span class="related-chip"><i class="fas fa-bookmark"></i>${escapeHtml(tweet.publicationType)}</span>`);
+        }
+        return chips.join('');
+    }
+
+    function buildTrustExplanation(signals, radar) {
+        const safeSignals = signals || {};
+        const safeRadar = radar || {};
+        const averageScore = Number(safeSignals.averageScore || safeSignals.averageScoreText || 0);
+        const ratingCount = Number(safeSignals.ratingCount || safeRadar.ratingCount || 0);
+        const expertCount = Number(safeSignals.expertCount || safeRadar.expertCount || 0);
+        const hotScore = Number(safeSignals.hotScore || 0);
+        const views = Number(safeSignals.views || 0);
+        const shares = Number(safeSignals.shares || 0);
+        const bookmarks = Number(safeSignals.bookmarks || 0);
+        const s2 = Number(safeRadar.s2 || 0);
+        const s3 = Number(safeRadar.s3 || 0);
+        const s4 = Number(safeRadar.s4 || 0);
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const isEn = lang === 'en';
+        const textBox = document.getElementById('trustExplanationText');
+        const riskList = document.getElementById('trustRiskList');
+        const actionList = document.getElementById('trustActionList');
+        if (!textBox || !riskList || !actionList) return { summary: '', risks: [], actions: [] };
+
+        let summary = isEn
+            ? 'The current community signals are still accumulating, so this work should be interpreted together with both content quality and sample size.'
+            : '当前社区信号仍在积累中，建议结合研究内容本身与评分样本规模一起解读。';
+
+        if (averageScore >= 4.2 && ratingCount >= 5) {
+            summary = isEn
+                ? 'This work currently receives a strong overall evaluation from the community, suggesting relatively positive academic reception.'
+                : '该研究目前获得了较强的社区总体评价，说明其学术接受度相对积极。';
+        } else if (averageScore >= 4.0 && ratingCount < 5) {
+            summary = isEn
+                ? 'The current overall score is positive, but the number of raters is still limited, so the conclusion should be treated as preliminary.'
+                : '当前综合评分较高，但评分样本仍然有限，因此结论更适合视为初步判断。';
+        } else if (averageScore > 0 && averageScore < 3.2) {
+            summary = isEn
+                ? 'The current evaluation is relatively cautious, indicating that the community still has concerns about the credibility or maturity of the work.'
+                : '当前评价相对谨慎，说明社区对该研究的可信度或成熟度仍存在疑虑。';
+        }
+
+        const risks = [];
+        const actions = [];
+
+        if (ratingCount < 3) {
+            risks.push(isEn
+                ? 'The number of raters is still small, so the current judgement should be treated as an early signal rather than a stable consensus.'
+                : '当前评分人数仍然较少，因此现阶段判断更适合作为早期信号，而不是稳定共识。');
+            actions.push(isEn
+                ? 'Invite more peers or domain readers to submit structured ratings to improve sample reliability.'
+                : '建议邀请更多同行或领域读者提交结构化评分，以提高样本可靠性。');
+        }
+
+        if (s4 > 0 && s4 < 3.2) {
+            risks.push(isEn
+                ? 'Reproducibility is relatively weak, which means the work may still lack enough data, code, or procedural details for independent verification.'
+                : '可复现性相对偏弱，说明当前可能仍缺少足够的数据、代码或过程细节，难以支持独立复核。');
+            actions.push(isEn
+                ? 'Supplement code repositories, datasets, experimental settings, or step-by-step methodological descriptions.'
+                : '建议补充代码仓库、数据集、实验参数或更完整的方法步骤说明。');
+        }
+
+        if (s2 > 0 && s2 < 3.5) {
+            risks.push(isEn
+                ? 'Method rigor is not yet strong enough, so readers may question the design quality, control process, or analytical validity.'
+                : '方法严谨性尚不够强，读者可能会质疑研究设计质量、控制过程或分析有效性。');
+            actions.push(isEn
+                ? 'Clarify research design, control strategy, evaluation criteria, and statistical or analytical process in more detail.'
+                : '建议进一步明确研究设计、控制策略、评价标准，以及统计或分析流程。');
+        }
+
+        if (s3 > 0 && s3 < 3.5) {
+            risks.push(isEn
+                ? 'Evidence strength is limited, which suggests the current data or arguments may not fully support the claimed conclusion.'
+                : '证据充分性有限，说明当前数据或论证对结论的支撑可能还不够充分。');
+            actions.push(isEn
+                ? 'Consider adding more experiments, comparisons, examples, ablation studies, or supporting references.'
+                : '建议补充更多实验、对照、案例、消融分析或支撑性文献。');
+        }
+
+        if (hotScore >= 40 && averageScore < 3.8) {
+            risks.push(isEn
+                ? 'Community attention is rising faster than recognition, so visibility and academic endorsement are not yet fully aligned.'
+                : '社区关注度增长速度快于认可度，说明可见度与学术认同尚未完全一致。');
+            actions.push(isEn
+                ? 'Use the current attention window to respond with stronger evidence, clearer methods, and transparent materials.'
+                : '建议借助当前关注窗口，尽快补充更强证据、更清晰的方法说明和更透明的研究材料。');
+        }
+
+        if (expertCount === 0 && ratingCount >= 3) {
+            risks.push(isEn
+                ? 'The work has community participation, but there is still no expert review signal to provide higher-credibility endorsement.'
+                : '该研究已有社区参与，但尚未形成专家评审信号，缺少更高可信度的背书。');
+            actions.push(isEn
+                ? 'Encourage domain experts, supervisors, or experienced researchers to contribute reviews.'
+                : '建议邀请领域专家、导师或有经验的研究者补充评价。');
+        }
+
+        if (views >= 80 && bookmarks <= 2) {
+            risks.push(isEn
+                ? 'The work is being seen, but long-term save intent is still limited, which may mean its practical retention value is not yet clear.'
+                : '该研究已经获得一定浏览，但长期收藏意愿仍偏弱，说明读者尚未明确感知其持续参考价值。');
+            actions.push(isEn
+                ? 'Highlight the key contribution, usage scenario, and reusable materials more explicitly so readers know why it is worth saving.'
+                : '建议更明确地突出核心贡献、使用场景和可复用材料，让读者理解其值得收藏与持续跟踪的原因。');
+        }
+
+        if (shares >= 8 && averageScore < 4.0) {
+            risks.push(isEn
+                ? 'The work is spreading quickly, but its evaluation quality has not improved at the same pace.'
+                : '该研究传播速度较快，但评价质量尚未同步提升。');
+            actions.push(isEn
+                ? 'When sharing externally, pair the work with a concise evidence summary, methodology note, and reproducibility entry point.'
+                : '建议在对外传播时同步附上证据摘要、方法说明和复现入口，降低读者理解门槛。');
+        }
+
+        if (risks.length === 0) {
+            risks.push(isEn
+                ? 'No major structural risk is currently visible from the existing community signals, but the judgement should still evolve with future feedback.'
+                : '从当前社区信号看，暂未出现明显的结构性风险，但后续判断仍应随着新反馈持续更新。');
+        }
+
+        if (actions.length === 0) {
+            actions.push(isEn
+                ? 'Continue collecting ratings, comments, and expert feedback to keep improving the confidence of interpretation.'
+                : '建议持续积累评分、评论和专家反馈，以进一步提高解释结论的稳定性。');
+        }
+
+        textBox.innerHTML = `<span class="cn" style="display:${isEn ? 'none' : 'inline'}">${isEn ? '' : summary}</span><span class="en" style="display:${isEn ? 'inline' : 'none'}">${isEn ? summary : ''}</span>`;
+        riskList.innerHTML = risks.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+        actionList.innerHTML = actions.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+
+        const actionSection = actionList.closest('.trust-explanation-section');
+        const actionSectionLabel = actionSection ? actionSection.querySelector('.trust-section-label') : null;
+        if (actionSectionLabel) {
+            actionSectionLabel.innerHTML = `<i class="fas fa-list-check"></i><span class="cn">建议动作</span><span class="en">Recommended Actions</span>`;
+        }
+        return { summary, risks, actions };
+    }
+
+    function buildAuthorImprovementSuggestions(signals, radar, trustExplanation) {
+        const safeSignals = signals || {};
+        const safeRadar = radar || {};
+        const explanation = trustExplanation || { actions: [] };
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const isEn = lang === 'en';
+        const suggestions = [];
+        const ratingCount = Number(safeSignals.ratingCount || safeRadar.ratingCount || 0);
+        const expertCount = Number(safeSignals.expertCount || safeRadar.expertCount || 0);
+        const hotScore = Number(safeSignals.hotScore || 0);
+        const s2 = Number(safeRadar.s2 || 0);
+        const s3 = Number(safeRadar.s3 || 0);
+        const s4 = Number(safeRadar.s4 || 0);
+
+        explanation.actions.forEach(action => {
+            if (!suggestions.includes(action)) {
+                suggestions.push(action);
+            }
+        });
+
+        if (ratingCount >= 3 && expertCount === 0) {
+            suggestions.push(isEn
+                ? 'Prioritize outreach to supervisors, domain experts, or advanced researchers so the next round of feedback includes higher-credibility reviewers.'
+                : '建议优先联系导师、领域专家或高年级研究者，让下一轮反馈中出现更高可信度的评审者。');
+        }
+
+        if (s2 >= 3.5 && s3 >= 3.5 && s4 >= 3.5 && hotScore >= 20) {
+            suggestions.push(isEn
+                ? 'The core structure is already solid. The next improvement can focus on polishing the abstract, contribution statement, and public-facing summary for broader understanding.'
+                : '当前核心结构已较为稳固，下一步可重点打磨摘要、贡献表述和面向公众的研究简介，提升外部理解效率。');
+        }
+
+        if (suggestions.length === 0) {
+            suggestions.push(isEn
+                ? 'Continue iterating with clearer evidence, transparent materials, and broader reviewer participation.'
+                : '建议继续围绕更清晰的证据展示、更透明的研究材料和更广泛的评审参与进行迭代。');
+        }
+
+        return suggestions.slice(0, 5);
+    }
+
+    function renderAuthorImprovementPanel(signals, radar, trustExplanation) {
+        const panel = document.getElementById('authorImprovementPanel');
+        const intro = document.getElementById('authorImprovementIntro');
+        const list = document.getElementById('authorImprovementList');
+        if (!panel || !intro || !list) return;
+
+        const lang = localStorage.getItem('appLang') || 'zh';
+        const isEn = lang === 'en';
+        const suggestions = buildAuthorImprovementSuggestions(signals, radar, trustExplanation);
+
+        intro.innerHTML = isEn
+            ? 'These suggestions translate current community signals into concrete next steps the author can act on immediately.'
+            : '这些建议会把当前社区反馈转化为作者可以立即执行的改进动作。';
+        list.innerHTML = suggestions.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+        panel.style.display = 'block';
+    }
+
+    function renderRelatedResearch(items) {
+        const box = document.getElementById('relatedResearchList');
+        if (!box) return;
+        if (!items || items.length === 0) {
+            box.innerHTML = `
+                <div class="related-empty">
+                    <span class="cn">当前还没有足够相似的研究成果，后续会随着社区内容增长逐步补全推荐。</span>
+                    <span class="en">There are not enough similar works yet. Recommendations will become richer as more research is shared.</span>
+                </div>
+            `;
+            return;
+        }
+
+        box.innerHTML = items.map(tweet => {
+            const authorName = tweet.author?.nickname || tweet.author?.username || 'Researcher';
+            const title = escapeHtml(tweet.title || tweet.content || 'Untitled Research Work');
+            const summary = escapeHtml(getRelatedSummary(tweet));
+            const contentBadge = escapeHtml(tweet.contentType || 'Research Work');
+            const metaAuthor = escapeHtml(authorName);
+            const metaTime = escapeHtml((tweet.createTime || '').replace('T', ' ').split('.')[0]);
+            return `
+                <div class="related-card">
+                    <div class="related-top">
+                        <span class="related-badge"><i class="fas fa-compass"></i>${contentBadge}</span>
+                    </div>
+                    <a class="related-link" href="detail.html?id=${tweet.id}">
+                        <h5 class="related-title">${title}</h5>
+                    </a>
+                    <div class="related-meta">
+                        <span><i class="fas fa-user"></i> ${metaAuthor}</span>
+                        ${metaTime ? `<span><i class="far fa-clock"></i> ${metaTime}</span>` : ''}
+                    </div>
+                    <div class="related-chip-row">${buildRelatedChips(tweet)}</div>
+                    <div class="related-summary">${summary}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function loadRelatedResearch() {
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/related`);
+            if (!res.ok) throw new Error('Related fetch failed');
+            const items = await res.json();
+            renderRelatedResearch(Array.isArray(items) ? items : []);
+        } catch (error) {
+            console.error(error);
+            renderRelatedResearch([]);
+        }
+    }
+
+    function updateBookmarkButtonState(isFavorited) {
+        const btn = document.getElementById('bookmarkBtn');
+        if (!btn) return;
+        btn.classList.toggle('bookmarked', !!isFavorited);
+        btn.innerHTML = isFavorited
+            ? '<i class="fas fa-bookmark"></i><span class="cn">已收藏到知识库</span><span class="en">Saved to knowledge base</span>'
+            : '<i class="fas fa-bookmark"></i><span class="cn">收藏以便稍后阅读</span><span class="en">Bookmark for later</span>';
+        const currentLang = localStorage.getItem('appLang') || 'zh';
+        if (typeof applyLang === 'function') applyLang(currentLang);
+    }
+
+    async function loadBookmarkStatus(signals = currentSignalsCache) {
+        const fallbackCount = signals?.bookmarks ?? currentTweetCache?.bookmarkCount ?? 0;
+        document.getElementById('signalBookmarks').innerText = fallbackCount;
+        if (!currentUserId) {
+            updateBookmarkButtonState(false);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/bookmark-status?userId=${currentUserId}`);
+            if (!res.ok) throw new Error('Bookmark status failed');
+            const data = await res.json();
+            const totalBookmarks = data.bookmarkCount ?? fallbackCount;
+            document.getElementById('signalBookmarks').innerText = totalBookmarks;
+            document.getElementById('summaryBookmarks').innerText = totalBookmarks;
+            updateBookmarkButtonState(!!data.isFavorited);
+        } catch (error) {
+            console.error(error);
+            updateBookmarkButtonState(false);
+        }
+    }
 
     async function loadDetail() {
         try {
             const res = await fetch(`/api/tweets/${tweetId}/detail-dto?userId=${currentUserId}`);
-            if(!res.ok) throw new Error("Not Found");
+            if (!res.ok) throw new Error("Not Found");
             const data = await res.json();
             const tweet = data.tweet;
+            currentTweetCache = tweet;
+            updateDetailSubscriptionUi();
+            loadMySubscriptions();
 
-            document.getElementById("scoreValue").innerText = data.avgScore || "0.0";
+            const signals = data.signals || await loadSignals();
+            updateSignalSummary(signals);
+
+            document.getElementById("scoreValue").innerText = signals?.averageScoreText || data.avgScore || "0.0";
             const user = tweet.author;
+            const radar = signals?.radar || data.radar || {};
+            const trustExplanation = buildTrustExplanation(signals, radar);
             document.getElementById("authorName").innerText = user.nickname || user.username;
-            document.getElementById("authorAvatar").src = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/30';
+            document.getElementById("authorAvatar").src = getAvatarSrc(user, 30);
             document.getElementById("publishTime").innerText = tweet.createTime.replace('T', ' ').split('.')[0];
-            document.getElementById("mainContent").innerText = tweet.content;
+            document.getElementById("mainContent").innerText = tweet.content || '';
+            document.getElementById('researchTitle').innerText = safeText(tweet.title, safeText(tweet.content).slice(0, 40));
+            document.getElementById('metaAuthors').innerText = safeText(tweet.authors);
+            document.getElementById('metaInstitution').innerText = safeText(tweet.institution);
+            document.getElementById('metaResearchArea').innerText = safeText(tweet.researchArea);
+            document.getElementById('metaKeywords').innerText = safeText(tweet.keywords);
+            document.getElementById('metaContentType').innerText = safeText(tweet.contentType);
+            document.getElementById('metaPublicationType').innerText = safeText(tweet.publicationType);
+            document.getElementById('metaStatus').innerText = safeText(tweet.status);
+            document.getElementById('metaLanguage').innerText = safeText(tweet.language);
+            document.getElementById('metaVenue').innerText = safeText(tweet.journalOrConference);
+            document.getElementById('metaPublicationDate').innerText = safeText(tweet.publicationDate);
+            document.getElementById('metaDoi').innerText = safeText(tweet.doi);
+            document.getElementById('metaVisibility').innerText = safeText(tweet.visibility);
+            document.getElementById('referencesBox').innerText = safeText(tweet.referencesText);
+            renderTagBadges(tweet.tags);
+            renderProjectLinks(tweet.projectLinks);
+            updateCompletenessCard(tweet);
+            await loadRelatedResearch();
 
             const readerRatingCard = document.getElementById("readerRatingCard");
-            const authorDashboard = document.getElementById("authorDashboard");
-
+            const authorInsightPanel = document.getElementById("authorInsightPanel");
+            const publicSignalPanel = document.getElementById("publicSignalPanel");
+            const authorImprovementPanel = document.getElementById("authorImprovementPanel");
+ 
             if (currentUserId == tweet.author.id) {
                 readerRatingCard.style.display = "none";
-                authorDashboard.style.display = "block";
-
-                if (data.radar) {
-                    renderRadarChart(data.radar.s1, data.radar.s2, data.radar.s3);
-                    // 🔥 填充专家统计数据
-                    document.getElementById("dispExpertCount").innerText = data.radar.expertCount || 0;
-                    document.getElementById("dispExpertScore").innerText = data.radar.expertScore || "0.0";
+                authorInsightPanel.style.display = "block";
+                publicSignalPanel.style.display = "none";
+                renderAuthorImprovementPanel(signals, radar, trustExplanation);
+                if (radar) {
+                    renderRadarChart(radar.s1, radar.s2, radar.s3, radar.s4, radar.s5);
+                    document.getElementById("dispExpertCount").innerText = radar.expertCount || 0;
+                    document.getElementById("dispExpertScore").innerText = Number(radar.expertScore || 0).toFixed(1);
                 }
-
-                document.getElementById("dispDownload").innerText = tweet.downloadCount || 0;
-                document.getElementById("dispScore").innerText = data.avgScore;
-
+                document.getElementById("dispRatingCount").innerText = signals?.ratingCount ?? radar?.ratingCount ?? 0;
+                document.getElementById("dispScore").innerText = signals?.averageScoreText || data.avgScore || '0.0';
             } else {
-                authorDashboard.style.display = "none";
+                authorInsightPanel.style.display = "none";
+                publicSignalPanel.style.display = "block";
+                if (authorImprovementPanel) authorImprovementPanel.style.display = "none";
                 readerRatingCard.style.display = "block";
-
                 if (data.myRating && data.myRating !== "null") {
                     setRate(1, data.myRating.score1);
                     setRate(2, data.myRating.score2);
                     setRate(3, data.myRating.score3);
-
+                    setRate(4, data.myRating.score4);
+                    setRate(5, data.myRating.score5);
                     const btn = document.querySelector(".btn-rate-submit");
                     const cnSpan = btn.querySelector(".cn");
                     const enSpan = btn.querySelector(".en");
@@ -412,6 +1328,14 @@
                     if (enSpan) enSpan.innerText = "Update Rating";
                 }
             }
+
+            document.getElementById('signalLikes').innerText = signals?.likes ?? 0;
+            document.getElementById('signalComments').innerText = signals?.comments ?? 0;
+            document.getElementById('signalDownloads').innerText = signals?.downloads ?? tweet.downloadCount ?? 0;
+            document.getElementById('signalViews').innerText = signals?.views ?? tweet.viewCount ?? 0;
+            document.getElementById('signalShares').innerText = signals?.shares ?? tweet.shareCount ?? 0;
+            document.getElementById('signalBookmarks').innerText = signals?.bookmarks ?? tweet.bookmarkCount ?? 0;
+            document.getElementById('signalHot').innerText = signals?.hotScore ?? 0;
 
             if (tweet.filePath && tweet.originalFilename) {
                 const pathParts = tweet.filePath.split(/[\\/]/);
@@ -421,14 +1345,8 @@
 
                 if (lowerName.endsWith(".pdf")) {
                     const viewer = document.getElementById("pdfViewer");
-
-
-                    // 作用：隐藏顶部的黑色工具条，用户就不能通过那里下载了
                     viewer.src = fileUrl + "#toolbar=0";
-
                     viewer.style.display = "block";
-                    document.getElementById("pdfViewer").src = fileUrl;
-                    document.getElementById("pdfViewer").style.display = "block";
                 } else {
                     document.getElementById("docCard").style.display = "block";
                     document.getElementById("docName").innerText = tweet.originalFilename;
@@ -438,52 +1356,50 @@
                 const dlCount = document.getElementById("downloadCount");
                 dlBtn.style.display = "flex";
                 dlBtn.href = `/api/tweets/${tweetId}/download`;
-                dlCount.innerText = tweet.downloadCount || 0;
-
+                dlCount.innerText = signals?.downloads ?? tweet.downloadCount ?? 0;
                 dlBtn.onclick = function() {
                     setTimeout(() => {
-                        let current = parseInt(dlCount.innerText);
-                        dlCount.innerText = current + 1;
-                        // 如果是作者，同步更新仪表盘
-                        const dispDl = document.getElementById("dispDownload");
-                        if(dispDl) dispDl.innerText = current + 1;
-                    }, 500);
+                        loadSignals().then((latestSignals) => {
+                            const nextSignals = latestSignals || currentSignalsCache;
+                            if (!nextSignals) return;
+                            document.getElementById('downloadCount').innerText = nextSignals.downloads ?? 0;
+                            document.getElementById('signalDownloads').innerText = nextSignals.downloads ?? 0;
+                            document.getElementById('signalHot').innerText = nextSignals.hotScore ?? 0;
+                        });
+                    }, 700);
                     return true;
                 };
-
             } else {
                 document.getElementById("noFileTip").style.display = "block";
                 document.getElementById("aiBtn").disabled = true;
                 document.getElementById("aiBtn").innerHTML = `<span class="cn">无文件</span><span class="en">No File</span>`;
             }
 
-            loadLikeStatus();
-            loadComments();
-
+            await loadLikeStatus(signals);
+            await loadBookmarkStatus(signals);
+            await loadComments(signals);
             const currentLang = localStorage.getItem('appLang') || 'zh';
-            if(typeof applyLang === 'function') applyLang(currentLang);
-
+            if (typeof applyLang === 'function') applyLang(currentLang);
         } catch (e) {
             console.error(e);
             alert("加载失败 / Load Failed");
         }
     }
 
-    function renderRadarChart(s1, s2, s3) {
+    function renderRadarChart(s1, s2, s3, s4, s5) {
         const ctx = document.getElementById('radarChart').getContext('2d');
-        const lang = localStorage.getItem('appLang') || 'zh';
-
+        const currentLang = localStorage.getItem('appLang') || 'zh';
+        const isEn = currentLang === 'en';
         if (myRadarChart) myRadarChart.destroy();
-
         myRadarChart = new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: lang === 'zh'
-                    ? ['创新性', '方法论', '实用性']
-                    : ['Innovation', 'Methodology', 'Utility'],
+                labels: isEn
+                    ? ['Innovation', 'Method Rigor', 'Evidence Strength', 'Reproducibility', 'Application & Reach']
+                    : ['创新性', '方法严谨性', '证据充分性', '可复现性', '应用/传播价值'],
                 datasets: [{
-                    label: lang === 'zh' ? '评分分布' : 'Rating Distribution',
-                    data: [s1, s2, s3],
+                    label: isEn ? 'Rating Distribution' : '评分分布',
+                    data: [s1, s2, s3, s4, s5],
                     backgroundColor: 'rgba(29, 161, 242, 0.2)',
                     borderColor: '#1da1f2',
                     pointBackgroundColor: '#1da1f2',
@@ -493,255 +1409,564 @@
                 }]
             },
             options: {
+                maintainAspectRatio: false,
+                layout: { padding: 10 },
                 elements: {
-                    line: { borderWidth: 3 }
+                    line: { borderWidth: 3 },
+                    point: { radius: 4, hoverRadius: 5 }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#475569',
+                            boxWidth: 24,
+                            font: { size: 12, weight: '700' }
+                        }
+                    }
                 },
                 scales: {
                     r: {
-                        angleLines: { display: true },
+                        angleLines: { display: true, color: '#dbeafe' },
+                        grid: { color: '#dbeafe' },
                         suggestedMin: 0,
                         suggestedMax: 5,
-                        ticks: { stepSize: 1, backdropColor: 'transparent' }
+                        ticks: {
+                            display: false,
+                            stepSize: 1,
+                            backdropColor: 'transparent'
+                        },
+                        pointLabels: {
+                            color: '#475569',
+                            font: { size: 14, weight: '700' },
+                            padding: 10
+                        }
                     }
-                },
-                plugins: {
-                    legend: { display: false }
-                },
-                maintainAspectRatio: false
+                }
             }
         });
     }
 
-    async function loadLikeStatus() {
+    function setRate(group, val) {
+        document.getElementById(`score${group}`).value = val;
+        const stars = document.querySelectorAll(`#starGroup${group} i`);
+        stars.forEach((star, index) => {
+            star.className = index < val ? 'fas fa-star active' : 'far fa-star';
+        });
+    }
+
+    async function submitRating() {
+        const s1 = document.getElementById('score1').value;
+        const s2 = document.getElementById('score2').value;
+        const s3 = document.getElementById('score3').value;
+        const s4 = document.getElementById('score4').value;
+        const s5 = document.getElementById('score5').value;
+        if (!s1 || !s2 || !s3 || !s4 || !s5 || s1 === '0' || s2 === '0' || s3 === '0' || s4 === '0' || s5 === '0') {
+            alert('请完成评分 / Please finish rating');
+            return;
+        }
+        const form = new URLSearchParams({ userId: currentUserId, s1, s2, s3, s4, s5 });
+        const res = await fetch(`/api/tweets/${tweetId}/rate`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form });
+        alert(await res.text());
+        loadDetail();
+    }
+
+    async function loadLikeStatus(signals = currentSignalsCache) {
+        if (!currentUserId) {
+            document.getElementById('likeCount').innerText = signals?.likes ?? 0;
+            return;
+        }
         const res = await fetch(`/api/tweets/${tweetId}/like-status?userId=${currentUserId}`);
         const data = await res.json();
-        const btn = document.getElementById("likeBtn");
-        document.getElementById("likeCount").innerText = data.count;
-
-        const dispLike = document.getElementById("dispLike");
-        if(dispLike) dispLike.innerText = data.count;
-
-        if (data.isLiked) {
-            btn.classList.add("liked");
-            btn.querySelector("svg").innerHTML = `<path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
-        } else {
-            btn.classList.remove("liked");
-            btn.querySelector("svg").innerHTML = `<path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
+        const totalLikes = signals?.likes ?? data.count ?? 0;
+        document.getElementById('likeCount').innerText = totalLikes;
+        document.getElementById('signalLikes').innerText = totalLikes;
+        const btn = document.getElementById('likeBtn');
+        btn.classList.toggle('liked', !!data.isLiked);
+        if (signals?.hotScore != null) {
+            document.getElementById('signalHot').innerText = signals.hotScore;
         }
     }
 
     async function toggleLike() {
-        const btn = document.getElementById("likeBtn");
-        const countSpan = document.getElementById("likeCount");
-        const isLiked = btn.classList.contains("liked");
-        let currentCount = parseInt(countSpan.innerText);
-
-        if (isLiked) {
-            btn.classList.remove("liked");
-            countSpan.innerText = Math.max(0, currentCount - 1);
-            btn.querySelector("svg").innerHTML = `<path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
-        } else {
-            btn.classList.add("liked");
-            countSpan.innerText = currentCount + 1;
-            btn.querySelector("svg").innerHTML = `<path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path>`;
-        }
-
-        try {
-            await fetch(`/api/tweets/${tweetId}/like?userId=${currentUserId}`, { method: 'POST' });
-        } catch (e) {
-            loadLikeStatus();
-        }
-    }
-
-    async function loadComments() {
-        const res = await fetch(`/api/tweets/${tweetId}/comments`);
-        const allComments = await res.json();
-        const container = document.getElementById("commentList");
-        container.innerHTML = "";
-
-        // 🔥 作者视图：同步更新评论数
-        const dispComment = document.getElementById("dispComment");
-        if(dispComment) dispComment.innerText = allComments.length;
-
-        if(allComments.length === 0) {
-            container.innerHTML = `<div style='color:#999; font-size:13px; text-align:center;'>暂无评论</div>`;
+        if (!currentUserId) {
+            alert('请先登录 / Please login first');
             return;
         }
+        const form = new URLSearchParams({ userId: currentUserId });
+        await fetch(`/api/tweets/${tweetId}/like`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form });
+        loadDetail();
+    }
 
-        const rootComments = allComments.filter(c => !c.parentId);
-        const childComments = allComments.filter(c => c.parentId);
+    async function submitComment(parentId = null, replyToUserId = null, replyInputId = null) {
+        if (!currentUserId) {
+            alert('请先登录 / Please login first');
+            return;
+        }
+        const input = replyInputId ? document.getElementById(replyInputId) : document.getElementById('commentInput');
+        if (!input) return;
+        const content = input.value.trim();
+        if (!content) return;
+        const commentType = parentId ? 'discussion' : (document.getElementById('commentTypeSelect')?.value || 'discussion');
+        const form = new URLSearchParams({ userId: currentUserId, content, commentType });
+        if (parentId) form.append('parentId', parentId);
+        if (replyToUserId) form.append('replyToUserId', replyToUserId);
+        const res = await fetch(`/api/tweets/${tweetId}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form });
+        alert(await res.text());
+        input.value = '';
+        loadDetail();
+    }
 
-        for (const root of rootComments) {
-            const replies = childComments.filter(c => c.parentId === root.id);
-            const rootHtml = await renderSingleComment(root, false);
-
-            let repliesHtml = "";
-            if (replies.length > 0) {
-                repliesHtml = `<div class="reply-container">`;
-                for (const reply of replies) {
-                    repliesHtml += await renderSingleComment(reply, true);
+    function groupComments(comments) {
+        const parents = [];
+        const replyMap = new Map();
+        comments.forEach(comment => {
+            if (comment.parentId) {
+                if (!replyMap.has(comment.parentId)) {
+                    replyMap.set(comment.parentId, []);
                 }
-                repliesHtml += `</div>`;
+                replyMap.get(comment.parentId).push(comment);
+            } else {
+                parents.push(comment);
             }
-
-            container.innerHTML += `
-                <div class="comment-wrapper" style="border-bottom:1px solid #eee; padding:15px 0;">
-                    ${rootHtml}
-                    ${repliesHtml}
-                </div>
-            `;
-        }
+        });
+        parents.forEach(comment => {
+            comment.replies = (replyMap.get(comment.id) || []).sort((a, b) => String(a.createTime || '').localeCompare(String(b.createTime || '')));
+        });
+        return parents;
     }
 
-    async function renderSingleComment(c, isReply) {
-        const statusRes = await fetch(`/api/tweets/comments/${c.id}/status?userId=${currentUserId}`);
-        const status = await statusRes.json();
-        const avatar = c.user.avatar ? `/uploads/${c.user.avatar}` : 'https://via.placeholder.com/36';
-        const name = c.user.nickname || c.user.username;
-        const time = c.createTime.replace('T', ' ').substring(0, 16);
-
-        let replyTarget = "";
-        if (c.replyToUser) {
-            const targetName = c.replyToUser.nickname || c.replyToUser.username;
-            replyTarget = ` <span style="color:#999;">▶</span> <span style="color:#00a1d6;font-weight:bold;">@${targetName}</span>`;
-        }
-
-        const likeClass = status.myAction === 1 ? "active-up" : "";
-        const dislikeClass = status.myAction === 2 ? "active-down" : "";
-        const likeIcon = status.myAction === 1 ? "fas fa-thumbs-up" : "far fa-thumbs-up";
-        const dislikeIcon = status.myAction === 2 ? "fas fa-thumbs-down" : "far fa-thumbs-down";
-
-        return `
-            <div class="comment-item" style="display:flex; gap:10px;">
-                <img src="${avatar}" class="c-avatar" onclick="location.href='user_profile.html?id=${c.user.id}'" style="width:${isReply?24:36}px; height:${isReply?24:36}px;">
-                <div class="c-content" style="flex:1;">
-                    <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <div>
-                            <span class="c-name" onclick="location.href='user_profile.html?id=${c.user.id}'">${name}</span>
-                            ${replyTarget}
-                        </div>
-                        <span class="c-time">${time}</span>
-                    </div>
-                    <div class="c-text" style="margin-top:2px; color:#333;">${c.content}</div>
-                    <div class="comment-actions">
-                        <span class="action-btn ${likeClass}" onclick="toggleCommentAction(${c.id}, true)">
-                            <i class="${likeIcon}"></i> ${status.likes || ''}
-                        </span>
-                        <span class="action-btn ${dislikeClass}" onclick="toggleCommentAction(${c.id}, false)">
-                            <i class="${dislikeIcon}"></i>
-                        </span>
-                        <span class="action-btn" onclick="openReplyBox(${c.id}, ${c.parentId || c.id}, '${name}', ${c.user.id})">
-                            <span class="cn">回复</span><span class="en">Reply</span>
-                        </span>
-                    </div>
-                </div>
-            </div>`;
+    function getCommentTypeMeta(type) {
+        const normalized = String(type || 'discussion').toLowerCase();
+        const map = {
+            discussion: {
+                className: 'discussion',
+                icon: 'fa-comments',
+                zh: '学术讨论',
+                en: 'Discussion'
+            },
+            question: {
+                className: 'question',
+                icon: 'fa-circle-question',
+                zh: '问题',
+                en: 'Question'
+            },
+            suggestion: {
+                className: 'suggestion',
+                icon: 'fa-lightbulb',
+                zh: '建议',
+                en: 'Suggestion'
+            },
+            resource: {
+                className: 'resource',
+                icon: 'fa-paperclip',
+                zh: '补充资料',
+                en: 'Resource'
+            },
+            correction: {
+                className: 'correction',
+                icon: 'fa-triangle-exclamation',
+                zh: '错误指出',
+                en: 'Correction'
+            }
+        };
+        return map[normalized] || map.discussion;
     }
 
-    async function toggleCommentAction(commentId, isLike) {
-        await fetch(`/api/tweets/comments/${commentId}/like?userId=${currentUserId}&isLike=${isLike}`, { method: 'POST' });
+    function sortAndFilterTopLevelComments(comments) {
+        const filterMode = document.getElementById('commentFilterSelect')?.value || 'all';
+        const filtered = filterMode === 'all'
+            ? [...comments]
+            : comments.filter(comment => String(comment.commentType || 'discussion').toLowerCase() === filterMode);
+        const sortMode = document.getElementById('commentSortSelect')?.value || 'latest';
+        const quickFilterMode = window.currentCommentQuickFilter || 'all';
+        const quickFiltered = filtered.filter(comment => {
+            if (quickFilterMode === 'accepted') return !!comment.isAcceptedByAuthor;
+            if (quickFilterMode === 'featured') return !!comment.isFeatured;
+            if (quickFilterMode === 'question') return String(comment.commentType || 'discussion').toLowerCase() === 'question';
+            if (quickFilterMode === 'suggestion') return String(comment.commentType || 'discussion').toLowerCase() === 'suggestion';
+            return true;
+        });
+        const comparePriority = (a, b) => {
+            const acceptedDiff = Number(!!b.isAcceptedByAuthor) - Number(!!a.isAcceptedByAuthor);
+            if (acceptedDiff !== 0) return acceptedDiff;
+            const authorPriorityDiff = Number(!!b.isAuthorReply) - Number(!!a.isAuthorReply);
+            if (authorPriorityDiff !== 0) return authorPriorityDiff;
+            return 0;
+        };
+        if (sortMode === 'helpful') {
+            quickFiltered.sort((a, b) => {
+                const priorityDiff = comparePriority(a, b);
+                if (priorityDiff !== 0) return priorityDiff;
+                const helpfulDiff = Number(b.likeCount || 0) - Number(a.likeCount || 0);
+                if (helpfulDiff !== 0) return helpfulDiff;
+                return String(b.createTime || '').localeCompare(String(a.createTime || ''));
+            });
+            return quickFiltered;
+        }
+        quickFiltered.sort((a, b) => {
+            const priorityDiff = comparePriority(a, b);
+            if (priorityDiff !== 0) return priorityDiff;
+            return String(b.createTime || '').localeCompare(String(a.createTime || ''));
+        });
+        return quickFiltered;
+    }
+
+    function refreshCommentQuickFilterState() {
+        const quickFilterMode = window.currentCommentQuickFilter || 'all';
+        document.querySelectorAll('.comment-summary-chip').forEach(chip => {
+            const mode = chip.getAttribute('data-quick-filter');
+            chip.classList.toggle('active', mode === quickFilterMode);
+        });
+    }
+
+    function applyCommentQuickFilter(mode) {
+        const nextMode = mode || 'all';
+        window.currentCommentQuickFilter = window.currentCommentQuickFilter === nextMode && nextMode !== 'all'
+            ? 'all'
+            : nextMode;
+        const filterSelect = document.getElementById('commentFilterSelect');
+        if (window.currentCommentQuickFilter === 'question' || window.currentCommentQuickFilter === 'suggestion') {
+            if (filterSelect) filterSelect.value = window.currentCommentQuickFilter;
+        } else if (mode === 'all' || window.currentCommentQuickFilter === 'all') {
+            if (filterSelect) filterSelect.value = 'all';
+        }
+        refreshCommentQuickFilterState();
         loadComments();
     }
 
-    let currentParentId = null;
-    let currentReplyToUserId = null;
 
-    function openReplyBox(commentId, parentId, userName, userId) {
-        currentParentId = parentId;
-        currentReplyToUserId = userId;
-        const input = document.getElementById("commentInput");
-        input.value = `回复 @${userName} : `;
-        input.focus();
-        document.querySelector(".comment-input-box").scrollIntoView({ behavior: "smooth" });
+    function toggleReplyBox(commentId) {
+        const box = document.getElementById(`replyBox-${commentId}`);
+        if (!box) return;
+        box.classList.toggle('active');
+        if (box.classList.contains('active')) {
+            const input = box.querySelector('.comment-reply-input');
+            if (input) input.focus();
+        }
     }
 
-    async function submitComment() {
-        let content = document.getElementById("commentInput").value;
-        if(!content.trim()) { alert("Empty content"); return; }
+    function formatCommentContent(content) {
+        const safeContent = escapeHtml(content || '');
+        return safeContent.replace(/(^|\s)(@[\w\u4e00-\u9fa5-]+)/g, (match, prefix, mention) => `${prefix}<span class="mention-text" onclick="handleMentionClick('${encodeURIComponent(mention.slice(1))}')">${mention}</span>`);
+    }
 
-        const formData = new FormData();
-        formData.append("userId", currentUserId);
-
-        if (content.startsWith("回复 @") && currentParentId) {
-            formData.append("parentId", currentParentId);
-            if (currentReplyToUserId) formData.append("replyToUserId", currentReplyToUserId);
-        }
-
-        formData.append("content", content);
-
-        const res = await fetch(`/api/tweets/${tweetId}/comments`, { method: 'POST', body: formData });
-        const msg = await res.text();
-
-        if(msg.includes("成功") || msg.includes("success")) {
-            document.getElementById("commentInput").value = "";
-            currentParentId = null;
-            currentReplyToUserId = null;
-            loadComments();
+    function handleMentionClick(encodedName) {
+        const mentionName = decodeURIComponent(encodedName || '').trim();
+        if (!mentionName) return;
+        const mentionDisplay = `@${mentionName}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(mentionDisplay).then(() => {
+                alert(`已复制提及用户名 ${mentionDisplay} / Mention copied: ${mentionDisplay}`);
+            }).catch(() => {
+                alert(`提及用户名 ${mentionDisplay} / Mention: ${mentionDisplay}`);
+            });
         } else {
-            alert(msg);
+            alert(`提及用户名 ${mentionDisplay} / Mention: ${mentionDisplay}`);
         }
     }
 
-    async function startAiReview() {
-        const btn = document.getElementById("aiBtn");
-        const output = document.getElementById("aiOutput");
-        const loader = document.getElementById("loader");
-        const targetLang = document.getElementById("aiLangSelect").value;
-
-        btn.disabled = true;
-        btn.innerHTML = `<span class="cn">分析中...</span><span class="en">Analyzing...</span>`;
-        output.innerHTML = "";
-        output.appendChild(loader);
-        loader.style.display = "block";
-
-        try {
-            const res = await fetch(`/api/ai/evaluate/${tweetId}?lang=${targetLang}`, { method: 'POST' });
-            const data = await res.json();
-            let formatted = data.result.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            output.innerHTML = `<div style="color:#333; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${targetLang === 'zh' ? '分析报告' : 'Review Report'}</div><div style="line-height:1.8; font-size:14px;">${formatted}</div>`;
-        } catch (e) {
-            output.innerHTML = `<div style="color:red;">Error: ${e.message}</div>`;
-            btn.disabled = false;
-            btn.innerHTML = `<span class="cn">✨ 重试</span><span class="en">✨ Retry</span>`;
+    function buildReplyContext(comment) {
+        if (!comment.replyToUser && !comment.parentCommentType) {
+            return '';
         }
+        const replyName = escapeHtml(comment.replyToUser?.nickname || comment.replyToUser?.username || 'User');
+        const parentTypeMeta = getCommentTypeMeta(comment.parentCommentType || 'discussion');
+        return `
+            <div class="c-quote-context">
+                <span class="cn"><strong>回应对象：</strong>${replyName || '该讨论'} · <strong>原讨论类型：</strong>${parentTypeMeta.zh}</span>
+                <span class="en"><strong>Responding to:</strong> ${replyName || 'this thread'} · <strong>Original type:</strong> ${parentTypeMeta.en}</span>
+            </div>
+        `;
     }
 
-    async function submitRating() {
-        const s1 = document.getElementById("score1").value;
-        const s2 = document.getElementById("score2").value;
-        const s3 = document.getElementById("score3").value;
+    function buildCommentBadge(comment, tweetAuthorId) {
+        const badges = [];
+        const typeMeta = getCommentTypeMeta(comment.commentType);
+        badges.push(`<span class="c-badge type ${typeMeta.className}"><i class="fas ${typeMeta.icon}"></i><span class="cn">${typeMeta.zh}</span><span class="en">${typeMeta.en}</span></span>`);
+        if (comment.academicTitle) {
+            badges.push(`<span class="c-badge scholar ${comment.isTopScholar ? 'top' : ''}"><i class="fas ${comment.isTopScholar ? 'fa-crown' : 'fa-graduation-cap'}"></i><span>${escapeHtml(comment.academicTitle)}</span></span>`);
+        }
+        if (comment.isAcceptedByAuthor) {
+            badges.push('<span class="c-badge accepted"><i class="fas fa-circle-check"></i><span class="cn">作者采纳</span><span class="en">Accepted</span></span>');
+        }
+        if (comment.isFeatured) {
+            badges.push('<span class="c-badge featured"><i class="fas fa-award"></i><span class="cn">高价值讨论</span><span class="en">High-value</span></span>');
+        }
+        if (String(comment.user?.id || '') === String(tweetAuthorId || '')) {
+            badges.push('<span class="c-badge author"><i class="fas fa-feather-pointed"></i><span class="cn">作者</span><span class="en">Author</span></span>');
+        }
+        if (comment.replyToUser) {
+            const replyName = escapeHtml(comment.replyToUser.nickname || comment.replyToUser.username || 'User');
+            badges.push(`<span class="c-badge reply"><i class="fas fa-reply"></i><span class="cn">回复 ${replyName}</span><span class="en">Reply to ${replyName}</span></span>`);
+        }
+        return badges.join('');
+    }
 
-        if (s1 == 0 || s2 == 0 || s3 == 0) {
-            alert("请为所有维度打分 / Please rate all dimensions");
+    function renderCommentCard(comment, tweetAuthorId, isReply = false) {
+        const authorName = escapeHtml(comment.user?.nickname || comment.user?.username || 'User');
+        const timeText = escapeHtml((comment.createTime || '').replace('T', ' ').split('.')[0]);
+        const contentText = formatCommentContent(comment.content || '');
+        const quoteContext = isReply ? buildReplyContext(comment) : '';
+        const likeCount = Number(comment.likeCount || 0);
+        const likedClass = comment.isLiked ? ' active' : '';
+        const badges = buildCommentBadge(comment, tweetAuthorId);
+        const replyInputId = `replyInput-${comment.id}`;
+        const priorityClass = comment.isAuthorReply && !isReply ? ' author-priority' : '';
+        const scholarClass = comment.isTopScholar ? ' top-scholar' : '';
+        const priorityNote = comment.isAuthorReply && !isReply
+            ? '<div class="c-priority-note"><i class="fas fa-bullhorn"></i><span class="cn">作者优先答复</span><span class="en">Author priority reply</span></div>'
+            : '';
+        const scholarNote = comment.isTopScholar
+            ? '<div class="c-scholar-note"><i class="fas fa-crown"></i><span class="cn">高等级学术用户 · 评论权重较高</span><span class="en">Top academic tier · higher comment weight</span></div>'
+            : '';
+        const acceptNote = comment.isAcceptedByAuthor
+            ? '<div class="c-scholar-note" style="background:#ecfdf5;color:#166534;border-color:#86efac;"><i class="fas fa-circle-check"></i><span class="cn">作者已采纳该讨论</span><span class="en">Accepted by the author</span></div>'
+            : '';
+        const acceptedReason = comment.isAcceptedByAuthor
+            ? '<div class="c-quote-context" style="background:#f0fdf4;border-color:#86efac;color:#166534;"><span class="cn"><strong>采纳说明：</strong>该讨论被作者认定为对当前研究改进、补充资料或问题澄清具有直接价值。</span><span class="en"><strong>Acceptance note:</strong> The author marked this discussion as directly valuable for improving the research, adding evidence, or clarifying issues.</span></div>'
+            : '';
+        const reputationText = Number(comment.reputation || 0);
+        const weightText = Number(comment.userWeight || 1).toFixed(1);
+        const acceptButton = comment.canAccept
+            ? `<button class="comment-action-btn${comment.isAcceptedByAuthor ? ' active' : ''}" onclick="toggleCommentAccepted(${comment.id})"><i class="fas fa-check-double"></i><span class="cn">${comment.isAcceptedByAuthor ? '取消采纳' : '作者采纳'}</span><span class="en">${comment.isAcceptedByAuthor ? 'Unaccept' : 'Accept'}</span></button>`
+            : '';
+        return `
+            <div class="comment-card${isReply ? ' reply' : ''}${priorityClass}${scholarClass}">
+                <img class="c-avatar" src="${getAvatarSrc(comment.user, 36)}" onclick="location.href='user_profile.html?id=${comment.user?.id}'">
+                <div class="comment-main">
+                    <div class="c-content">
+                        ${priorityNote}
+                        ${scholarNote}
+                        ${acceptNote}
+                        ${quoteContext}
+                        <div class="c-head">
+                            <div class="c-author-row">
+                                <span class="c-name" onclick="location.href='user_profile.html?id=${comment.user?.id}'">${authorName}</span>
+                                ${badges}
+                            </div>
+                            <span class="c-time">${timeText}</span>
+                        </div>
+                        <div class="c-text">${contentText}</div>
+                        ${acceptedReason}
+                        <div class="c-actions">
+                            <button class="comment-action-btn${likedClass}" onclick="toggleCommentLike(${comment.id})"><i class="fas fa-thumbs-up"></i><span>${likeCount}</span><span class="cn">有帮助</span><span class="en">Helpful</span></button>
+                            <button class="comment-action-btn" onclick="toggleReplyBox(${comment.id})"><i class="fas fa-reply"></i><span class="cn">回复</span><span class="en">Reply</span></button>
+                            ${acceptButton}
+                            <span class="comment-action-btn" style="cursor:default;"><i class="fas fa-medal"></i><span class="cn">积分 ${reputationText}</span><span class="en">Reputation ${reputationText}</span></span>
+                            <span class="comment-action-btn" style="cursor:default;"><i class="fas fa-scale-balanced"></i><span class="cn">权重 ${weightText}</span><span class="en">Weight ${weightText}</span></span>
+                        </div>
+                        <div class="comment-reply-box" id="replyBox-${comment.id}">
+                            <input id="${replyInputId}" class="comment-reply-input" type="text" placeholder="回复这条讨论..." data-placeholder-en="Reply to this discussion...">
+                            <button class="comment-reply-submit" onclick="submitComment(${comment.parentId || comment.id}, ${comment.user?.id || 'null'}, '${replyInputId}')"><span class="cn">发送</span><span class="en">Send</span></button>
+                            <button class="comment-reply-cancel" onclick="toggleReplyBox(${comment.id})"><span class="cn">取消</span><span class="en">Cancel</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderCommentThread(comment, tweetAuthorId) {
+        return renderCommentCard(comment, tweetAuthorId, false) + (comment.replies || []).map(reply => renderCommentCard(reply, tweetAuthorId, true)).join('');
+    }
+
+    function renderCommentGroupBlock(options) {
+        const { titleZh, titleEn, subtitleZh, subtitleEn, iconClass, count, comments, tweetAuthorId, featured = false } = options;
+        if (!comments || !comments.length) {
+            return '';
+        }
+        return `
+            <section class="comment-section-group">
+                <div class="comment-group-header">
+                    <div>
+                        <div class="comment-group-title${featured ? ' featured' : ''}"><i class="fas ${iconClass}"></i><span class="cn">${titleZh}</span><span class="en">${titleEn}</span></div>
+                        <div class="comment-group-subtitle"><span class="cn">${subtitleZh}</span><span class="en">${subtitleEn}</span></div>
+                    </div>
+                    <div class="comment-group-count"><i class="fas fa-layer-group"></i><span>${count}</span></div>
+                </div>
+                ${comments.map(comment => renderCommentThread(comment, tweetAuthorId)).join('')}
+            </section>
+        `;
+    }
+
+    async function toggleCommentAccepted(commentId) {
+        if (!currentUserId) {
+            alert('请先登录 / Please login first');
             return;
         }
-
-        const formData = new FormData();
-        formData.append("userId", currentUserId);
-        formData.append("s1", s1);
-        formData.append("s2", s2);
-        formData.append("s3", s3);
-
-        const res = await fetch(`/api/tweets/${tweetId}/rate`, { method: 'POST', body: formData });
-        const msg = await res.text();
-        alert(msg);
-        location.reload();
+        const form = new URLSearchParams({ userId: currentUserId });
+        const res = await fetch(`/api/tweets/comments/${commentId}/accept`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data?.message || '采纳失败 / Accept failed');
+            return;
+        }
+        alert(data.accepted ? '已采纳该讨论 / Discussion accepted' : '已取消采纳 / Acceptance removed');
+        loadDetail();
     }
 
-    function setRate(groupId, score) {
-        document.getElementById(`score${groupId}`).value = score;
-        const stars = document.querySelectorAll(`#starGroup${groupId} i`);
-        stars.forEach((star, index) => {
-            if (index < score) {
-                star.classList.remove("far");
-                star.classList.add("fas");
-                star.classList.add("active");
-            } else {
-                star.classList.remove("fas");
-                star.classList.add("far");
-                star.classList.remove("active");
-            }
+    async function toggleCommentLike(commentId) {
+        if (!currentUserId) {
+            alert('请先登录 / Please login first');
+            return;
+        }
+        const form = new URLSearchParams({ userId: currentUserId });
+        await fetch(`/api/tweets/comments/${commentId}/like`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form
         });
+        loadComments();
+    }
+
+    async function loadComments(signals = currentSignalsCache) {
+        const res = await fetch(`/api/tweets/${tweetId}/comments${currentUserId ? `?userId=${currentUserId}` : ''}`);
+        const comments = await res.json();
+        const list = document.getElementById('commentList');
+        list.innerHTML = '';
+        const totalComments = signals?.comments ?? comments.length;
+        const topLevelCount = comments.filter(item => !item.parentId).length;
+        const replyCount = comments.filter(item => !!item.parentId).length;
+        const acceptedCount = comments.filter(item => !!item.isAcceptedByAuthor).length;
+        const featuredCount = comments.filter(item => !!item.isFeatured).length;
+        const questionCount = comments.filter(item => String(item.commentType || 'discussion').toLowerCase() === 'question').length;
+        const suggestionCount = comments.filter(item => String(item.commentType || 'discussion').toLowerCase() === 'suggestion').length;
+        if (window.currentCommentQuickFilter === 'replies') {
+            window.currentCommentQuickFilter = 'all';
+        }
+        refreshCommentQuickFilterState();
+        document.getElementById('signalComments').innerText = totalComments;
+        document.getElementById('commentCountChip').innerText = topLevelCount;
+        document.getElementById('commentReplyChip').innerText = replyCount;
+        document.getElementById('commentAcceptedChip').innerText = acceptedCount;
+        document.getElementById('commentFeaturedChip').innerText = featuredCount;
+        document.getElementById('commentQuestionChip').innerText = questionCount;
+        document.getElementById('commentSuggestionChip').innerText = suggestionCount;
+        if (signals?.hotScore != null) {
+            document.getElementById('signalHot').innerText = signals.hotScore;
+        }
+        if (!comments.length) {
+            list.innerHTML = `<div class="comment-empty"><span class="cn">还没有讨论，欢迎发布第一个问题、建议或补充资料。</span><span class="en">No discussion yet. Be the first to post a question, suggestion, or supporting note.</span></div>`;
+            return;
+        }
+        const groupedComments = groupComments(comments);
+        const tweetAuthorId = currentTweetCache?.author?.id;
+        const grouped = sortAndFilterTopLevelComments(groupedComments);
+        if (!grouped.length) {
+            list.innerHTML = `<div class="comment-empty"><span class="cn">当前筛选下还没有匹配的讨论，可以切换筛选条件查看全部内容。</span><span class="en">No discussion matches the current filter. Switch filters to view more items.</span></div>`;
+            return;
+        }
+        const featuredComments = grouped.filter(comment => !!comment.isFeatured);
+        const regularComments = grouped.filter(comment => !comment.isFeatured);
+        const featuredHtml = renderCommentGroupBlock({
+            titleZh: '精选讨论',
+            titleEn: 'Featured discussions',
+            subtitleZh: '这里聚合当前最有帮助、最值得优先阅读的高价值讨论。',
+            subtitleEn: 'This section highlights the most helpful and valuable discussions to read first.',
+            iconClass: 'fa-award',
+            count: featuredComments.length,
+            comments: featuredComments,
+            tweetAuthorId,
+            featured: true
+        });
+        const regularHtml = renderCommentGroupBlock({
+            titleZh: '全部讨论',
+            titleEn: 'All discussions',
+            subtitleZh: featuredComments.length ? '以下为其余讨论串，按当前排序与筛选规则展示。' : '当前全部讨论都在这里展示。',
+            subtitleEn: featuredComments.length ? 'The remaining threads are listed below using the current sorting and filter rules.' : 'All available discussions are shown in this section.',
+            iconClass: 'fa-comments',
+            count: regularComments.length,
+            comments: regularComments,
+            tweetAuthorId,
+            featured: false
+        });
+        list.innerHTML = featuredHtml + (featuredHtml && regularHtml ? '<div class="comment-divider"></div>' : '') + regularHtml;
+        const currentLang = localStorage.getItem('appLang') || 'zh';
+        if (typeof applyLang === 'function') applyLang(currentLang);
+        list.querySelectorAll('.comment-reply-input').forEach(input => {
+            input.placeholder = currentLang === 'en'
+                ? (input.getAttribute('data-placeholder-en') || input.placeholder)
+                : '回复这条讨论...';
+        });
+    }
+
+    async function shareResearch() {
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/share`, { method: 'POST' });
+            if (!res.ok) throw new Error('Share failed');
+            const data = await res.json();
+            const nextSignals = data.signals || currentSignalsCache;
+            if (navigator.clipboard && window.location.href) {
+                navigator.clipboard.writeText(window.location.href).catch(() => {});
+            }
+            if (nextSignals) {
+                updateSignalSummary(nextSignals);
+                document.getElementById('signalShares').innerText = nextSignals.shares ?? 0;
+                document.getElementById('signalHot').innerText = nextSignals.hotScore ?? 0;
+            }
+            alert('链接已复制，分享次数已记录 / Link copied and share recorded');
+        } catch (error) {
+            console.error(error);
+            alert('分享失败 / Share failed');
+        }
+    }
+
+    async function bookmarkResearch() {
+        if (!currentUserId) {
+            alert('请先登录 / Please login first');
+            return;
+        }
+        const btn = document.getElementById('bookmarkBtn');
+        if (btn) btn.disabled = true;
+        try {
+            const form = new URLSearchParams({ userId: currentUserId });
+            const res = await fetch(`/api/tweets/${tweetId}/bookmark`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: form
+            });
+            if (!res.ok) throw new Error('Bookmark failed');
+            const data = await res.json();
+            const nextSignals = data.signals || currentSignalsCache;
+            const bookmarkCount = data.bookmarkCount ?? nextSignals?.bookmarks ?? 0;
+            if (nextSignals) {
+                updateSignalSummary(nextSignals);
+                document.getElementById('signalHot').innerText = nextSignals.hotScore ?? 0;
+            }
+            document.getElementById('signalBookmarks').innerText = bookmarkCount;
+            document.getElementById('summaryBookmarks').innerText = bookmarkCount;
+            if (currentTweetCache) currentTweetCache.bookmarkCount = bookmarkCount;
+            updateBookmarkButtonState(!!data.isFavorited);
+            alert(data.isFavorited ? '已加入我的收藏 / Added to favorites' : '已从我的收藏移除 / Removed from favorites');
+        } catch (error) {
+            console.error(error);
+            alert('收藏失败 / Bookmark failed');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function startAiTask(task) {
+        const aiOutput = document.getElementById('aiOutput');
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+        aiOutput.querySelector('p')?.remove();
+        try {
+            const lang = document.getElementById('aiLangSelect').value;
+            const res = await fetch(`/api/ai/${task}/${tweetId}?lang=${lang}`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            loader.style.display = 'none';
+            aiOutput.innerHTML = `<div style="white-space: pre-wrap;">${data.result || 'AI 未返回内容 / No AI response'}</div>`;
+        } catch (e) {
+            loader.style.display = 'none';
+            aiOutput.innerHTML = '<div style="color:#ef4444;">AI analysis failed.</div>';
+        }
     }
 </script>
 </body>

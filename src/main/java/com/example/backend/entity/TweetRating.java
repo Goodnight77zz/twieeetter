@@ -13,9 +13,11 @@ public class TweetRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer score1; // 创新
-    private Integer score2; // 方法
-    private Integer score3; // 实用
+    private Integer score1; // 创新性
+    private Integer score2; // 方法严谨性
+    private Integer score3; // 证据充分性
+    private Integer score4; // 可复现性
+    private Integer score5; // 应用/传播价值
 
     @ManyToOne
     @JoinColumn(name = "user_id")

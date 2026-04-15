@@ -22,7 +22,7 @@ public class Notification {
     @JoinColumn(name = "actor_id")
     private User actor;
 
-    // 通知类型: 1=评论文章, 2=回复评论, 3=点赞文章, 4=点赞评论
+    // 通知类型: 0=点赞文章, 1=评论文章, 2=回复评论, 3=订阅推送新成果, 4=点赞评论
     private Integer type;
 
     // 关联的目标ID (文章ID 或 评论ID)

@@ -2,424 +2,259 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>
-        <span class="cn">全局搜索</span>
-        <span class="en">Global Search</span>
-    </title>
-    <!-- 引入通用语言组件CSS -->
+<title>Global Search</title>
     <link rel="stylesheet" href="common/lang-component.css">
-    <!-- 引入Font Awesome图标（用于标签样式） -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding-top: 60px; }
+        .navbar { position: fixed; top: 0; width: 100%; background: white; height: 60px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box; z-index: 1000; }
+        .nav-link { margin-right: 20px; text-decoration: none; color: #555; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+        .nav-link:hover { color: #1da1f2; }
+        .nav-title { font-weight: bold; font-size: 18px; margin-left: auto; display: flex; align-items: center; gap: 8px; color: #1da1f2; }
+        .container { max-width: 1080px; margin: 30px auto; padding: 0 20px; }
+        .search-header { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        .search-tabs { display: flex; border-bottom: 1px solid #eee; margin-bottom: 15px; }
+        .search-tab { padding: 8px 20px; font-weight: 600; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .search-tab.active { color: #1da1f2; border-bottom-color: #1da1f2; }
+        .search-tab:hover:not(.active) { color: #333; border-bottom-color: #eee; }
+        .search-box { display: flex; gap: 10px; }
+        input, select { padding: 14px 20px; border-radius: 14px; border: 1px solid #e1e8ed; outline: none; font-size: 15px; transition: border 0.2s, box-shadow 0.2s; background: #fff; }
+        #keyword { flex: 1; border-radius: 30px; }
+        input:focus, select:focus { border-color: #1da1f2; box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.1); }
+        button.search-btn { padding: 12px 28px; border-radius: 30px; border: none; background: #1da1f2; color: white; font-weight: bold; cursor: pointer; font-size: 15px; transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
+        button.search-btn:hover { background: #1a91da; }
+        .search-hint { font-size: 13px; color: #888; margin-top: 8px; padding-left: 20px; }
+        .ai-search-card { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 16px; background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%); border: 1px solid #bfdbfe; }
+        .ai-search-card.active { display: block; }
+        .ai-search-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .ai-search-title { font-size: 14px; font-weight: 800; color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+        .ai-search-summary { margin-top: 8px; font-size: 13px; color: #475467; line-height: 1.6; }
+        .ai-search-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .ai-search-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid #dbeafe; color: #1e40af; font-size: 12px; font-weight: 700; }
+        .ai-search-chip strong { color: #0f172a; }
+        .ai-search-status { font-size: 12px; font-weight: 700; color: #1d4ed8; }
+        .ai-search-status.error { color: #b42318; }
+        .filters-panel { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #eef2f5; }
+        .filters-panel.active { display: block; }
+        .filters-title { font-size: 14px; font-weight: 700; color: #344054; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .filters-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+        .filter-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .sort-group { display: flex; align-items: center; gap: 10px; }
+        .active-filter-summary { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f8ff 100%); border: 1px solid #dbeafe; }
+        .active-filter-summary.active { display: block; }
+        .summary-title { font-size: 13px; font-weight: 800; color: #1d4ed8; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .summary-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .summary-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid #dbeafe; color: #1e40af; font-size: 12px; font-weight: 700; }
+        .summary-chip strong { color: #0f172a; }
+        .sort-label { color: #475467; font-size: 13px; font-weight: 700; }
+        .sort-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sort-btn { border: 1px solid #d0d5dd; background: #fff; color: #344054; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .sort-btn:hover { background: #f8fafc; border-color: #98a2b3; }
+        .sort-btn.active { background: #1da1f2; border-color: #1da1f2; color: #fff; box-shadow: 0 4px 10px rgba(29, 161, 242, 0.18); }
+        .ghost-btn { border: 1px solid #cfd9de; background: #fff; color: #344054; border-radius: 12px; padding: 10px 16px; font-weight: 600; cursor: pointer; }
+        .ghost-btn:hover { background: #f8fafc; }
+        .recommendation-banner { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 16px; background: linear-gradient(135deg, #eff6ff 0%, #f8fbff 100%); border: 1px solid #bfdbfe; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); }
+        .recommendation-banner.active { display: block; }
+        .recommendation-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .recommendation-title { font-size: 14px; font-weight: 800; color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+        .recommendation-subtitle { font-size: 13px; color: #475467; margin-top: 6px; line-height: 1.6; }
+        .recommendation-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #fff; color: #1e3a8a; border: 1px solid #bfdbfe; font-size: 12px; font-weight: 800; }
+        .recommendation-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .recommendation-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.88); border: 1px solid #dbeafe; color: #1e40af; font-size: 12px; font-weight: 700; }
+        .recommendation-note { margin-top: 12px; font-size: 12px; color: #475467; line-height: 1.6; }
+        .result-list { display: flex; flex-direction: column; gap: 12px; }
+        .result-empty { background: white; padding: 40px 20px; border-radius: 12px; text-align: center; color: #777; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .empty-icon { font-size: 48px; margin-bottom: 15px; color: #ddd; }
+        .empty-text { font-size: 16px; margin-bottom: 8px; }
+        .empty-subtext { font-size: 14px; color: #999; }
+        .user-card { background: white; padding: 18px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.1s, box-shadow 0.1s; }
+        .user-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .user-info { display: flex; align-items: center; cursor: pointer; }
+        .avatar { width: 58px; height: 58px; border-radius: 50%; margin-right: 18px; object-fit: cover; border: 2px solid #f5f8fa; }
+        .user-meta { display: flex; flex-direction: column; }
+        .name { font-weight: 600; font-size: 17px; color: #14171a; }
+        .handle { color: #657786; font-size: 14px; margin-top: 2px; }
+        .follow-btn, .followed-btn { padding: 7px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 14px; min-width: 110px; transition: all 0.2s; }
+        .follow-btn { background: white; border: 1px solid #1da1f2; color: #1da1f2; }
+        .follow-btn:hover { background: #e8f5fe; border-color: #1a91da; }
+        .followed-btn { background: #fff; border: 1px solid #cfd9de; color: #0f1419; }
+        .followed-btn:hover { border-color: #f4212e; color: #f4212e; background-color: #fef2f2; }
+        .post-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.1s, box-shadow 0.1s; cursor: pointer; }
+        .post-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .post-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .post-author-wrap { display: flex; align-items: center; }
+        .post-avatar { width: 42px; height: 42px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
+        .post-author { display: flex; flex-direction: column; }
+        .post-author-name { font-weight: 600; font-size: 15px; color: #14171a; }
+        .post-time { font-size: 13px; color: #657786; margin-top: 1px; }
+        .score-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff7d6; color: #9a6700; border: 1px solid #fde68a; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 800; }
+        .post-title { font-size: 20px; font-weight: 700; color: #14171a; margin-bottom: 10px; line-height: 1.4; }
+        .post-submeta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .post-submeta-item { background: #f8fbff; color: #2563eb; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .post-excerpt { font-size: 15px; color: #657786; line-height: 1.6; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .post-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .post-tag { background: #f5f8fa; color: #1da1f2; padding: 4px 12px; border-radius: 16px; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+        .post-meta { display: flex; align-items: center; gap: 20px; margin-top: 15px; font-size: 13px; color: #657786; flex-wrap: wrap; }
+        .post-meta-item { display: flex; align-items: center; gap: 5px; }
+        .post-quality { margin-top: 14px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+        .subscription-inline { margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f1f7ff 100%); border: 1px solid #dbeafe; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .subscription-inline-info { display: flex; flex-direction: column; gap: 6px; color: #1e3a8a; }
+        .subscription-inline-title { font-size: 14px; font-weight: 800; color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+        .subscription-inline-text { font-size: 13px; color: #475467; line-height: 1.5; }
+        .subscription-inline-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .subscription-inline-btn { border: none; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .subscription-inline-btn.primary { background: #1d4ed8; color: #fff; box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18); }
+        .subscription-inline-btn.primary:hover { background: #1e40af; }
+        .subscription-inline-btn.secondary { background: #fff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .subscription-inline-btn.secondary:hover { background: #eff6ff; }
+        .subscription-inline-btn:disabled { opacity: 0.65; cursor: not-allowed; box-shadow: none; }
+        .subscription-inline-status { width: 100%; font-size: 12px; font-weight: 700; color: #2563eb; }
+        .subscription-inline-status.error { color: #b42318; }
+        .quality-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: #334155; }
+        .quality-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+        .quality-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #2563eb); border-radius: 999px; }
+        .quality-tips { font-size: 12px; color: #64748b; margin-top: 8px; }
+        .discovery-strip { margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .signal-chip { display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; color: #475467; border: 1px solid #e4e7ec; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .trust-tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+        .trust-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid transparent; }
+        .trust-tag.warn { background: #fff8f1; color: #c2410c; border-color: #fed7aa; }
+        .trust-tag.info { background: #f5f9ff; color: #2563eb; border-color: #bfdbfe; }
+        .trust-tag.good { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .trust-tag.neutral { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+        @media (max-width: 900px) {
+            .filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding-top: 60px;
-        }
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: white;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-        .nav-link {
-            margin-right: 20px;
-            text-decoration: none;
-            color: #555;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: color 0.2s;
-        }
-        .nav-link:hover {
-            color: #1da1f2;
-        }
-        .nav-title {
-            font-weight: bold;
-            font-size: 18px;
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #1da1f2;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .search-header {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-        }
-        .search-tabs {
-            display: flex;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 15px;
-        }
-        .search-tab {
-            padding: 8px 20px;
-            font-weight: 600;
-            color: #666;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .search-tab.active {
-            color: #1da1f2;
-            border-bottom-color: #1da1f2;
-        }
-        .search-tab:hover:not(.active) {
-            color: #333;
-            border-bottom-color: #eee;
-        }
-        .search-box {
-            display: flex;
-            gap: 10px;
-        }
-        input {
-            flex: 1;
-            padding: 14px 20px;
-            border-radius: 30px;
-            border: 1px solid #e1e8ed;
-            outline: none;
-            font-size: 15px;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
-        input:focus {
-            border-color: #1da1f2;
-            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.1);
-        }
-        button.search-btn {
-            padding: 12px 28px;
-            border-radius: 30px;
-            border: none;
-            background: #1da1f2;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        button.search-btn:hover {
-            background: #1a91da;
-        }
-        .search-hint {
-            font-size: 13px;
-            color: #888;
-            margin-top: 8px;
-            padding-left: 20px;
-        }
-
-        /* 结果列表通用样式 */
-        .result-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .result-empty {
-            background: white;
-            padding: 40px 20px;
-            border-radius: 12px;
-            text-align: center;
-            color: #777;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #ddd;
-        }
-        .empty-text {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        .empty-subtext {
-            font-size: 14px;
-            color: #999;
-        }
-
-        /* 用户卡片样式 */
-        .user-card {
-            background: white;
-            padding: 18px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .user-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .avatar {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            margin-right: 18px;
-            object-fit: cover;
-            border: 2px solid #f5f8fa;
-        }
-        .user-meta {
-            display: flex;
-            flex-direction: column;
-        }
-        .name {
-            font-weight: 600;
-            font-size: 17px;
-            color: #14171a;
-        }
-        .handle {
-            color: #657786;
-            font-size: 14px;
-            margin-top: 2px;
-        }
-
-        /* 关注按钮样式 */
-        .follow-btn {
-            background: white;
-            border: 1px solid #1da1f2;
-            color: #1da1f2;
-            padding: 7px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-            min-width: 110px;
-        }
-        .follow-btn:hover {
-            background: #e8f5fe;
-            border-color: #1a91da;
-        }
-        .followed-btn {
-            background: #fff;
-            border: 1px solid #cfd9de;
-            color: #0f1419;
-            padding: 7px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            min-width: 110px;
-            transition: all 0.2s;
-        }
-        .followed-btn:hover {
-            border-color: #f4212e;
-            color: #f4212e;
-            background-color: #fef2f2;
-        }
-
-        /* 文章卡片样式 */
-        .post-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.1s, box-shadow 0.1s;
-            cursor: pointer;
-        }
-        .post-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .post-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            margin-right: 12px;
-            object-fit: cover;
-        }
-        .post-author {
-            display: flex;
-            flex-direction: column;
-        }
-        .post-author-name {
-            font-weight: 600;
-            font-size: 15px;
-            color: #14171a;
-        }
-        .post-time {
-            font-size: 13px;
-            color: #657786;
-            margin-top: 1px;
-        }
-        .post-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #14171a;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-        .post-excerpt {
-            font-size: 15px;
-            color: #657786;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .post-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .post-tag {
-            background: #f5f8fa;
-            color: #1da1f2;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .post-meta {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 15px;
-            font-size: 13px;
-            color: #657786;
-        }
-        .post-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* 响应式适配 */
         @media (max-width: 600px) {
-            .search-tabs {
-                justify-content: space-between;
-            }
-            .search-tab {
-                padding: 8px 10px;
-                font-size: 14px;
-            }
-            .search-box {
-                flex-direction: column;
-            }
-            button.search-btn {
-                width: 100%;
-                justify-content: center;
-            }
-            .user-card {
-                padding: 15px;
-            }
-            .avatar {
-                width: 50px;
-                height: 50px;
-            }
-            .post-card {
-                padding: 15px;
-            }
+            .search-tabs { justify-content: space-between; }
+            .search-tab { padding: 8px 10px; font-size: 14px; }
+            .search-box { flex-direction: column; }
+            button.search-btn { width: 100%; justify-content: center; }
+            .user-card { padding: 15px; }
+            .avatar { width: 50px; height: 50px; }
+            .post-card { padding: 15px; }
+            .filters-grid { grid-template-columns: 1fr; }
+            .filter-actions { align-items: stretch; }
+            .sort-group { flex-direction: column; align-items: flex-start; }
+            .post-header { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
 <div class="navbar">
-    <a href="index.html" class="nav-link">
-        <i class="fas fa-arrow-left"></i>
-        <span class="cn">返回广场</span>
-        <span class="en">Back to Plaza</span>
-    </a>
-    <a href="friends.html" class="nav-link">
-        <i class="fas fa-users"></i>
-        <span class="cn">我的好友</span>
-        <span class="en">My Friends</span>
-    </a>
-    <div class="nav-title">
-        <i class="fas fa-search"></i>
-        <span class="cn">全局搜索</span>
-        <span class="en">Global Search</span>
-    </div>
+    <a href="index.html" class="nav-link"><i class="fas fa-arrow-left"></i><span class="cn">返回广场</span><span class="en">Back to Plaza</span></a>
+    <a href="friends.html" class="nav-link"><i class="fas fa-users"></i><span class="cn">我的好友</span><span class="en">My Friends</span></a>
+    <div class="nav-title"><i class="fas fa-search"></i><span class="cn">全局搜索</span><span class="en">Global Search</span></div>
 </div>
 
 <div class="container">
     <div class="search-header">
-        <!-- 搜索类型切换标签 -->
         <div class="search-tabs">
-            <div class="search-tab active" data-type="user">
-                <span class="cn">搜索用户</span>
-                <span class="en">Search Users</span>
-            </div>
-            <div class="search-tab" data-type="post">
-                <span class="cn">搜索文章</span>
-                <span class="en">Search Posts</span>
-            </div>
+            <div class="search-tab active" data-type="user"><span class="cn">搜索用户</span><span class="en">Search Users</span></div>
+            <div class="search-tab" data-type="post"><span class="cn">搜索研究成果</span><span class="en">Search Research Works</span></div>
         </div>
 
         <div class="search-box">
             <input type="text" id="keyword" placeholder="输入昵称或账号查找用户..." data-placeholder-en="Enter nickname or account to search users...">
-            <button class="search-btn" onclick="search()">
-                <i class="fas fa-search"></i>
-                <span class="cn">搜索</span>
-                <span class="en">Search</span>
-            </button>
+            <button class="search-btn" onclick="search()"><i class="fas fa-search"></i><span class="cn">搜索</span><span class="en">Search</span></button>
+            <button class="search-btn" id="aiSearchBtn" onclick="runAiSearch()" style="display:none; background:#2563eb;"><i class="fas fa-sparkles"></i><span class="cn">AI智能搜索</span><span class="en">AI Search</span></button>
         </div>
 
-        <div class="search-hint" id="searchHint">
-            <span class="cn">提示：可搜索用户昵称、账号</span>
-            <span class="en">Hint: Search by user nickname or account</span>
+        <div class="search-hint" id="searchHint"><span class="cn">提示：可搜索用户昵称、账号</span><span class="en">Hint: Search by user nickname or account</span></div>
+
+        <div class="ai-search-card" id="aiSearchCard">
+            <div class="ai-search-top">
+                <div>
+                    <div class="ai-search-title"><i class="fas fa-brain"></i><span class="cn">AI 搜索理解</span><span class="en">AI Search Understanding</span></div>
+                    <div class="ai-search-summary" id="aiSearchSummary"><span class="cn">AI 会将自然语言检索需求解析为结构化筛选条件。</span><span class="en">AI will convert your natural-language request into structured filters.</span></div>
+                </div>
+                <div class="ai-search-status" id="aiSearchStatus"></div>
+            </div>
+            <div class="ai-search-chips" id="aiSearchChips"></div>
+        </div>
+
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filters-title"><i class="fas fa-filter"></i><span class="cn">研究成果筛选</span><span class="en">Research Work Filters</span></div>
+            <div class="filters-grid">
+                <select id="filterResearchArea">
+                    <option value="" data-cn="全部研究领域" data-en="All Research Areas">全部研究领域</option>
+                    <option value="人工智能" data-cn="人工智能" data-en="Artificial Intelligence">人工智能</option>
+                    <option value="生物医学" data-cn="生物医学" data-en="Biomedical">生物医学</option>
+                    <option value="计算机科学" data-cn="计算机科学" data-en="Computer Science">计算机科学</option>
+                    <option value="数据科学" data-cn="数据科学" data-en="Data Science">数据科学</option>
+                    <option value="教育科技" data-cn="教育科技" data-en="EdTech">教育科技</option>
+                </select>
+                <select id="filterContentType">
+                    <option value="" data-cn="全部内容类型" data-en="All Content Types">全部内容类型</option>
+                    <option value="paper" data-cn="论文" data-en="Paper">论文</option>
+                    <option value="dataset" data-cn="数据集" data-en="Dataset">数据集</option>
+                    <option value="project" data-cn="项目" data-en="Project">项目</option>
+                    <option value="report" data-cn="报告" data-en="Report">报告</option>
+                    <option value="code" data-cn="代码仓库" data-en="Code Repository">代码仓库</option>
+                </select>
+                <select id="filterPublicationType">
+                    <option value="" data-cn="全部成果形式" data-en="All Work Formats">全部成果形式</option>
+                    <option value="journal" data-cn="期刊" data-en="Journal">期刊</option>
+                    <option value="conference" data-cn="会议" data-en="Conference">会议</option>
+                    <option value="preprint" data-cn="预印本" data-en="Preprint">预印本</option>
+                    <option value="thesis" data-cn="学位论文" data-en="Thesis">学位论文</option>
+                    <option value="internal" data-cn="内部成果" data-en="Internal">内部成果</option>
+                </select>
+                <select id="filterStatus">
+                    <option value="" data-cn="全部开放状态" data-en="All Sharing Status">全部开放状态</option>
+                    <option value="draft" data-cn="草稿" data-en="Draft">草稿</option>
+                    <option value="ongoing" data-cn="进行中" data-en="Ongoing">进行中</option>
+                    <option value="submitted" data-cn="已投稿" data-en="Submitted">已投稿</option>
+                    <option value="published" data-cn="已发表" data-en="Published">已发表</option>
+                </select>
+                <select id="filterLanguage">
+                    <option value="" data-cn="全部语言" data-en="All Languages">全部语言</option>
+                    <option value="中文" data-cn="中文" data-en="Chinese">中文</option>
+                    <option value="English" data-cn="英文" data-en="English">英文</option>
+                    <option value="双语" data-cn="双语" data-en="Bilingual">双语</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <div class="sort-group">
+                    <span class="sort-label"><span class="cn">发现排序</span><span class="en">Discovery Sort</span></span>
+                    <div class="sort-buttons">
+                        <button class="sort-btn active" data-sort="latest" onclick="setPostSort('latest')"><span class="cn">最新</span><span class="en">Latest</span></button>
+                        <button class="sort-btn" data-sort="hot" onclick="setPostSort('hot')"><span class="cn">热门</span><span class="en">Hot</span></button>
+                        <button class="sort-btn" data-sort="topRated" onclick="setPostSort('topRated')"><span class="cn">高评分</span><span class="en">Top Rated</span></button>
+                        <button class="sort-btn" data-sort="mostDiscussed" onclick="setPostSort('mostDiscussed')"><span class="cn">讨论最多</span><span class="en">Most Discussed</span></button>
+                        <button class="sort-btn" data-sort="recommended" onclick="setPostSort('recommended')"><span class="cn">推荐</span><span class="en">Recommended</span></button>
+                    </div>
+                </div>
+                <button class="ghost-btn" onclick="resetFilters()"><span class="cn">重置筛选</span><span class="en">Reset Filters</span></button>
+            </div>
+        </div>
+        <div class="active-filter-summary" id="activeFilterSummary">
+            <div class="summary-title"><i class="fas fa-compass"></i><span class="cn">当前发现条件</span><span class="en">Current Discovery Context</span></div>
+            <div class="summary-row" id="activeFilterSummaryRow"></div>
+        </div>
+        <div class="recommendation-banner" id="recommendationBanner">
+            <div class="recommendation-top">
+                <div>
+                    <div class="recommendation-title"><i class="fas fa-sparkles"></i><span class="cn">搜索推荐排序</span><span class="en">Recommended Search Ranking</span></div>
+                    <div class="recommendation-subtitle" id="recommendationSummary"><span class="cn">系统将根据你的兴趣画像，在搜索结果中优先展示更相关的研究成果。</span><span class="en">The system will prioritize more relevant research works in search results based on your interest profile.</span></div>
+                </div>
+                <div class="recommendation-pill" id="recommendationDominant"><i class="fas fa-brain"></i><span class="cn">兴趣分析中</span><span class="en">Analyzing interests</span></div>
+            </div>
+            <div class="recommendation-pills" id="recommendationPills"></div>
+            <div class="recommendation-note" id="recommendationNote"><span class="cn">仅在“推荐”排序下，系统会结合兴趣画像、订阅领域与标签相关性调整搜索结果顺序；其他排序保持原始逻辑。</span><span class="en">Only the Recommended sort adjusts search ranking with your interest profile, subscriptions, and tag relevance; other sorts keep their original logic.</span></div>
         </div>
     </div>
-
-    <!-- 搜索结果列表 -->
+ 
     <div class="result-list" id="resultList">
-        <!-- 初始空状态 -->
         <div class="result-empty">
-            <div class="empty-icon">
-                <i class="fas fa-search"></i>
-            </div>
-            <div class="empty-text">
-                <span class="cn">开始你的搜索</span>
-                <span class="en">Start your search</span>
-            </div>
-            <div class="empty-subtext">
-                <span class="cn">搜索用户、文章标题或标签</span>
-                <span class="en">Search users, post titles or tags</span>
-            </div>
+            <div class="empty-icon"><i class="fas fa-search"></i></div>
+            <div class="empty-text"><span class="cn">开始你的搜索</span><span class="en">Start your search</span></div>
+            <div class="empty-subtext"><span class="cn">搜索用户，或搜索标题、关键词、机构、DOI 等研究信息</span><span class="en">Search users, or search titles, keywords, institutions, DOI and more</span></div>
         </div>
     </div>
 </div>
 
-<!-- 通用语言切换组件HTML -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -427,153 +262,536 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            中文
-        </button>
-        <button class="lang-option" id="langEn" onclick="switchLang('en')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            English
-        </button>
+        <button class="lang-option" id="langCn" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" id="langEn" onclick="switchLang('en')">English</button>
     </div>
 </div>
 
-<!-- 引入jQuery（用于语言切换时的选择器操作） -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<!-- 引入通用语言组件JS -->
 <script src="common/lang-component.js"></script>
-
 <script>
     const currentUserId = localStorage.getItem("userId");
-    let myFollowingIds = []; // 存储好友ID
+    let myFollowingIds = [];
     let currentLang = localStorage.getItem('appLang') || 'cn';
-    let currentSearchType = 'user'; // 当前搜索类型：user/post
+    let currentSearchType = 'user';
+    let lastPostResults = [];
+    let currentPostSort = 'latest';
+    let aiSearchIntent = null;
 
-    // 监听语言切换事件
+    function buildPostSearchUrl(keyword) {
+        const filters = getActiveFilters();
+        const params = new URLSearchParams();
+        params.set('keyword', keyword || '');
+        params.set('sort', currentPostSort === 'recommended' ? 'latest' : currentPostSort);
+        params.set('limit', '50');
+        if (filters.researchArea) params.set('researchArea', filters.researchArea);
+        if (filters.contentType) params.set('contentType', filters.contentType);
+        if (filters.publicationType) params.set('publicationType', filters.publicationType);
+        if (filters.status) params.set('status', filters.status);
+        if (filters.language) params.set('language', filters.language);
+        return `/api/tweets/search?${params.toString()}`;
+    }
+
+    function normalizePostItem(item) {
+        const post = item && item.tweet ? item.tweet : item;
+        const signals = item && item.signals ? item.signals : {};
+        if (!post) {
+            return null;
+        }
+        post.likeCount = Number(signals.likes || post.likeCount || 0);
+        post.commentCount = Number(signals.comments || post.commentCount || 0);
+        post.downloadCount = Number(signals.downloads || post.downloadCount || 0);
+        post.viewCount = Number(signals.views || post.viewCount || 0);
+        post.shareCount = Number(signals.shares || post.shareCount || 0);
+        post.bookmarkCount = Number(signals.bookmarks || post.bookmarkCount || 0);
+        post.avgScore = Number(signals.averageScore || post.avgScore || 0);
+        post.hotScore = Number(signals.hotScore || post.hotScore || 0);
+        post.ratingCount = Number(signals.ratingCount || post.ratingCount || 0);
+        post.freshnessLevel = signals.freshnessLevel || post.freshnessLevel || '';
+        post.engagementLevel = signals.engagementLevel || post.engagementLevel || '';
+        post.expertCount = Number(signals.expertCount || post.expertCount || 0);
+        const radar = signals.radar || post.radar || {};
+        post.radar = {
+            s1: Number(radar.s1 || 0),
+            s2: Number(radar.s2 || 0),
+            s3: Number(radar.s3 || 0),
+            s4: Number(radar.s4 || 0),
+            s5: Number(radar.s5 || 0),
+            ratingCount: Number(radar.ratingCount || post.ratingCount || 0),
+            expertCount: Number(radar.expertCount || post.expertCount || 0)
+        };
+        return post;
+    }
+
+    function normalizeSubscriptionValue(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function normalizeInterestLabel(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function getAvatarInitial(user) {
+        const source = String(user?.nickname || user?.username || user?.email || 'U').trim();
+        return source ? source.charAt(0).toUpperCase() : 'U';
+    }
+
+    function buildDefaultAvatarDataUri(user, size = 64) {
+        const initial = getAvatarInitial(user);
+        const palette = [
+            ['#60a5fa', '#2563eb'],
+            ['#818cf8', '#4f46e5'],
+            ['#34d399', '#059669'],
+            ['#f59e0b', '#d97706'],
+            ['#f472b6', '#db2777'],
+            ['#22d3ee', '#0891b2']
+        ];
+        const seedText = String(user?.username || user?.nickname || user?.id || initial);
+        const seed = seedText.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        const [startColor, endColor] = palette[seed % palette.length];
+        const safeInitial = initial.replace(/[<&>"']/g, '');
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="${startColor}" />
+                        <stop offset="100%" stop-color="${endColor}" />
+                    </linearGradient>
+                </defs>
+                <rect width="${size}" height="${size}" rx="${Math.round(size / 2)}" fill="url(#g)" />
+                <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${Math.round(size * 0.42)}" font-weight="700" fill="#ffffff">${safeInitial}</text>
+            </svg>
+        `;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function getAvatarSrc(user, size = 64) {
+        return user?.avatar ? `/uploads/${user.avatar}` : buildDefaultAvatarDataUri(user, size);
+    }
+
+    function splitTextItems(value) {
+        return String(value || '')
+            .split(/[，,、;；|/\n]+/)
+            .map(item => item.trim())
+            .filter(Boolean);
+    }
+
+    function getInterestAreas() {
+        return Array.isArray(interestProfile?.interestAreas) ? interestProfile.interestAreas : [];
+    }
+
+    function getInterestAreaScoreMap() {
+        const map = new Map();
+        getInterestAreas().forEach(area => {
+            const label = normalizeInterestLabel(area?.name || area?.area || area?.label);
+            if (!label) return;
+            map.set(label, Number(area?.score || 0));
+        });
+        return map;
+    }
+
+    function getInterestTagSet() {
+        const tags = new Set();
+        getInterestAreas().forEach(area => {
+            splitTextItems(area?.name || area?.area || area?.label).forEach(tag => tags.add(normalizeInterestLabel(tag)));
+            splitTextItems(area?.tags).forEach(tag => tags.add(normalizeInterestLabel(tag)));
+            splitTextItems(area?.keywords).forEach(tag => tags.add(normalizeInterestLabel(tag)));
+            if (Array.isArray(area?.reasons)) {
+                area.reasons.forEach(reason => splitTextItems(reason).forEach(tag => tags.add(normalizeInterestLabel(tag))));
+            }
+        });
+        splitTextItems(interestProfile?.dominantInterest).forEach(tag => tags.add(normalizeInterestLabel(tag)));
+        return tags;
+    }
+
+    function computePersonalizationScore(post) {
+        const interestScores = getInterestAreaScoreMap();
+        const interestTags = getInterestTagSet();
+        const subscriptionSet = new Set(mySubscriptions.map(item => normalizeInterestLabel(item.researchArea || item.targetValue)));
+        const postArea = normalizeInterestLabel(post.researchArea);
+        const postTags = [
+            ...splitTextItems(post.tags),
+            ...splitTextItems(post.keywords),
+            ...splitTextItems(post.title),
+            ...splitTextItems(post.publicationType)
+        ].map(normalizeInterestLabel).filter(Boolean);
+        let score = 0;
+
+        if (postArea && interestScores.has(postArea)) {
+            score += 80 + interestScores.get(postArea) * 10;
+        }
+        if (postArea && subscriptionSet.has(postArea)) {
+            score += 45;
+        }
+        postTags.forEach(tag => {
+            if (interestTags.has(tag)) {
+                score += 12;
+            }
+        });
+        if (post.author?.id && String(post.author.id) === String(currentUserId)) {
+            score -= 15;
+        }
+        score += Math.min(20, Number(post.avgScore || 0) * 2);
+        score += Math.min(15, Number(post.hotScore || 0) / 10);
+        score += Math.min(10, Number(post.commentCount || 0) / 3);
+        return score;
+    }
+
+    function getSubscriptionByArea(area) {
+        const normalized = normalizeSubscriptionValue(area);
+        return mySubscriptions.find(item => normalizeSubscriptionValue(item.researchArea || item.targetValue) === normalized) || null;
+    }
+
+    function safeJsString(value) {
+        return String(value || '')
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/\r/g, ' ')
+            .replace(/\n/g, ' ');
+    }
+
+    function setSubscriptionInlineStatus(postId, message, isError = false) {
+        const status = document.getElementById(`subscriptionStatus-${postId}`);
+        if (!status) return;
+        status.textContent = message || '';
+        status.classList.toggle('error', !!isError);
+    }
+
+    async function loadMySubscriptions() {
+        if (!currentUserId) {
+            mySubscriptions = [];
+            return [];
+        }
+        try {
+            const res = await fetch(`/api/subscriptions/my?userId=${currentUserId}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            mySubscriptions = await res.json();
+            return mySubscriptions;
+        } catch (error) {
+            console.error(currentLang === 'cn' ? '加载订阅失败' : 'Failed to load subscriptions', error);
+            mySubscriptions = [];
+            return [];
+        }
+    }
+
+    async function fetchInterestProfile() {
+        if (!currentUserId) {
+            interestProfile = null;
+            renderRecommendationBanner();
+            return null;
+        }
+        try {
+            const res = await fetch(`/api/users/${currentUserId}/interest-profile`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            interestProfile = await res.json();
+            return interestProfile;
+        } catch (error) {
+            console.error(currentLang === 'cn' ? '加载兴趣画像失败' : 'Failed to load interest profile', error);
+            interestProfile = null;
+            return null;
+        } finally {
+            renderRecommendationBanner();
+        }
+    }
+
+    function renderRecommendationBanner() {
+        const banner = document.getElementById('recommendationBanner');
+        const dominantEl = document.getElementById('recommendationDominant');
+        const summaryEl = document.getElementById('recommendationSummary');
+        const pillsEl = document.getElementById('recommendationPills');
+        const noteEl = document.getElementById('recommendationNote');
+        if (!banner || !dominantEl || !summaryEl || !pillsEl || !noteEl) {
+            return;
+        }
+
+        if (currentSearchType !== 'post' || currentPostSort !== 'recommended') {
+            banner.classList.remove('active');
+            return;
+        }
+
+        const isCn = currentLang === 'cn';
+        const dominantInterest = interestProfile?.dominantInterest || (isCn ? '兴趣分析中' : 'Analyzing interests');
+        const topAreas = getInterestAreas().slice(0, 4);
+
+        dominantEl.innerHTML = `<i class="fas fa-brain"></i><span>${dominantInterest}</span>`;
+        summaryEl.textContent = interestProfile?.profileSummary
+            || (isCn
+                ? '系统会根据你的兴趣画像，在当前搜索结果中优先展示更相关的研究成果。'
+                : 'The system prioritizes more relevant research works in the current search results based on your interest profile.');
+        pillsEl.innerHTML = topAreas.length
+            ? topAreas.map(area => `<span class="recommendation-chip"><i class="fas fa-flask"></i>${area.name || area.area || area.label || '-'}</span>`).join('')
+            : `<span class="recommendation-chip"><i class="fas fa-sparkles"></i>${isCn ? '画像生成后将展示重点领域' : 'Top interest areas will appear here once available'}</span>`;
+        noteEl.textContent = isCn
+            ? '仅在“推荐”排序下，系统会结合兴趣画像、订阅领域与标签相关性调整搜索结果顺序；最新、热门、高评分、讨论最多保持原始逻辑。'
+            : 'Only the Recommended sort adjusts search ranking using your interest profile, subscriptions, and tag relevance; Latest, Hot, Top Rated, and Most Discussed keep their original logic.';
+        banner.classList.add('active');
+    }
+
+    async function subscribeResearchArea(area, postId) {
+        if (!currentUserId) {
+            alert(currentLang === 'cn' ? '请先登录后再订阅研究领域' : 'Please log in before subscribing to a research area');
+            return;
+        }
+        const normalizedArea = String(area || '').trim();
+        if (!normalizedArea) {
+            setSubscriptionInlineStatus(postId, currentLang === 'cn' ? '当前成果未填写研究领域' : 'This work has no research area yet', true);
+            return;
+        }
+        const button = document.getElementById(`subscribeBtn-${postId}`);
+        if (button) button.disabled = true;
+        setSubscriptionInlineStatus(postId, currentLang === 'cn' ? '正在订阅...' : 'Subscribing...');
+        try {
+            const body = new URLSearchParams({ userId: currentUserId, researchArea: normalizedArea });
+            const res = await fetch('/api/subscriptions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.message || `HTTP ${res.status}`);
+            }
+            const normalizedAreaValue = normalizeSubscriptionValue(normalizedArea);
+            const createdSubscription = data && typeof data === 'object'
+                ? { id: data.id || Date.now(), researchArea: normalizedArea }
+                : { id: Date.now(), researchArea: normalizedArea };
+            if (!mySubscriptions.some(item => normalizeSubscriptionValue(item.researchArea) === normalizedAreaValue)) {
+                mySubscriptions = [...mySubscriptions, createdSubscription];
+            }
+            renderPostResults(getProcessedPosts(lastPostResults));
+            setSubscriptionInlineStatus(postId, data.message || (currentLang === 'cn' ? '订阅成功，后续该领域有新成果时会通知你' : 'Subscribed successfully. You will be notified when new work appears in this area'));
+            loadMySubscriptions().then(() => renderPostResults(getProcessedPosts(lastPostResults)));
+        } catch (error) {
+            console.error(currentLang === 'cn' ? '订阅失败' : 'Subscription failed', error);
+            setSubscriptionInlineStatus(postId, error.message || (currentLang === 'cn' ? '订阅失败，请稍后重试' : 'Subscription failed, please try again later'), true);
+            if (button) button.disabled = false;
+        }
+    }
+
+    function goToMySubscriptions() {
+        if (!currentUserId) {
+            alert(currentLang === 'cn' ? '请先登录后查看我的订阅' : 'Please log in to view subscriptions');
+            return;
+        }
+        location.href = `user_profile.html?id=${currentUserId}#subscriptions`;
+    }
+
+    function renderSubscriptionInline(post) {
+        const area = String(post.researchArea || '').trim();
+        if (!area) return '';
+        const existing = getSubscriptionByArea(area);
+        const titleText = currentLang === 'cn' ? '订阅该研究领域更新' : 'Subscribe to updates in this research area';
+        const descText = existing
+            ? (currentLang === 'cn' ? `你已订阅“${area}”，该领域发布新成果时会通知你。` : `You already follow “${area}”. New works in this area will trigger notifications.`)
+            : (currentLang === 'cn' ? `关注“${area}”后，后续出现新成果时将自动收到站内提醒。` : `Follow “${area}” to receive in-app alerts when new works appear.`);
+        const actionHtml = existing
+            ? `<button type="button" class="subscription-inline-btn secondary" onclick="goToMySubscriptions()"><i class="fas fa-bell"></i><span class="cn">管理我的订阅</span><span class="en">Manage My Subscriptions</span></button>`
+            : `<button type="button" class="subscription-inline-btn primary" id="subscribeBtn-${post.id}" onclick="subscribeResearchArea('${safeJsString(area)}', ${post.id})"><i class="fas fa-bell"></i><span class="cn">订阅该领域</span><span class="en">Subscribe</span></button>`;
+        return `
+            <div class="subscription-inline">
+                <div class="subscription-inline-info">
+                    <div class="subscription-inline-title"><i class="fas fa-satellite-dish"></i><span>${titleText}</span></div>
+                    <div class="subscription-inline-text">${descText}</div>
+                </div>
+                <div class="subscription-inline-actions">
+                    ${actionHtml}
+                    <button type="button" class="subscription-inline-btn secondary" onclick="goToMySubscriptions()"><i class="fas fa-list"></i><span class="cn">我的订阅</span><span class="en">My Subscriptions</span></button>
+                </div>
+                <div class="subscription-inline-status" id="subscriptionStatus-${post.id}"></div>
+            </div>
+        `;
+    }
+
+    function getSortLabel(sortType) {
+        const isCn = currentLang === 'cn';
+        if (sortType === 'hot') return isCn ? '热门' : 'Hot';
+        if (sortType === 'topRated') return isCn ? '高评分' : 'Top Rated';
+        if (sortType === 'mostDiscussed') return isCn ? '讨论最多' : 'Most Discussed';
+        if (sortType === 'recommended') return isCn ? '推荐' : 'Recommended';
+        return isCn ? '最新' : 'Latest';
+    }
+
+    function getFreshnessText(level) {
+        if (!level) return currentLang === 'cn' ? '待观察' : 'Pending';
+        const normalized = String(level).toLowerCase();
+        if (normalized === 'high' || normalized === 'fresh') return currentLang === 'cn' ? '近期活跃' : 'Fresh';
+        if (normalized === 'medium' || normalized === 'stable') return currentLang === 'cn' ? '持续稳定' : 'Stable';
+        return currentLang === 'cn' ? '较久未更新' : 'Quiet';
+    }
+
+    function getEngagementText(level) {
+        if (!level) return currentLang === 'cn' ? '一般' : 'Normal';
+        const normalized = String(level).toLowerCase();
+        if (normalized === 'high' || normalized === 'strong') return currentLang === 'cn' ? '高互动' : 'High';
+        if (normalized === 'medium' || normalized === 'growing') return currentLang === 'cn' ? '增长中' : 'Growing';
+        return currentLang === 'cn' ? '低互动' : 'Low';
+    }
+
+    function buildTrustTags(post, lang) {
+        const isCn = lang === 'cn';
+        const avgScore = Number(post.avgScore || 0);
+        const ratingCount = Number(post.ratingCount || post.radar?.ratingCount || 0);
+        const expertCount = Number(post.expertCount || post.radar?.expertCount || 0);
+        const hotScore = Number(post.hotScore || 0);
+        const s2 = Number(post.radar?.s2 || 0);
+        const s3 = Number(post.radar?.s3 || 0);
+        const s4 = Number(post.radar?.s4 || 0);
+        const tags = [];
+
+        if (ratingCount > 0 && ratingCount < 3) {
+            tags.push({ type: 'warn', icon: 'fas fa-seedling', text: isCn ? '样本仍少' : 'Early sample' });
+        }
+        if (s3 > 0 && s3 < 3.5) {
+            tags.push({ type: 'warn', icon: 'fas fa-shield-halved', text: isCn ? '证据待加强' : 'Evidence limited' });
+        }
+        if (s4 > 0 && s4 < 3.2) {
+            tags.push({ type: 'warn', icon: 'fas fa-repeat', text: isCn ? '可复现性待增强' : 'Reproducibility low' });
+        }
+        if (s2 > 0 && s2 < 3.5) {
+            tags.push({ type: 'warn', icon: 'fas fa-compass-drafting', text: isCn ? '方法需更严谨' : 'Method needs rigor' });
+        }
+        if (expertCount > 0) {
+            tags.push({ type: 'good', icon: 'fas fa-user-graduate', text: isCn ? '已有专家参与' : 'Expert input' });
+        }
+        if (avgScore >= 4.2 && ratingCount >= 5) {
+            tags.push({ type: 'good', icon: 'fas fa-thumbs-up', text: isCn ? '社区认可较高' : 'Strong community support' });
+        }
+        if (hotScore >= 40 && avgScore > 0 && avgScore < 3.8) {
+            tags.push({ type: 'info', icon: 'fas fa-fire', text: isCn ? '热度高于认可' : 'Attention exceeds endorsement' });
+        }
+        if (tags.length === 0) {
+            tags.push({ type: 'neutral', icon: 'fas fa-chart-line', text: isCn ? '信号持续积累中' : 'Signals still forming' });
+        }
+        return tags.slice(0, 3);
+    }
+
+    function createSummaryChip(label, value, iconClass) {
+        return `<span class="summary-chip"><i class="${iconClass}"></i><span>${label}</span><strong>${value}</strong></span>`;
+    }
+
+    function renderActiveFilterSummary(keyword) {
+        const summary = document.getElementById('activeFilterSummary');
+        const row = document.getElementById('activeFilterSummaryRow');
+        if (!summary || !row || currentSearchType !== 'post') {
+            return;
+        }
+
+        const filters = getActiveFilters();
+        const chips = [];
+        chips.push(createSummaryChip(currentLang === 'cn' ? '排序' : 'Sort', getSortLabel(currentPostSort), 'fas fa-arrow-down-wide-short'));
+        if (keyword) chips.push(createSummaryChip(currentLang === 'cn' ? '关键词' : 'Keyword', keyword, 'fas fa-magnifying-glass'));
+        if (filters.researchArea) chips.push(createSummaryChip(currentLang === 'cn' ? '研究领域' : 'Research Area', filters.researchArea, 'fas fa-flask'));
+        if (filters.contentType) chips.push(createSummaryChip(currentLang === 'cn' ? '内容类型' : 'Content Type', filters.contentType, 'fas fa-layer-group'));
+        if (filters.publicationType) chips.push(createSummaryChip(currentLang === 'cn' ? '成果形式' : 'Work Format', filters.publicationType, 'fas fa-book-open'));
+        if (filters.status) chips.push(createSummaryChip(currentLang === 'cn' ? '开放状态' : 'Status', filters.status, 'fas fa-signal'));
+        if (filters.language) chips.push(createSummaryChip(currentLang === 'cn' ? '语言' : 'Language', filters.language, 'fas fa-language'));
+
+        if (chips.length === 1 && !keyword) {
+            summary.classList.remove('active');
+            row.innerHTML = '';
+            return;
+        }
+
+        row.innerHTML = chips.join('');
+        summary.classList.add('active');
+    }
+
     window.addEventListener('languageChange', function() {
         currentLang = localStorage.getItem('appLang') || 'cn';
         updatePageText();
+        renderRecommendationBanner();
+        if (aiSearchIntent && currentSearchType === 'post') {
+            renderAiSearchCard(aiSearchIntent);
+        }
     });
 
-    // 切换搜索类型
     document.querySelectorAll('.search-tab').forEach(tab => {
         tab.addEventListener('click', function() {
-            // 更新标签样式
             document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-
-            // 更新当前搜索类型
             currentSearchType = this.getAttribute('data-type');
-
-            // 更新输入框占位符和提示文本
+            document.getElementById('filtersPanel').classList.toggle('active', currentSearchType === 'post');
+            document.getElementById('aiSearchBtn').style.display = currentSearchType === 'post' ? 'inline-flex' : 'none';
+            const summary = document.getElementById('activeFilterSummary');
+            if (summary) {
+                summary.classList.toggle('active', false);
+            }
+            if (currentSearchType !== 'post') {
+                clearAiSearchCard();
+            } else if (aiSearchIntent) {
+                renderAiSearchCard(aiSearchIntent);
+            }
+            renderRecommendationBanner();
             updateInputPlaceholderAndHint();
-
-            // 清空搜索结果
             const resultList = document.getElementById('resultList');
             resultList.innerHTML = `
                 <div class="result-empty">
-                    <div class="empty-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="empty-text">
-                        <span class="cn">开始搜索${currentSearchType === 'user' ? '用户' : '文章'}</span>
-                        <span class="en">Start searching ${currentSearchType === 'user' ? 'users' : 'posts'}</span>
-                    </div>
-                    <div class="empty-subtext">
-                        <span class="cn">${currentSearchType === 'user' ? '搜索用户昵称、账号' : '搜索文章标题、标签'}</span>
-                        <span class="en">${currentSearchType === 'user' ? 'Search by nickname or account' : 'Search by title or tags'}</span>
-                    </div>
+                    <div class="empty-icon"><i class="fas fa-search"></i></div>
+                    <div class="empty-text"><span class="cn">开始搜索${currentSearchType === 'user' ? '用户' : '研究成果'}</span><span class="en">Start searching ${currentSearchType === 'user' ? 'users' : 'research works'}</span></div>
+                    <div class="empty-subtext"><span class="cn">${currentSearchType === 'user' ? '搜索用户昵称、账号' : '搜索标题、关键词、作者、机构、研究领域、期刊、DOI，并结合筛选条件缩小范围'}</span><span class="en">${currentSearchType === 'user' ? 'Search by nickname or account' : 'Search title, keywords, authors, institution, research area, venue, DOI and narrow results with filters'}</span></div>
                 </div>
             `;
         });
     });
 
-    // 更新输入框占位符和提示文本
     function updateInputPlaceholderAndHint() {
         const keywordInput = document.getElementById("keyword");
         const searchHint = document.getElementById("searchHint");
-
         if (currentSearchType === 'user') {
-            keywordInput.placeholder = currentLang === 'cn' ?
-                '输入昵称或账号查找用户...' :
-                'Enter nickname or account to search users...';
-
-            searchHint.innerHTML = `
-                <span class="cn">提示：可搜索用户昵称、账号</span>
-                <span class="en">Hint: Search by user nickname or account</span>
-            `;
+            keywordInput.placeholder = currentLang === 'cn' ? '输入昵称或账号查找用户...' : 'Enter nickname or account to search users...';
+            searchHint.innerHTML = `<span class="cn">提示：可搜索用户昵称、账号</span><span class="en">Hint: Search by user nickname or account</span>`;
         } else {
-            keywordInput.placeholder = currentLang === 'cn' ?
-                '输入标题或标签查找文章...' :
-                'Enter title or tags to search posts...';
-
-            searchHint.innerHTML = `
-                <span class="cn">提示：可搜索文章标题、标签（多个标签用逗号分隔）</span>
-                <span class="en">Hint: Search by post title or tags (separate multiple tags with commas)</span>
-            `;
+            keywordInput.placeholder = currentLang === 'cn'
+                ? '输入研究问题或自然语言需求，例如：找医学影像方向的英文论文'
+                : 'Describe your research need, e.g. recent English papers on medical imaging';
+            searchHint.innerHTML = `<span class="cn">提示：可直接输入自然语言需求，也可搜索标题、摘要、标签、作者、机构、研究领域、期刊/会议、DOI，并使用下方排序</span><span class="en">Hint: You can enter a natural-language research need, or search title, abstract, tags, authors, institution, research area, venue, DOI, and use the sorting below</span>`;
         }
     }
 
-    // 更新页面文本（语言切换时）
+    function updateFilterOptionText() {
+        document.querySelectorAll('#filtersPanel select option').forEach(option => {
+            option.textContent = currentLang === 'cn'
+                ? (option.dataset.cn || option.textContent)
+                : (option.dataset.en || option.textContent);
+        });
+    }
+
     function updatePageText() {
-        // 更新搜索按钮文本
-        const searchBtn = $('.search-btn');
-        searchBtn.html(`
-            <i class="fas fa-search"></i>
-            <span class="cn">搜索</span>
-            <span class="en">Search</span>
-        `);
-
-        // 更新标签文本
-        $('.search-tab[data-type="user"]').html(`
-            <span class="cn">搜索用户</span>
-            <span class="en">Search Users</span>
-        `);
-        $('.search-tab[data-type="post"]').html(`
-            <span class="cn">搜索文章</span>
-            <span class="en">Search Posts</span>
-        `);
-
-        // 更新输入框占位符和提示
+        $('.search-btn').not('#aiSearchBtn').html(`<i class="fas fa-search"></i><span class="cn">搜索</span><span class="en">Search</span>`);
+        $('#aiSearchBtn').html(`<i class="fas fa-sparkles"></i><span class="cn">AI智能搜索</span><span class="en">AI Search</span>`);
+        $('.search-tab[data-type="user"]').html(`<span class="cn">搜索用户</span><span class="en">Search Users</span>`);
+        $('.search-tab[data-type="post"]').html(`<span class="cn">搜索研究成果</span><span class="en">Search Research Works</span>`);
         updateInputPlaceholderAndHint();
-
-        // 重新搜索（如果已有关键词）
-        const keyword = document.getElementById("keyword").value.trim();
-        if (keyword) {
-            search();
+        updateFilterOptionText();
+        if (lastPostResults.length > 0 && currentSearchType === 'post') {
+            renderActiveFilterSummary(document.getElementById("keyword").value.trim());
+            renderRecommendationBanner();
+            renderPostResults(getProcessedPosts(lastPostResults));
         }
     }
 
-    // 加载好友ID列表
     async function loadMyFollowingIds() {
         try {
             const res = await fetch(`/api/users/${currentUserId}/following`);
             const users = await res.json();
             myFollowingIds = users.map(u => u.id);
         } catch (e) {
-            const errorTip = currentLang === 'cn' ? "获取好友列表失败" : "Failed to get friends list";
-            console.error(errorTip, e);
+            console.error(currentLang === 'cn' ? '获取好友列表失败' : 'Failed to get friends list', e);
         }
     }
     loadMyFollowingIds();
+    fetchInterestProfile();
 
-    // 格式化时间（相对时间）
     function formatRelativeTime(timestamp) {
         const now = new Date();
         const postTime = new Date(timestamp);
         const diff = now - postTime;
-
         const seconds = Math.floor(diff / 1000);
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
         const months = Math.floor(days / 30);
         const years = Math.floor(months / 12);
-
         if (years > 0) return currentLang === 'cn' ? `${years}年前` : `${years}y ago`;
         if (months > 0) return currentLang === 'cn' ? `${months}月前` : `${months}mo ago`;
         if (days > 0) return currentLang === 'cn' ? `${days}天前` : `${days}d ago`;
@@ -582,240 +800,383 @@
         return currentLang === 'cn' ? '刚刚' : 'Just now';
     }
 
-    // 搜索核心逻辑
+    function splitItems(raw) {
+        return raw ? raw.split(',').map(item => item.trim()).filter(Boolean) : [];
+    }
+
+    function calcMetadataCompleteness(post) {
+        const fields = [
+            post.title,
+            post.content,
+            post.authors,
+            post.institution,
+            post.researchArea,
+            post.keywords,
+            post.contentType,
+            post.publicationType,
+            post.status,
+            post.language,
+            post.journalOrConference,
+            post.publicationDate,
+            post.doi,
+            post.referencesText,
+            post.projectLinks,
+            post.originalFilename
+        ];
+        const filled = fields.filter(value => value && String(value).trim()).length;
+        return Math.round((filled / fields.length) * 100);
+    }
+
+    function getQualityText(score) {
+        if (score >= 85) return currentLang === 'cn' ? '高完整度' : 'High completeness';
+        if (score >= 60) return currentLang === 'cn' ? '中等完整度' : 'Medium completeness';
+        return currentLang === 'cn' ? '待补充' : 'Needs more metadata';
+    }
+
+    function normalizeAverageScore(value) {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : 0;
+    }
+
+    function getActiveFilters() {
+        return {
+            researchArea: document.getElementById('filterResearchArea').value,
+            contentType: document.getElementById('filterContentType').value,
+            publicationType: document.getElementById('filterPublicationType').value,
+            status: document.getElementById('filterStatus').value,
+            language: document.getElementById('filterLanguage').value
+        };
+    }
+
+    function applyPostFilters(posts) {
+        return posts;
+    }
+
+    function sortPosts(posts) {
+        const sorted = [...posts];
+        if (currentPostSort === 'hot') {
+            sorted.sort((a, b) => (b.hotScore || 0) - (a.hotScore || 0));
+        } else if (currentPostSort === 'topRated') {
+            sorted.sort((a, b) => normalizeAverageScore(b.avgScore) - normalizeAverageScore(a.avgScore));
+        } else if (currentPostSort === 'mostDiscussed') {
+            sorted.sort((a, b) => Number(b.commentCount || 0) - Number(a.commentCount || 0));
+        } else if (currentPostSort === 'recommended') {
+            sorted.sort((a, b) => {
+                const scoreDiff = computePersonalizationScore(b) - computePersonalizationScore(a);
+                if (scoreDiff !== 0) return scoreDiff;
+                return new Date((b.updateTime || b.createTime || 0)) - new Date((a.updateTime || a.createTime || 0));
+            });
+        } else {
+            sorted.sort((a, b) => new Date((b.updateTime || b.createTime || 0)) - new Date((a.updateTime || a.createTime || 0)));
+        }
+        return sorted;
+    }
+
+    function getProcessedPosts(posts) {
+        return sortPosts(applyPostFilters(posts));
+    }
+
+    function setAiSearchStatus(message, isError = false) {
+        const status = document.getElementById('aiSearchStatus');
+        if (!status) return;
+        status.textContent = message || '';
+        status.classList.toggle('error', !!isError);
+    }
+
+    function clearAiSearchCard(clearStatus = true) {
+        const card = document.getElementById('aiSearchCard');
+        const chips = document.getElementById('aiSearchChips');
+        const summary = document.getElementById('aiSearchSummary');
+        if (card) card.classList.remove('active');
+        if (chips) chips.innerHTML = '';
+        if (summary) {
+            summary.innerHTML = currentLang === 'cn'
+                ? '<span class="cn">AI 会将自然语言检索需求解析为结构化筛选条件。</span><span class="en">AI will convert your natural-language request into structured filters.</span>'
+                : '<span class="cn">AI 会将自然语言检索需求解析为结构化筛选条件。</span><span class="en">AI will convert your natural-language request into structured filters.</span>';
+        }
+        if (clearStatus) {
+            setAiSearchStatus('');
+        }
+    }
+
+    function createAiSearchChip(label, value, iconClass) {
+        return `<span class="ai-search-chip"><i class="${iconClass}"></i><strong>${label}</strong>${value}</span>`;
+    }
+
+    function normalizeAiIntent(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const normalizeValue = value => {
+            const text = String(value == null ? '' : value).trim();
+            return text && text.toLowerCase() !== 'null' && text.toLowerCase() !== 'undefined' ? text : '';
+        };
+        const intent = {
+            keyword: normalizeValue(raw.keyword),
+            researchArea: normalizeValue(raw.researchArea),
+            contentType: normalizeValue(raw.contentType),
+            publicationType: normalizeValue(raw.publicationType),
+            status: normalizeValue(raw.status),
+            language: normalizeValue(raw.language),
+            sort: normalizeValue(raw.sort),
+            explanation: normalizeValue(raw.explanation)
+        };
+        return intent;
+    }
+
+    function renderAiSearchCard(intent) {
+        const card = document.getElementById('aiSearchCard');
+        const summary = document.getElementById('aiSearchSummary');
+        const chips = document.getElementById('aiSearchChips');
+        if (!card || !summary || !chips || !intent || currentSearchType !== 'post') return;
+        const chipItems = [];
+        if (intent.keyword) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '关键词' : 'Keyword', intent.keyword, 'fas fa-key')); 
+        if (intent.researchArea) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '研究领域' : 'Research Area', intent.researchArea, 'fas fa-flask'));
+        if (intent.contentType) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '内容类型' : 'Content Type', intent.contentType, 'fas fa-layer-group'));
+        if (intent.publicationType) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '成果形式' : 'Work Format', intent.publicationType, 'fas fa-book-open'));
+        if (intent.status) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '开放状态' : 'Status', intent.status, 'fas fa-signal'));
+        if (intent.language) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '语言' : 'Language', intent.language, 'fas fa-language'));
+        if (intent.sort) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '排序' : 'Sort', intent.sort, 'fas fa-arrow-down-wide-short'));
+        summary.textContent = intent.explanation || (currentLang === 'cn' ? 'AI 已解析当前检索需求，并映射为可执行的搜索条件。' : 'AI has parsed your request into actionable search filters.');
+        chips.innerHTML = chipItems.join('');
+        card.classList.add('active');
+    }
+
+    function applyAiSearchIntent(intent) {
+        const normalized = normalizeAiIntent(intent);
+        if (!normalized) return;
+        aiSearchIntent = normalized;
+        const keywordInput = document.getElementById('keyword');
+        if (normalized.keyword) keywordInput.value = normalized.keyword;
+        document.getElementById('filterResearchArea').value = normalized.researchArea || '';
+        document.getElementById('filterContentType').value = normalized.contentType || '';
+        document.getElementById('filterPublicationType').value = normalized.publicationType || '';
+        document.getElementById('filterStatus').value = normalized.status || '';
+        document.getElementById('filterLanguage').value = normalized.language || '';
+        if (normalized.sort) {
+            setPostSort(normalized.sort);
+        }
+        renderAiSearchCard(normalized);
+    }
+
+    async function runAiSearch() {
+        if (currentSearchType !== 'post') return;
+        const query = document.getElementById('keyword').value.trim();
+        if (!query) {
+            alert(currentLang === 'cn' ? '请输入你的研究检索需求' : 'Please enter your research search request');
+            return;
+        }
+        const card = document.getElementById('aiSearchCard');
+        if (card) card.classList.add('active');
+        setAiSearchStatus(currentLang === 'cn' ? 'AI 正在理解你的检索意图...' : 'AI is analyzing your search intent...');
+        try {
+            const body = new URLSearchParams({ query, lang: currentLang === 'cn' ? 'zh' : 'en' });
+            const res = await fetch('/api/ai/search-helper', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const data = await res.json();
+            const result = String(data.result || '').trim();
+            const parsed = JSON.parse(result);
+            applyAiSearchIntent(parsed);
+            setAiSearchStatus(currentLang === 'cn' ? 'AI 条件解析完成，已自动执行搜索' : 'AI filters parsed successfully. Search executed automatically.');
+            await search();
+        } catch (error) {
+            console.error('AI search error:', error);
+            setAiSearchStatus(currentLang === 'cn' ? 'AI 搜索解析失败，请稍后重试' : 'AI search parsing failed. Please try again later.', true);
+        }
+    }
+
+    function setPostSort(sortType) {
+        currentPostSort = sortType;
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-sort') === sortType);
+        });
+        renderRecommendationBanner();
+    }
+
+    document.querySelectorAll('#filtersPanel select').forEach(select => {
+        select.addEventListener('change', () => {
+            if (currentSearchType === 'post') {
+                search();
+            }
+        });
+    });
+
+    function resetFilters() {
+        document.querySelectorAll('#filtersPanel select').forEach(select => select.value = '');
+        aiSearchIntent = null;
+        clearAiSearchCard();
+        currentPostSort = 'latest';
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-sort') === 'latest');
+        });
+        const summary = document.getElementById('activeFilterSummary');
+        if (summary) {
+            summary.classList.remove('active');
+        }
+        renderRecommendationBanner();
+        if (currentSearchType === 'post') {
+            search();
+        }
+    }
+
     async function search() {
         const keyword = document.getElementById("keyword").value.trim();
-        if (!keyword) {
+        if (!keyword && currentSearchType === 'user') {
             alert(currentLang === 'cn' ? '请输入搜索关键词' : 'Please enter search keyword');
             return;
         }
-
         const resultList = document.getElementById("resultList");
-        // 加载中状态
-        resultList.innerHTML = `
-            <div class="result-empty">
-                <div class="empty-icon">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="empty-text">
-                    <span class="cn">搜索中...</span>
-                    <span class="en">Searching...</span>
-                </div>
-            </div>
-        `;
-
+        resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="empty-text"><span class="cn">搜索中...</span><span class="en">Searching...</span></div></div>`;
         try {
             if (currentSearchType === 'user') {
-                // 搜索用户（原有逻辑不变）
                 const res = await fetch(`/api/users/search?keyword=${encodeURIComponent(keyword)}`);
                 const users = await res.json();
                 renderUserResults(users);
             } else {
-                // 搜索文章（关键修改：接口路径改为 /api/tweets/search）
-                const res = await fetch(`/api/tweets/search?keyword=${encodeURIComponent(keyword)}`);
-                const posts = await res.json();
-                renderPostResults(posts);
+                await Promise.all([loadMySubscriptions(), fetchInterestProfile()]);
+                const res = await fetch(buildPostSearchUrl(keyword));
+                const data = await res.json();
+                const posts = Array.isArray(data)
+                    ? data.map(normalizePostItem).filter(Boolean)
+                    : [];
+                lastPostResults = posts;
+                renderActiveFilterSummary(keyword);
+                renderRecommendationBanner();
+                renderPostResults(getProcessedPosts(posts));
             }
         } catch (e) {
-            const errorText = currentLang === 'cn' ? '搜索失败，请重试' : 'Search failed, please try again';
-            resultList.innerHTML = `
-                <div class="result-empty">
-                    <div class="empty-icon">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div class="empty-text">${errorText}</div>
-                </div>
-            `;
+            resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div><div class="empty-text">${currentLang === 'cn' ? '搜索失败，请重试' : 'Search failed, please try again'}</div></div>`;
             console.error('Search error:', e);
         }
     }
 
-    // 渲染用户搜索结果
     function renderUserResults(users) {
         const resultList = document.getElementById("resultList");
+        const summary = document.getElementById('activeFilterSummary');
+        if (summary) {
+            summary.classList.remove('active');
+        }
+        clearAiSearchCard();
+        renderRecommendationBanner();
         const noResultTip = currentLang === 'cn' ? '没有找到相关用户' : 'No related users found';
-
         if (users.length === 0) {
-            resultList.innerHTML = `
-                <div class="result-empty">
-                    <div class="empty-icon">
-                        <i class="fas fa-user-slash"></i>
-                    </div>
-                    <div class="empty-text">${noResultTip}</div>
-                </div>
-            `;
+            resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-user-slash"></i></div><div class="empty-text">${noResultTip}</div></div>`;
             return;
         }
-
-        // 按钮文本
         const followedText = currentLang === 'cn' ? '已关注' : 'Followed';
         const unfollowText = currentLang === 'cn' ? '取消关注' : 'Unfollow';
         const followText = currentLang === 'cn' ? '关注' : 'Follow';
-
         let html = '';
         users.forEach(user => {
             if (user.id == currentUserId) return;
-
-            const avatar = user.avatar ? `/uploads/${user.avatar}` : 'https://via.placeholder.com/58';
+            const avatar = getAvatarSrc(user, 58);
             const nickname = user.nickname || user.username;
-
             let buttonHtml = '';
             if (myFollowingIds.includes(user.id)) {
-                buttonHtml = `
-                    <button class="followed-btn"
-                        onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'"
-                        onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'"
-                        onclick="unfollow(${user.id})">
-                        <span class="cn">${followedText}</span>
-                        <span class="en">${followedText}</span>
-                    </button>
-                `;
+                buttonHtml = `<button class="followed-btn" onmouseover="this.innerHTML='<span class=\'cn\'>${unfollowText}</span><span class=\'en\'>${unfollowText}</span>'" onmouseout="this.innerHTML='<span class=\'cn\'>${followedText}</span><span class=\'en\'>${followedText}</span>'" onclick="unfollow(${user.id})"><span class="cn">${followedText}</span><span class="en">${followedText}</span></button>`;
             } else {
-                buttonHtml = `
-                    <button class="follow-btn" onclick="follow(${user.id})">
-                        <span class="cn">${followText}</span>
-                        <span class="en">${followText}</span>
-                    </button>
-                `;
+                buttonHtml = `<button class="follow-btn" onclick="follow(${user.id})"><span class="cn">${followText}</span><span class="en">${followText}</span></button>`;
             }
-
-            html += `
-                <div class="user-card">
-                    <div class="user-info" onclick="location.href='user_profile.html?id=${user.id}'">
-                        <img src="${avatar}" class="avatar">
-                        <div class="user-meta">
-                            <div class="name">${nickname}</div>
-                            <div class="handle">@${user.username}</div>
-                        </div>
-                    </div>
-                    ${buttonHtml}
-                </div>
-            `;
+            html += `<div class="user-card"><div class="user-info" onclick="location.href='user_profile.html?id=${user.id}'"><img src="${avatar}" class="avatar"><div class="user-meta"><div class="name">${nickname}</div><div class="handle">@${user.username}</div></div></div>${buttonHtml}</div>`;
         });
-
-        resultList.innerHTML = html;
+        resultList.innerHTML = html || `<div class="result-empty"><div class="empty-text">${noResultTip}</div></div>`;
     }
 
-    // 渲染文章搜索结果
     function renderPostResults(posts) {
         const resultList = document.getElementById("resultList");
-        const noResultTip = currentLang === 'cn' ? '没有找到相关文章' : 'No related posts found';
-
+        const noResultTip = currentLang === 'cn' ? '没有找到相关研究成果' : 'No related research works found';
         if (posts.length === 0) {
-            resultList.innerHTML = `
-                <div class="result-empty">
-                    <div class="empty-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="empty-text">${noResultTip}</div>
-                </div>
-            `;
+            resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-file-alt"></i></div><div class="empty-text">${noResultTip}</div><div class="empty-subtext">${currentLang === 'cn' ? '尝试更换关键词，或减少筛选条件' : 'Try another keyword or reduce filter constraints'}</div></div>`;
             return;
         }
-
         let html = '';
         posts.forEach(post => {
-            // 处理标签（假设post.tags是数组或逗号分隔的字符串）
-            let tags = [];
-            if (post.tags) {
-                tags = typeof post.tags === 'string' ? post.tags.split(',').map(tag => tag.trim()) : post.tags;
-            }
-
-            // 适配后端Tweet实体字段：content作为标题和摘要，createTime作为发布时间
-            const authorAvatar = post.authorAvatar ? `/uploads/${post.authorAvatar}` : 'https://via.placeholder.com/42';
-            const authorName = post.authorNickname || post.authorUsername || '未知作者';
-            const postTitle = post.title || post.content; // 优先用title，没有则用content
+            const tags = splitItems(post.tags);
+            const authorAvatar = getAvatarSrc(post.author, 42);
+            const authorName = post.author?.nickname || post.author?.username || (currentLang === 'cn' ? '未知作者' : 'Unknown author');
+            const postTitle = post.title || post.content || 'Untitled';
             const postExcerpt = post.content || '';
-
-            // 适配后端时间字段（createTime → 前端需要的createdAt）
-            const postTime = post.createdAt || post.createTime;
-
+            const postTime = post.updateTime || post.createTime;
+            const chips = [post.researchArea, post.publicationType, post.status, post.language].filter(Boolean);
+            const qualityScore = calcMetadataCompleteness(post);
+            const avgScore = normalizeAverageScore(post.avgScore).toFixed(1);
+            const trustTags = buildTrustTags(post, currentLang);
+            const trustTagsHtml = `
+                <div class="trust-tag-row">
+                    ${trustTags.map(tag => `<span class="trust-tag ${tag.type}"><i class="${tag.icon}"></i>${tag.text}</span>`).join('')}
+                </div>
+            `;
             html += `
-                <div class="post-card" onclick="location.href='post_detail.html?id=${post.id}'">
+                <div class="post-card" onclick="location.href='detail.html?id=${post.id}'">
                     <div class="post-header">
-                        <img src="${authorAvatar}" class="post-avatar">
-                        <div class="post-author">
-                            <div class="post-author-name">${authorName}</div>
-                            <div class="post-time">${formatRelativeTime(postTime)}</div>
+                        <div class="post-author-wrap">
+                            <img src="${authorAvatar}" class="post-avatar">
+                            <div class="post-author">
+                                <div class="post-author-name">${authorName}</div>
+                                <div class="post-time">${postTime ? formatRelativeTime(postTime) : ''}</div>
+                            </div>
                         </div>
+                        <div class="score-badge"><i class="fas fa-star"></i><span>${avgScore}</span></div>
                     </div>
                     <div class="post-title">${postTitle}</div>
+                    <div class="post-submeta">
+                        ${chips.map(chip => `<span class="post-submeta-item">${chip}</span>`).join('')}
+                    </div>
                     <div class="post-excerpt">${postExcerpt}</div>
                     <div class="post-tags">
-                        ${tags.map(tag => `
-                            <span class="post-tag">
-                                <i class="fas fa-hashtag"></i> ${tag}
-                            </span>
-                        `).join('')}
+                        ${tags.map(tag => `<span class="post-tag"><i class="fas fa-hashtag"></i> ${tag}</span>`).join('')}
                     </div>
+                    ${trustTagsHtml}
+                    ${renderSubscriptionInline(post)}
                     <div class="post-meta">
-                        <div class="post-meta-item">
-                            <i class="far fa-eye"></i> ${post.viewCount || 0}
+                        <div class="post-meta-item"><i class="fas fa-users"></i> ${post.authors || (currentLang === 'cn' ? '未填写作者' : 'No authors')}</div>
+                        <div class="post-meta-item"><i class="fas fa-building"></i> ${post.institution || (currentLang === 'cn' ? '未填写机构' : 'No institution')}</div>
+                        <div class="post-meta-item"><i class="fas fa-key"></i> ${post.doi || 'DOI -'}</div>
+                        <div class="post-meta-item"><i class="fas fa-paperclip"></i> ${post.originalFilename ? (currentLang === 'cn' ? '有附件' : 'Has attachment') : (currentLang === 'cn' ? '无附件' : 'No attachment')}</div>
+                    </div>
+                    <div class="discovery-strip">
+                        <span class="signal-chip"><i class="fas fa-heart"></i>${post.likeCount || 0} ${currentLang === 'cn' ? '点赞' : 'likes'}</span>
+                        <span class="signal-chip"><i class="fas fa-comment"></i>${post.commentCount || 0} ${currentLang === 'cn' ? '评论' : 'comments'}</span>
+                        <span class="signal-chip"><i class="fas fa-download"></i>${post.downloadCount || 0} ${currentLang === 'cn' ? '下载' : 'downloads'}</span>
+                        <span class="signal-chip"><i class="fas fa-eye"></i>${post.viewCount || 0} ${currentLang === 'cn' ? '浏览' : 'views'}</span>
+                        <span class="signal-chip"><i class="fas fa-share-nodes"></i>${post.shareCount || 0} ${currentLang === 'cn' ? '分享' : 'shares'}</span>
+                        <span class="signal-chip"><i class="fas fa-bookmark"></i>${post.bookmarkCount || 0} ${currentLang === 'cn' ? '收藏' : 'bookmarks'}</span>
+                        <span class="signal-chip"><i class="fas fa-fire"></i>${Math.round(post.hotScore || 0)} ${currentLang === 'cn' ? '热度' : 'hot score'}</span>
+                        <span class="signal-chip"><i class="fas fa-wave-square"></i>${getEngagementText(post.engagementLevel)}</span>
+                        <span class="signal-chip"><i class="fas fa-clock"></i>${getFreshnessText(post.freshnessLevel)}</span>
+                    </div>
+                    <div class="post-quality">
+                        <div class="quality-header">
+                            <span>${currentLang === 'cn' ? '元数据完整度' : 'Metadata completeness'}</span>
+                            <span>${qualityScore}% · ${getQualityText(qualityScore)}</span>
                         </div>
-                        <div class="post-meta-item">
-                            <i class="far fa-comment"></i> ${post.commentCount || 0}
-                        </div>
-                        <div class="post-meta-item">
-                            <i class="far fa-heart"></i> ${post.likeCount || 0}
-                        </div>
+                        <div class="quality-bar"><div class="quality-fill" style="width:${qualityScore}%"></div></div>
+                        <div class="quality-tips">${currentLang === 'cn' ? '依据标题、摘要、作者、机构、研究领域、成果形式、引用与资源链接等字段估算' : 'Estimated from title, abstract, authors, institution, research area, work format, references and resource links'}</div>
                     </div>
                 </div>
             `;
         });
-
         resultList.innerHTML = html;
     }
 
-    // 关注功能
-    async function follow(targetId) {
-        try {
-            const res = await fetch(`/api/users/${currentUserId}/follow?targetUserId=${targetId}`, { method: 'POST' });
-            const msg = await res.text();
-
-            const successText = currentLang === 'cn' ? '成功' : 'success';
-            if (msg.includes(successText)) {
-                await loadMyFollowingIds();
-                search(); // 刷新搜索结果
-            } else {
-                alert(msg);
-            }
-        } catch (e) {
-            alert(currentLang === 'cn' ? '关注失败，请重试' : 'Follow failed, please try again');
-            console.error('Follow error:', e);
-        }
+    async function follow(userId) {
+        await fetch(`/api/users/${currentUserId}/follow/${userId}`, { method: 'POST' });
+        await loadMyFollowingIds();
+        search();
     }
 
-    // 取消关注功能
-    async function unfollow(targetId) {
-        const confirmText = currentLang === 'cn' ? '确定要取消关注吗？' : 'Are you sure you want to unfollow?';
-        if (!confirm(confirmText)) return;
-
-        try {
-            const res = await fetch(`/api/users/${currentUserId}/unfollow?targetUserId=${targetId}`, { method: 'POST' });
-            const msg = await res.text();
-
-            const cancelText = currentLang === 'cn' ? '已取消' : 'cancelled';
-            if (msg.includes(cancelText)) {
-                await loadMyFollowingIds();
-                search(); // 刷新搜索结果
-            } else {
-                alert(msg);
-            }
-        } catch (e) {
-            alert(currentLang === 'cn' ? '取消关注失败，请重试' : 'Unfollow failed, please try again');
-            console.error('Unfollow error:', e);
-        }
+    async function unfollow(userId) {
+        await fetch(`/api/users/${currentUserId}/follow/${userId}`, { method: 'DELETE' });
+        await loadMyFollowingIds();
+        search();
     }
 
-    // 初始化页面文本
-    updatePageText();
-
-    // 绑定回车搜索
-    document.getElementById("keyword").addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            search();
-        }
-    });
+    updateInputPlaceholderAndHint();
+    document.getElementById('aiSearchBtn').style.display = currentSearchType === 'post' ? 'inline-flex' : 'none';
+    renderRecommendationBanner();
+    if (typeof applyLang === 'function') applyLang(currentLang);
 </script>
 </body>
 </html>
+

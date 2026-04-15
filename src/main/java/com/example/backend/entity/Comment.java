@@ -15,6 +15,12 @@ public class Comment {
     @Column(length = 500)
     private String content; // 评审意见
 
+    @Column(name = "comment_type", length = 30)
+    private String commentType = "discussion";
+
+    @Column(name = "accepted_by_author")
+    private Boolean acceptedByAuthor = false;
+
     // === 🔥 新增：学术评分字段 (1-5分) ===
     @Column(name = "score_innovation")
     private Integer scoreInnovation = 0; // 创新性
