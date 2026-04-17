@@ -59,7 +59,6 @@ public class UserService {
         return null;
     }
 
-    @Cacheable(cacheNames = "users:profile", key = "#id")
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
