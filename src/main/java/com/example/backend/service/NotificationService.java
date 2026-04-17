@@ -23,7 +23,7 @@ public class NotificationService {
     public static final int TYPE_COMMENT_REPLY = 2;
     public static final int TYPE_SUBSCRIPTION_NEW_RESEARCH = 3;
     public static final int TYPE_COMMENT_LIKE = 4;
-    public static final int TYPE_COMMENT_ACCEPTED = 5;
+     public static final int TYPE_COMMENT_ACCEPTED = 5;
 
     /**
      * 发送通知
@@ -82,7 +82,7 @@ public class NotificationService {
     })
     public Long markAsRead(Long notificationId) {
         return notificationRepository.findById(notificationId).map(n -> {
-            if (!Boolean.TRUE.equals(n.getRead())) {
+            if (!n.isRead()) {
                 n.setRead(true);
                 notificationRepository.save(n);
             }

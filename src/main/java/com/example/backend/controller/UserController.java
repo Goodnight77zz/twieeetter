@@ -5,6 +5,7 @@ import com.example.backend.entity.User;
 import com.example.backend.entity.Friendship;
 import com.example.backend.entity.TweetFavorite;
 import com.example.backend.entity.UserSubscription;
+import com.example.backend.repository.FriendshipRepository;
 import com.example.backend.repository.TweetFavoriteRepository;
 import com.example.backend.repository.TweetLikeRepository;
 import com.example.backend.repository.TweetRepository;
