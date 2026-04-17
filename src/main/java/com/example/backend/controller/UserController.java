@@ -5,7 +5,6 @@ import com.example.backend.entity.User;
 import com.example.backend.entity.Friendship;
 import com.example.backend.entity.TweetFavorite;
 import com.example.backend.entity.UserSubscription;
-import com.example.backend.repository.FriendshipRepository;
 import com.example.backend.repository.TweetFavoriteRepository;
 import com.example.backend.repository.TweetLikeRepository;
 import com.example.backend.repository.TweetRepository;
@@ -18,6 +17,7 @@ import com.example.backend.service.UserService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -96,7 +96,7 @@ public class UserController {
 
     @GetMapping("/{id}/follow-status")
     public Map<String, Object> getFollowStatus(@PathVariable Long id, @RequestParam Long targetUserId) {
-        boolean following = friendshipRepository.existsByFollowerIdAndFollowingId(id, targetUserId);
+        boolean following = userService.isFollowing(id, targetUserId);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("userId", id);
         result.put("targetUserId", targetUserId);
@@ -105,6 +105,7 @@ public class UserController {
     }
 
     // === 获取用户统计数据 ===
+    @Cacheable(cacheNames = "users:stats", key = "#id")
     @GetMapping("/{id}/stats")
     public Map<String, Long> getUserStats(@PathVariable Long id) {
         long tweetCount = tweetRepository.countByAuthorId(id);
@@ -118,6 +119,7 @@ public class UserController {
         );
     }
 
+    @Cacheable(cacheNames = "users:archive", key = "#id")
     @GetMapping("/{id}/research-archive")
     public Map<String, Object> getUserResearchArchive(@PathVariable Long id) {
         User user = userService.getUserById(id);
@@ -151,6 +153,7 @@ public class UserController {
         );
     }
 
+    @Cacheable(cacheNames = "users:interest", key = "#id")
     @GetMapping("/{id}/interest-profile")
     public Map<String, Object> getInterestProfile(@PathVariable Long id) {
         List<Tweet> publishedTweets = tweetRepository.findByAuthorIdOrderByCreateTimeDesc(id);

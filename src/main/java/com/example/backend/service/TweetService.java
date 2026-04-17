@@ -8,6 +8,9 @@ import com.example.backend.repository.TweetRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +36,10 @@ public class TweetService {
     @Value("${file.upload.dir}")
     private String uploadDir;
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", allEntries = true)
+    })
     public Tweet postTweetWithFile(String title,
                                    String content,
                                    Long userId,
@@ -92,6 +99,10 @@ public class TweetService {
         return savedTweet;
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId")
+    })
     public Tweet updateTweetWithFile(Long tweetId,
                                      Long userId,
                                      String title,
@@ -148,6 +159,50 @@ public class TweetService {
         return savedTweet;
     }
 
+    @Cacheable(cacheNames = "tweets:list", key = "'all:' + (#sort == null ? 'latest' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 50 : #limit)")
+    public List<Map<String, Object>> getAllTweetDtos(String sort, Integer limit, RatingService ratingService,
+                                                     com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
+                                                     com.example.backend.repository.CommentRepository commentRepository) {
+        return tweetRepository.findDiscoveryDtos(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                sort == null ? "latest" : sort.trim().toLowerCase(),
+                limit == null ? 50 : limit,
+                ratingService,
+                tweetLikeRepository,
+                commentRepository
+        );
+    }
+
+    @Cacheable(cacheNames = "tweets:list", key = "'discovery:' + (#sort == null ? 'hot' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 8 : #limit)")
+    public List<Map<String, Object>> getDiscoveryFeedDtos(String sort, Integer limit, RatingService ratingService,
+                                                          com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
+                                                          com.example.backend.repository.CommentRepository commentRepository) {
+        return tweetRepository.findDiscoveryDtos(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                sort == null ? "hot" : sort.trim().toLowerCase(),
+                limit == null ? 8 : limit,
+                ratingService,
+                tweetLikeRepository,
+                commentRepository
+        );
+    }
+
+    @Cacheable(cacheNames = "tweets:detail", key = "#tweetId")
+    public Tweet getTweetByIdCached(Long tweetId) {
+        return tweetRepository.findById(tweetId)
+                .orElseThrow(() -> new RuntimeException("推文不存在"));
+    }
+
     public List<Tweet> getAllTweets() {
         return tweetRepository.findAllByOrderByCreateTimeDesc();
     }
@@ -156,6 +211,7 @@ public class TweetService {
         return tweetRepository.searchByKeyword(keyword);
     }
 
+    @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId")
     public Tweet recordView(Long tweetId) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("研究成果不存在"));
@@ -164,6 +220,10 @@ public class TweetService {
         return tweetRepository.save(tweet);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId")
+    })
     public Tweet recordShare(Long tweetId) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("研究成果不存在"));
@@ -173,6 +233,13 @@ public class TweetService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId"),
+            @CacheEvict(cacheNames = "tweets:favorites", key = "#userId"),
+            @CacheEvict(cacheNames = "tweets:bookmark-status", key = "#userId + ':' + #tweetId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
+    })
     public Map<String, Object> toggleFavorite(Long userId, Long tweetId) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("研究成果不存在"));
@@ -200,6 +267,7 @@ public class TweetService {
         return buildFavoriteState(tweet, userId, isFavorited);
     }
 
+    @Cacheable(cacheNames = "tweets:bookmark-status", key = "#userId + ':' + #tweetId")
     public Map<String, Object> getFavoriteStatus(Long userId, Long tweetId) {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("研究成果不存在"));
@@ -208,6 +276,7 @@ public class TweetService {
         return buildFavoriteState(tweet, userId, isFavorited);
     }
 
+    @Cacheable(cacheNames = "tweets:favorites", key = "#userId")
     public List<Map<String, Object>> getUserFavoriteDtos(Long userId) {
         return tweetFavoriteRepository.findByUserIdOrderByCreateTimeDesc(userId).stream()
                 .map(favorite -> {
@@ -233,6 +302,7 @@ public class TweetService {
         return tweet;
     }
 
+    @CacheEvict(cacheNames = "tweets:list", allEntries = true)
     public void rebuildSearchIndex() {
         meiliSearchService.indexAll(tweetRepository.findAll());
     }

@@ -4,6 +4,9 @@ import com.example.backend.entity.Notification;
 import com.example.backend.entity.User;
 import com.example.backend.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +33,10 @@ public class NotificationService {
      * @param targetId 目标ID (文章ID或评论ID)
      * @param tweetId 关联的文章ID (方便跳转)
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "notifications:list", key = "#recipient.id", condition = "#recipient != null && #recipient.id != null"),
+            @CacheEvict(cacheNames = "notifications:unread", key = "#recipient.id", condition = "#recipient != null && #recipient.id != null")
+    })
     public void send(User recipient, User actor, int type, Long targetId, Long tweetId) {
         if (recipient == null || actor == null || recipient.getId() == null || actor.getId() == null) {
             return;
@@ -57,24 +64,37 @@ public class NotificationService {
     }
 
     // 获取未读数量
+    @Cacheable(cacheNames = "notifications:unread", key = "#userId")
     public long getUnreadCount(Long userId) {
         return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
     }
 
     // 获取通知列表
+    @Cacheable(cacheNames = "notifications:list", key = "#userId")
     public List<Notification> getMyNotifications(Long userId) {
         return notificationRepository.findByRecipientIdOrderByCreateTimeDesc(userId);
     }
 
     // 标记单条已读
-    public void markAsRead(Long notificationId) {
-        notificationRepository.findById(notificationId).ifPresent(n -> {
-            n.setRead(true);
-            notificationRepository.save(n);
-        });
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "notifications:list", key = "#result", condition = "#result != null"),
+            @CacheEvict(cacheNames = "notifications:unread", key = "#result", condition = "#result != null")
+    })
+    public Long markAsRead(Long notificationId) {
+        return notificationRepository.findById(notificationId).map(n -> {
+            if (!Boolean.TRUE.equals(n.getRead())) {
+                n.setRead(true);
+                notificationRepository.save(n);
+            }
+            return n.getRecipient() != null ? n.getRecipient().getId() : null;
+        }).orElse(null);
     }
 
     // 标记当前用户所有未读通知为已读
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "notifications:list", key = "#userId"),
+            @CacheEvict(cacheNames = "notifications:unread", key = "#userId")
+    })
     public int markAllAsRead(Long userId) {
         List<Notification> unreadList = notificationRepository.findByRecipientIdAndIsReadFalse(userId);
         unreadList.forEach(notification -> notification.setRead(true));

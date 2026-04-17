@@ -6,6 +6,9 @@ import com.example.backend.repository.UserRepository;
 import com.example.backend.repository.FriendshipRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.stream.Collectors;
@@ -30,11 +33,11 @@ public class UserService {
     @Value("${file.upload.dir}")
     private String uploadDir;
 
+    @CacheEvict(cacheNames = "users:profile", key = "#result.id", condition = "#result != null && #result.id != null")
     public User register(User user) {
         if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new RuntimeException("用户名已存在");
         }
-        // 默认昵称 = 用户名
         if (user.getNickname() == null || user.getNickname().isEmpty()) {
             user.setNickname(user.getUsername());
         }
@@ -56,6 +59,7 @@ public class UserService {
         return null;
     }
 
+    @Cacheable(cacheNames = "users:profile", key = "#id")
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
@@ -65,13 +69,26 @@ public class UserService {
         return user;
     }
 
-    // 修改资料 (增加昵称参数)
+    @Cacheable(cacheNames = "users:following", key = "#userId")
+    public List<User> getMyFollowing(Long userId) {
+        List<Friendship> friendships = friendshipRepository.findAllByFollowerId(userId);
+        return friendships.stream()
+                .map(Friendship::getFollowing)
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(cacheNames = "users:follow-status", key = "#userId + ':' + #targetUserId")
+    public boolean isFollowing(Long userId, Long targetUserId) {
+        return friendshipRepository.existsByFollowerIdAndFollowingId(userId, targetUserId);
+    }
+
+    @CacheEvict(cacheNames = "users:profile", key = "#userId")
     public User updateProfile(Long userId, String nickname, String bio, MultipartFile avatarFile) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
         if (bio != null) user.setBio(bio);
-        if (nickname != null && !nickname.trim().isEmpty()) user.setNickname(nickname); // 更新昵称
+        if (nickname != null && !nickname.trim().isEmpty()) user.setNickname(nickname);
 
         if (avatarFile != null && !avatarFile.isEmpty()) {
             String newFileName = UUID.randomUUID().toString() + "_" + avatarFile.getOriginalFilename();
@@ -83,13 +100,19 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // 搜索用户
     public List<User> searchUsers(String keyword) {
-        // 两个参数都传 keyword，表示“用户名包含它”或者“昵称包含它”
         return userRepository.findByUsernameContainingOrNicknameContaining(keyword, keyword);
     }
 
-    // 关注用户
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "users:profile", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:profile", key = "#targetUserId"),
+            @CacheEvict(cacheNames = "users:following", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:follow-status", key = "#followerId + ':' + #targetUserId"),
+            @CacheEvict(cacheNames = "users:stats", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:stats", key = "#targetUserId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#followerId")
+    })
     public void followUser(Long followerId, Long targetUserId) {
         if (followerId.equals(targetUserId)) {
             throw new RuntimeException("不能关注自己");
@@ -109,17 +132,15 @@ public class UserService {
         friendshipRepository.save(friendship);
     }
 
-    // 获取我的关注列表
-    public List<User> getMyFollowing(Long userId) {
-        // 1. 查出所有的关注记录
-        List<Friendship> friendships = friendshipRepository.findAllByFollowerId(userId);
-
-        // 2. 提取出每一条记录里的 "Following" (我关注的人)
-        return friendships.stream()
-                .map(Friendship::getFollowing)
-                .collect(Collectors.toList());
-    }
-
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "users:profile", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:profile", key = "#targetUserId"),
+            @CacheEvict(cacheNames = "users:following", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:follow-status", key = "#followerId + ':' + #targetUserId"),
+            @CacheEvict(cacheNames = "users:stats", key = "#followerId"),
+            @CacheEvict(cacheNames = "users:stats", key = "#targetUserId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#followerId")
+    })
     public void unfollowUser(Long followerId, Long targetUserId) {
         Friendship friendship = friendshipRepository.findByFollowerIdAndFollowingId(followerId, targetUserId)
                 .orElseThrow(() -> new RuntimeException("未关注该用户"));

@@ -5,6 +5,9 @@ import com.example.backend.entity.UserSubscription;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.repository.UserSubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,10 +27,15 @@ public class SubscriptionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Cacheable(cacheNames = "subscriptions:my", key = "#userId")
     public List<UserSubscription> getMySubscriptions(Long userId) {
         return userSubscriptionRepository.findByUserIdOrderByCreateTimeDesc(userId);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "subscriptions:my", key = "#userId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
+    })
     public UserSubscription addResearchAreaSubscription(Long userId, String researchArea) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
@@ -49,6 +57,10 @@ public class SubscriptionService {
                 });
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "subscriptions:my", key = "#userId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
+    })
     public void removeSubscription(Long subscriptionId, Long userId) {
         UserSubscription subscription = userSubscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new RuntimeException("订阅不存在"));

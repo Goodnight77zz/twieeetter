@@ -21,6 +21,9 @@ import com.example.backend.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.PageRequest;
@@ -249,13 +252,7 @@ public class TweetController {
             @RequestParam(required = false, defaultValue = "hot") String sort,
             @RequestParam(required = false, defaultValue = "8") Integer limit
     ) {
-        return tweetRepository.findDiscoveryDtos(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+        return tweetService.getDiscoveryFeedDtos(
                 normalizeText(sort),
                 limit == null ? 8 : limit,
                 ratingService,
@@ -269,13 +266,7 @@ public class TweetController {
             @RequestParam(required = false, defaultValue = "latest") String sort,
             @RequestParam(required = false, defaultValue = "50") Integer limit
     ) {
-        return tweetRepository.findDiscoveryDtos(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+        return tweetService.getAllTweetDtos(
                 normalizeText(sort),
                 limit == null ? 50 : limit,
                 ratingService,
@@ -284,6 +275,7 @@ public class TweetController {
         );
     }
 
+    @Cacheable(cacheNames = "tweets:list", key = "'user:' + #userId")
     @GetMapping("/user/{userId}")
     public List<Tweet> getUserTweets(@PathVariable Long userId) {
         return tweetRepository.findByAuthorIdOrderByCreateTimeDesc(userId);
@@ -291,13 +283,12 @@ public class TweetController {
 
     @GetMapping("/{id}")
     public Tweet getTweetById(@PathVariable Long id) {
-        return tweetRepository.findById(id).orElseThrow(() -> new RuntimeException("推文不存在"));
+        return tweetService.getTweetByIdCached(id);
     }
 
     @GetMapping("/{id}/detail-dto")
     public Map<String, Object> getTweetDetailWithScore(@PathVariable Long id, @RequestParam(required = false) Long userId) {
-        Tweet tweet = tweetRepository.findById(id).orElseThrow(() -> new RuntimeException("推文不存在"));
-        tweet = tweetService.recordView(id);
+        Tweet tweet = tweetService.recordView(id);
 
         long likeCount = tweetLikeRepository.countByTweetId(id);
         long commentCount = commentRepository.countByTweetId(id);
@@ -351,6 +342,7 @@ public class TweetController {
         return tweetService.getUserFavoriteDtos(userId);
     }
 
+    @Cacheable(cacheNames = "tweets:related", key = "#id")
     @GetMapping("/{id}/related")
     public List<Tweet> getRelatedTweets(@PathVariable Long id) {
         Tweet tweet = tweetRepository.findById(id).orElseThrow(() -> new RuntimeException("推文不存在"));
@@ -411,6 +403,10 @@ public class TweetController {
         }
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "comments:list", key = "#tweetId"),
+            @CacheEvict(cacheNames = "comments:tree", key = "#tweetId")
+    })
     @PostMapping("/{tweetId}/comments")
     public String addComment(
             @PathVariable Long tweetId, @RequestParam Long userId, @RequestParam String content,
@@ -447,6 +443,7 @@ public class TweetController {
         return "评论成功";
     }
 
+    @Cacheable(cacheNames = "comments:list", key = "#tweetId")
     @GetMapping("/{tweetId}/comments")
     public List<Map<String, Object>> getComments(@PathVariable Long tweetId, @RequestParam(required = false) Long userId) {
         List<Comment> comments = commentRepository.findByTweetIdOrderByCreateTimeDesc(tweetId);
@@ -489,6 +486,10 @@ public class TweetController {
         }).toList();
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "comments:list", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')"),
+            @CacheEvict(cacheNames = "comments:tree", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')")
+    })
     @PostMapping("/comments/{commentId}/accept")
     public Map<String, Object> toggleCommentAccepted(@PathVariable Long commentId, @RequestParam Long userId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("评论不存在"));
@@ -510,7 +511,8 @@ public class TweetController {
         }
         return Map.of(
                 "accepted", nextAccepted,
-                "commentId", comment.getId()
+                "commentId", comment.getId(),
+                "tweetId", tweet.getId()
         );
     }
 
@@ -558,6 +560,10 @@ public class TweetController {
         return Map.of("count", count, "isLiked", liked);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "comments:list", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')"),
+            @CacheEvict(cacheNames = "comments:tree", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')")
+    })
     @PostMapping("/comments/{commentId}/like")
     public Map<String, Object> toggleCommentLike(@PathVariable Long commentId, @RequestParam Long userId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow();
@@ -584,7 +590,8 @@ public class TweetController {
         }
         return Map.of(
                 "count", commentLikeRepository.countByCommentIdAndIsLikeTrue(commentId),
-                "isLiked", isLiked
+                "isLiked", isLiked,
+                "tweetId", comment.getTweet() != null ? comment.getTweet().getId() : null
         );
     }
 
