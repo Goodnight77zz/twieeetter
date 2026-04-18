@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public interface TweetRepository extends JpaRepository<Tweet, Long> {
@@ -112,7 +113,7 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
                 : keywordVariants.stream()
                 .flatMap(variant -> searchByAdvancedFilters(variant, researchArea, contentType, publicationType, status, language).stream())
                 .distinct()
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
         return tweets.stream()
                 .map(tweet -> {
@@ -125,7 +126,7 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
                 })
                 .sorted(resolveComparator(sortBy))
                 .limit(Math.max(limit, 1))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private static List<String> expandKeywordVariants(String keyword) {

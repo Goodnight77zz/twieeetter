@@ -159,7 +159,11 @@ public class TweetService {
         return savedTweet;
     }
 
-    @Cacheable(cacheNames = "tweets:list", key = "'all:' + (#sort == null ? 'latest' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 50 : #limit)")
+    @Cacheable(
+            cacheNames = "tweets:list",
+            key = "'all:' + (#sort == null ? 'latest' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 50 : #limit)",
+            sync = true
+    )
     public List<Map<String, Object>> getAllTweetDtos(String sort, Integer limit, RatingService ratingService,
                                                      com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
                                                      com.example.backend.repository.CommentRepository commentRepository) {
@@ -178,7 +182,11 @@ public class TweetService {
         );
     }
 
-    @Cacheable(cacheNames = "tweets:list", key = "'discovery:' + (#sort == null ? 'hot' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 8 : #limit)")
+    @Cacheable(
+            cacheNames = "tweets:list",
+            key = "'discovery:' + (#sort == null ? 'hot' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 8 : #limit)",
+            sync = true
+    )
     public List<Map<String, Object>> getDiscoveryFeedDtos(String sort, Integer limit, RatingService ratingService,
                                                           com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
                                                           com.example.backend.repository.CommentRepository commentRepository) {
