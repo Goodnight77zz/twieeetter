@@ -115,13 +115,41 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
 
+        if (tweets.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> tweetIds = tweets.stream()
+                .map(Tweet::getId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Map<Long, Long> likeCounts = new LinkedHashMap<>();
+        for (Object[] row : tweetLikeRepository.countByTweetIds(tweetIds)) {
+            Long tweetId = readLongValue(row, 0);
+            Long count = readLongValue(row, 1);
+            if (tweetId != null && count != null) {
+                likeCounts.put(tweetId, count);
+            }
+        }
+
+        Map<Long, Long> commentCounts = new LinkedHashMap<>();
+        for (Object[] row : commentRepository.countByTweetIds(tweetIds)) {
+            Long tweetId = readLongValue(row, 0);
+            Long count = readLongValue(row, 1);
+            if (tweetId != null && count != null) {
+                commentCounts.put(tweetId, count);
+            }
+        }
+
+        Map<Long, Map<String, Object>> signalsByTweetId =
+                ratingService.getEvaluationSignalsBatch(tweets, likeCounts, commentCounts);
+
         return tweets.stream()
                 .map(tweet -> {
-                    long likeCount = tweetLikeRepository.countByTweetId(tweet.getId());
-                    long commentCount = commentRepository.countByTweetId(tweet.getId());
                     Map<String, Object> dto = new LinkedHashMap<>();
                     dto.put("tweet", tweet);
-                    dto.put("signals", ratingService.getEvaluationSignals(tweet, likeCount, commentCount));
+                    dto.put("signals", signalsByTweetId.getOrDefault(tweet.getId(), new LinkedHashMap<>()));
                     return dto;
                 })
                 .sorted(resolveComparator(sortBy))
@@ -216,6 +244,17 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
         Object nested = wrapper.get(wrapperKey);
         if (nested instanceof Tweet tweet) {
             return "updateTime".equals(key) ? tweet.getUpdateTime() : tweet.getCreateTime();
+        }
+        return null;
+    }
+
+    private static Long readLongValue(Object[] row, int index) {
+        if (row == null || index < 0 || index >= row.length) {
+            return null;
+        }
+        Object value = row[index];
+        if (value instanceof Number number) {
+            return number.longValue();
         }
         return null;
     }

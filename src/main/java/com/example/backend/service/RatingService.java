@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +159,35 @@ public class RatingService {
         return signals;
     }
 
+    public Map<Long, Map<String, Object>> getEvaluationSignalsBatch(
+            List<Tweet> tweets,
+            Map<Long, Long> likeCounts,
+            Map<Long, Long> commentCounts
+    ) {
+        Map<Long, Map<String, Object>> result = new HashMap<>();
+        if (tweets == null || tweets.isEmpty()) {
+            return result;
+        }
+
+        List<Long> tweetIds = tweets.stream()
+                .map(Tweet::getId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+
+        Map<Long, RatingAggregate> ratingByTweetId = loadRatingAggregates(tweetIds);
+
+        for (Tweet tweet : tweets) {
+            if (tweet == null || tweet.getId() == null) {
+                continue;
+            }
+            long likeCount = likeCounts.getOrDefault(tweet.getId(), 0L);
+            long commentCount = commentCounts.getOrDefault(tweet.getId(), 0L);
+            RatingAggregate aggregate = ratingByTweetId.getOrDefault(tweet.getId(), RatingAggregate.EMPTY);
+            result.put(tweet.getId(), buildSignalsFromAggregate(tweet, likeCount, commentCount, aggregate));
+        }
+        return result;
+    }
+
     private int safeInt(Integer value) {
         return value == null ? 0 : value;
     }
@@ -197,5 +227,163 @@ public class RatingService {
     private void updateAuthorReputation(User author) {
         author.setReputation(author.getReputation() + 1);
         userRepository.save(author);
+    }
+
+    private Map<Long, RatingAggregate> loadRatingAggregates(List<Long> tweetIds) {
+        Map<Long, RatingAggregate> aggregateMap = new HashMap<>();
+        if (tweetIds == null || tweetIds.isEmpty()) {
+            return aggregateMap;
+        }
+
+        for (Object[] row : ratingRepository.aggregateSignalsByTweetIds(tweetIds)) {
+            if (row == null || row.length < 11) {
+                continue;
+            }
+
+            Long tweetId = asLong(row[0]);
+            if (tweetId == null) {
+                continue;
+            }
+
+            long ratingCount = asLong(row[1]) == null ? 0L : asLong(row[1]);
+            double weightedTotal = asDouble(row[2]);
+            double weightedTotalDenominator = asDouble(row[3]);
+            double weightedS1 = asDouble(row[4]);
+            double weightedS2 = asDouble(row[5]);
+            double weightedS3 = asDouble(row[6]);
+            double weightedS4 = asDouble(row[7]);
+            double weightedS5 = asDouble(row[8]);
+            long expertCount = asLong(row[9]) == null ? 0L : asLong(row[9]);
+            double expertScore = asDouble(row[10]);
+
+            double weightDenominator = weightedTotalDenominator <= 0 ? 0 : weightedTotalDenominator / 5.0;
+            double averageScore = weightedTotalDenominator <= 0 ? 0 : weightedTotal / weightedTotalDenominator;
+            double s1 = weightDenominator <= 0 ? 0 : weightedS1 / weightDenominator;
+            double s2 = weightDenominator <= 0 ? 0 : weightedS2 / weightDenominator;
+            double s3 = weightDenominator <= 0 ? 0 : weightedS3 / weightDenominator;
+            double s4 = weightDenominator <= 0 ? 0 : weightedS4 / weightDenominator;
+            double s5 = weightDenominator <= 0 ? 0 : weightedS5 / weightDenominator;
+
+            aggregateMap.put(tweetId, new RatingAggregate(
+                    ratingCount,
+                    averageScore,
+                    s1,
+                    s2,
+                    s3,
+                    s4,
+                    s5,
+                    expertCount,
+                    expertScore
+            ));
+        }
+
+        return aggregateMap;
+    }
+
+    private Map<String, Object> buildSignalsFromAggregate(Tweet tweet, long likeCount, long commentCount, RatingAggregate aggregate) {
+        double avgScore = aggregate.averageScore;
+        long downloadCount = safeLong(tweet.getDownloadCount());
+        long viewCount = safeLong(tweet.getViewCount());
+        long shareCount = safeLong(tweet.getShareCount());
+        long bookmarkCount = safeLong(tweet.getBookmarkCount());
+        int ratingCount = (int) aggregate.ratingCount;
+        long expertCount = aggregate.expertCount;
+        double expertScore = aggregate.expertScore;
+        LocalDateTime lastInteractionTime = tweet.getLastInteractionTime() != null ? tweet.getLastInteractionTime() : tweet.getCreateTime();
+        long recencyBoost = calculateRecencyBoost(lastInteractionTime);
+        long hotScore = Math.round(
+                likeCount * 3
+                        + commentCount * 4
+                        + downloadCount * 2
+                        + viewCount
+                        + shareCount * 5
+                        + bookmarkCount * 4
+                        + avgScore * 5
+                        + ratingCount * 2
+                        + expertCount * 3
+                        + recencyBoost
+        );
+
+        Map<String, Object> radar = new HashMap<>();
+        radar.put("s1", roundOneDecimal(aggregate.s1));
+        radar.put("s2", roundOneDecimal(aggregate.s2));
+        radar.put("s3", roundOneDecimal(aggregate.s3));
+        radar.put("s4", roundOneDecimal(aggregate.s4));
+        radar.put("s5", roundOneDecimal(aggregate.s5));
+        radar.put("expertCount", expertCount);
+        radar.put("expertScore", expertCount > 0 ? roundOneDecimal(expertScore) : 0.0);
+        radar.put("ratingCount", ratingCount);
+
+        Map<String, Object> signals = new HashMap<>();
+        signals.put("likes", likeCount);
+        signals.put("comments", commentCount);
+        signals.put("downloads", downloadCount);
+        signals.put("views", viewCount);
+        signals.put("shares", shareCount);
+        signals.put("bookmarks", bookmarkCount);
+        signals.put("averageScore", roundOneDecimal(avgScore));
+        signals.put("averageScoreText", String.format("%.1f", avgScore));
+        signals.put("ratingCount", ratingCount);
+        signals.put("expertCount", expertCount);
+        signals.put("expertScore", expertCount > 0 ? roundOneDecimal(expertScore) : 0.0);
+        signals.put("hotScore", hotScore);
+        signals.put("freshnessLevel", resolveFreshnessLevel(lastInteractionTime));
+        signals.put("engagementLevel", resolveEngagementLevel(hotScore, ratingCount, commentCount, shareCount, bookmarkCount));
+        signals.put("lastInteractionTime", lastInteractionTime != null ? lastInteractionTime.toString() : null);
+        signals.put("updateTime", tweet.getUpdateTime() != null ? tweet.getUpdateTime().toString() : null);
+        signals.put("radar", radar);
+        return signals;
+    }
+
+    private double roundOneDecimal(double value) {
+        return Math.round(value * 10.0) / 10.0;
+    }
+
+    private Long asLong(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
+    }
+
+    private double asDouble(Object value) {
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        return 0.0;
+    }
+
+    private static class RatingAggregate {
+        private static final RatingAggregate EMPTY = new RatingAggregate(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+        private final long ratingCount;
+        private final double averageScore;
+        private final double s1;
+        private final double s2;
+        private final double s3;
+        private final double s4;
+        private final double s5;
+        private final long expertCount;
+        private final double expertScore;
+
+        private RatingAggregate(long ratingCount,
+                                double averageScore,
+                                double s1,
+                                double s2,
+                                double s3,
+                                double s4,
+                                double s5,
+                                long expertCount,
+                                double expertScore) {
+            this.ratingCount = ratingCount;
+            this.averageScore = averageScore;
+            this.s1 = s1;
+            this.s2 = s2;
+            this.s3 = s3;
+            this.s4 = s4;
+            this.s5 = s5;
+            this.expertCount = expertCount;
+            this.expertScore = expertScore;
+        }
     }
 }

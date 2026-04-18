@@ -2,6 +2,8 @@ package com.example.backend.repository;
 
 import com.example.backend.entity.TweetLike;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.List;
@@ -18,4 +20,7 @@ public interface TweetLikeRepository extends JpaRepository<TweetLike, Long> {
     long countByTweetId(Long tweetId);
 
     List<TweetLike> findByTweetId(Long tweetId);
+
+    @Query("SELECT tl.tweet.id, COUNT(tl) FROM TweetLike tl WHERE tl.tweet.id IN :tweetIds GROUP BY tl.tweet.id")
+    List<Object[]> countByTweetIds(@Param("tweetIds") List<Long> tweetIds);
 }
