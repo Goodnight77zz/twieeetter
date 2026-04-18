@@ -24,7 +24,7 @@ public class EmailTestController {
     public Map<String, Object> sendTestEmail(
             @RequestParam String to,
             @RequestParam(defaultValue = "Open Research Platform 测试邮件") String subject,
-            @RequestParam(defaultValue = "这是一封来自开放研究分享平台的测试邮件。") String content
+            @RequestParam(defaultValue = "这是一封来自开放研究分享平台的测试邮件") String content
     ) {
         emailService.sendSimpleMail(to, subject, content + "\n\n发送时间: " + LocalDateTime.now());
 
