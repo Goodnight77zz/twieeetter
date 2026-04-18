@@ -1001,8 +1001,17 @@
 <script src="common/lang-component.js"></script>
 <script>
     const params = new URLSearchParams(location.search);
-    const currentUserId = localStorage.getItem('userId');
-    const targetUserId = params.get('id') || currentUserId;
+    const currentUserIdRaw = localStorage.getItem('userId');
+    const currentUserId = /^\d+$/.test(String(currentUserIdRaw || '').trim())
+        ? String(currentUserIdRaw).trim()
+        : null;
+    const targetUserIdRaw = params.get('id') || currentUserId;
+    const targetUserId = /^\d+$/.test(String(targetUserIdRaw || '').trim())
+        ? String(targetUserIdRaw).trim()
+        : null;
+    if (!targetUserId) {
+        location.href = 'login.html';
+    }
     let currentLang = localStorage.getItem('appLang') || 'cn';
     let isFollowing = false;
     let knowledgeEntries = [];
@@ -1574,14 +1583,23 @@
     }
 
     async function loadProfile() {
-        const [userRes, statsRes] = await Promise.all([
-            fetch(`/api/users/${targetUserId}`),
-            fetch(`/api/users/${targetUserId}/stats`)
-        ]);
-        const user = await userRes.json();
-        const stats = await statsRes.json();
-        const displayName = safeText(user.nickname || user.name || user.username, 'User');
-        document.getElementById('userName').innerText = displayName;
+        try {
+            const [userRes, statsRes] = await Promise.all([
+                fetch(`/api/users/${targetUserId}`),
+                fetch(`/api/users/${targetUserId}/stats`)
+            ]);
+            if (!userRes.ok) {
+                const errorText = await userRes.text();
+                throw new Error(`Load profile failed: ${userRes.status} ${errorText}`);
+            }
+            if (!statsRes.ok) {
+                const errorText = await statsRes.text();
+                throw new Error(`Load stats failed: ${statsRes.status} ${errorText}`);
+            }
+            const user = await userRes.json();
+            const stats = await statsRes.json();
+            const displayName = safeText(user.nickname || user.name || user.username, 'User');
+            document.getElementById('userName').innerText = displayName;
         const avatarBox = document.getElementById('avatarBox');
         if (user.avatar) {
             avatarBox.innerHTML = `<img src="/uploads/${user.avatar}" alt="${escapeHtml(displayName)}">`;
@@ -1592,11 +1610,17 @@
             <span class="cn">${escapeHtml(safeText(user.bio, '这位研究者暂未填写个人简介。'))}</span>
             <span class="en">${escapeHtml(safeText(user.bio, 'This researcher has not provided a biography yet.'))}</span>
         `;
-        document.getElementById('followersCount').innerText = stats.followerCount || 0;
-        document.getElementById('followingCount').innerText = stats.followingCount || 0;
+        document.getElementById('followersCount').innerText = Number(stats?.followerCount ?? 0);
+        document.getElementById('followingCount').innerText = Number(stats?.followingCount ?? 0);
         renderActionButtons();
         renderSubscriptions();
         if (typeof applyLang === 'function') applyLang(currentLang);
+        } catch (e) {
+            console.error('Failed to load profile basics', e);
+            document.getElementById('userName').innerText = 'User';
+            document.getElementById('followersCount').innerText = 0;
+            document.getElementById('followingCount').innerText = 0;
+        }
     }
 
     async function loadFollowStatus() {

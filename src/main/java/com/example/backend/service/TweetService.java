@@ -210,7 +210,6 @@ public class TweetService {
         );
     }
 
-    @Cacheable(cacheNames = "tweets:detail", key = "#tweetId", sync = true)
     public Tweet getTweetByIdCached(Long tweetId) {
         return tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("推文不存在"));

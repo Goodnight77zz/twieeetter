@@ -395,8 +395,12 @@
 
 <script src="common/lang-component.js"></script>
 <script>
-    const userId = localStorage.getItem("userId");
-    if (!userId) window.location.href = "login.html";
+    const userIdRaw = localStorage.getItem("userId");
+    const userId = /^\d+$/.test(String(userIdRaw || "").trim()) ? String(userIdRaw).trim() : null;
+    if (!userId) {
+        localStorage.removeItem("userId");
+        window.location.href = "login.html";
+    }
 
     function getAvatarInitial(user) {
         const source = String(user?.nickname || user?.username || user?.email || 'U').trim();
@@ -415,8 +419,11 @@
 
     async function initDashboard() {
         const userRes = await fetch(`/api/users/${userId}`);
+        if (!userRes.ok) {
+            throw new Error(`Load user failed: ${userRes.status} ${await userRes.text()}`);
+        }
         const user = await userRes.json();
-        const username = user.nickname || user.username;
+        const username = user.nickname || user.username || 'User';
         const currentLang = localStorage.getItem('appLang') || 'cn';
 
         document.getElementById("headerName").innerText = username;
@@ -424,11 +431,14 @@
         document.getElementById("headerAvatar").src = getAvatarSrc(user, 36);
 
         const statsRes = await fetch(`/api/users/${userId}/stats`);
+        if (!statsRes.ok) {
+            throw new Error(`Load stats failed: ${statsRes.status} ${await statsRes.text()}`);
+        }
         const stats = await statsRes.json();
 
-        document.getElementById("tweetCount").innerText = stats.tweetCount;
-        document.getElementById("followerCount").innerText = stats.followerCount;
-        document.getElementById("followingCount").innerText = stats.followingCount;
+        document.getElementById("tweetCount").innerText = Number(stats?.tweetCount ?? 0);
+        document.getElementById("followerCount").innerText = Number(stats?.followerCount ?? 0);
+        document.getElementById("followingCount").innerText = Number(stats?.followingCount ?? 0);
     }
 
     function logout() {

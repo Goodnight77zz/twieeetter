@@ -339,8 +339,14 @@
         "数据分析": "Data Analysis"
     };
 
-    const currentUserId = localStorage.getItem("userId");
-    if(!currentUserId) window.location.href = "login.html";
+    const currentUserIdRaw = localStorage.getItem("userId");
+    const currentUserId = /^\d+$/.test(String(currentUserIdRaw || "").trim())
+        ? String(currentUserIdRaw).trim()
+        : null;
+    if(!currentUserId) {
+        localStorage.removeItem("userId");
+        window.location.href = "login.html";
+    }
 
     let globalTweets = [];
     let currentFeedSort = 'latest';
@@ -624,13 +630,17 @@
     async function loadNavData() {
         try {
             const userRes = await fetch(`/api/users/${currentUserId}`);
+            if (!userRes.ok) {
+                const errorText = await userRes.text();
+                throw new Error(`Load user failed: ${userRes.status} ${errorText}`);
+            }
             const user = await userRes.json();
 
             if(user.avatar) {
                 document.getElementById("navAvatar").src = "/uploads/" + user.avatar;
             }
 
-            const nickname = user.nickname || user.username;
+            const nickname = user.nickname || user.username || "User";
             document.getElementById("popName").innerText = nickname;
 
             const score = user.reputation || 0;
@@ -654,6 +664,10 @@
             if(typeof applyLang === 'function') applyLang(currentLang);
 
             const statsRes = await fetch(`/api/users/${currentUserId}/stats`);
+            if (!statsRes.ok) {
+                const errorText = await statsRes.text();
+                throw new Error(`Load stats failed: ${statsRes.status} ${errorText}`);
+            }
             const stats = await statsRes.json();
             const followingCount = Number(stats?.followingCount ?? 0);
             const followerCount = Number(stats?.followerCount ?? 0);

@@ -64,18 +64,20 @@ public class UserService {
         return null;
     }
 
-    @Cacheable(cacheNames = "users:profile", key = "#id")
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
+            // GET 场景不触发写库，避免读取用户信息时引入额外失败点
             user.setEmail(DEFAULT_TEST_EMAIL);
-            return userRepository.save(user);
         }
         return user;
     }
 
     @Cacheable(cacheNames = "users:stats", key = "#userId")
     public Map<String, Long> getUserStats(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("用户不存在: " + userId);
+        }
         long authoredTweetCount = tweetRepository.countByAuthorId(userId);
         long followingCount = userRepository.countFollowing(userId);
         long followerCount = userRepository.countFollowers(userId);

@@ -201,11 +201,15 @@
 <script src="common/lang-component.js"></script>
 
 <script>
-    const userId = localStorage.getItem("userId");
+    const userIdRaw = localStorage.getItem("userId");
+    const userId = /^\d+$/.test(String(userIdRaw || "").trim()) ? String(userIdRaw).trim() : null;
     // 当前语言状态
     let currentLang = localStorage.getItem('appLang') || 'cn';
 
-    if (!userId) window.location.href = "login.html";
+    if (!userId) {
+        localStorage.removeItem("userId");
+        window.location.href = "login.html";
+    }
 
     function getAvatarInitial(user) {
         const source = String(user?.nickname || user?.username || user?.email || 'U').trim();
@@ -284,6 +288,9 @@
     async function loadProfile() {
         try {
             const res = await fetch(`/api/users/${userId}`);
+            if (!res.ok) {
+                throw new Error(`Load user failed: ${res.status} ${await res.text()}`);
+            }
             const user = await res.json();
 
             // 填充数据
@@ -327,6 +334,9 @@
 
         try {
             const res = await fetch(`/api/users/${userId}`, { method: 'POST', body: formData });
+            if (!res.ok) {
+                throw new Error(`Save profile failed: ${res.status} ${await res.text()}`);
+            }
             const result = await res.text();
 
             const successText = currentLang === 'cn' ? '成功' : 'success';
