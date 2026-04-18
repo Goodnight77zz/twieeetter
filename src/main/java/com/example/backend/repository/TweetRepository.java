@@ -1,6 +1,7 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Tweet;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -76,6 +77,68 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
 
     @Query("""
             SELECT t FROM Tweet t
+            WHERE (
+                    :keyword IS NULL OR :keyword = ''
+                    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.tags) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.authors) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.keywords) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.researchArea) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.institution) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.journalOrConference) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.doi) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            )
+              AND (:researchArea IS NULL OR :researchArea = '' OR t.researchArea = :researchArea)
+              AND (:contentType IS NULL OR :contentType = '' OR t.contentType = :contentType)
+              AND (:publicationType IS NULL OR :publicationType = '' OR t.publicationType = :publicationType)
+              AND (:status IS NULL OR :status = '' OR t.status = :status)
+              AND (:language IS NULL OR :language = '' OR t.language = :language)
+            ORDER BY COALESCE(t.updateTime, t.createTime) DESC
+            """)
+    List<Tweet> findDiscoveryLatest(
+            @Param("keyword") String keyword,
+            @Param("researchArea") String researchArea,
+            @Param("contentType") String contentType,
+            @Param("publicationType") String publicationType,
+            @Param("status") String status,
+            @Param("language") String language,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT t FROM Tweet t
+            WHERE (
+                    :keyword IS NULL OR :keyword = ''
+                    OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.tags) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.authors) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.keywords) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.researchArea) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.institution) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.journalOrConference) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(t.doi) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            )
+              AND (:researchArea IS NULL OR :researchArea = '' OR t.researchArea = :researchArea)
+              AND (:contentType IS NULL OR :contentType = '' OR t.contentType = :contentType)
+              AND (:publicationType IS NULL OR :publicationType = '' OR t.publicationType = :publicationType)
+              AND (:status IS NULL OR :status = '' OR t.status = :status)
+              AND (:language IS NULL OR :language = '' OR t.language = :language)
+            ORDER BY COALESCE(t.lastInteractionTime, t.updateTime, t.createTime) DESC
+            """)
+    List<Tweet> findDiscoveryHotCandidates(
+            @Param("keyword") String keyword,
+            @Param("researchArea") String researchArea,
+            @Param("contentType") String contentType,
+            @Param("publicationType") String publicationType,
+            @Param("status") String status,
+            @Param("language") String language,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT t FROM Tweet t
             WHERE t.id <> :tweetId
               AND (
                     (:researchArea IS NOT NULL AND :researchArea <> '' AND t.researchArea = :researchArea)
@@ -107,13 +170,54 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
             TweetLikeRepository tweetLikeRepository,
             CommentRepository commentRepository
     ) {
+        int safeLimit = Math.max(limit, 1);
+        String normalizedSort = sortBy == null ? "latest" : sortBy.trim().toLowerCase(Locale.ROOT);
+        int candidateLimit = ("latest".equals(normalizedSort) || "newest".equals(normalizedSort))
+                ? safeLimit
+                : Math.min(Math.max(safeLimit * 5, 100), 500);
+
         List<String> keywordVariants = expandKeywordVariants(keyword);
-        List<Tweet> tweets = keywordVariants.isEmpty()
-                ? searchByAdvancedFilters(keyword, researchArea, contentType, publicationType, status, language)
-                : keywordVariants.stream()
-                .flatMap(variant -> searchByAdvancedFilters(variant, researchArea, contentType, publicationType, status, language).stream())
-                .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
+
+        List<Tweet> tweets;
+        if (keywordVariants.isEmpty()) {
+            tweets = runDiscoveryQuery(
+                    keyword,
+                    researchArea,
+                    contentType,
+                    publicationType,
+                    status,
+                    language,
+                    normalizedSort,
+                    candidateLimit
+            );
+        } else {
+            Map<Long, Tweet> deduplicated = new LinkedHashMap<>();
+            for (String variant : keywordVariants) {
+                List<Tweet> batch = runDiscoveryQuery(
+                        variant,
+                        researchArea,
+                        contentType,
+                        publicationType,
+                        status,
+                        language,
+                        normalizedSort,
+                        candidateLimit
+                );
+                for (Tweet tweet : batch) {
+                    if (tweet == null || tweet.getId() == null) {
+                        continue;
+                    }
+                    deduplicated.putIfAbsent(tweet.getId(), tweet);
+                    if (deduplicated.size() >= candidateLimit) {
+                        break;
+                    }
+                }
+                if (deduplicated.size() >= candidateLimit) {
+                    break;
+                }
+            }
+            tweets = new ArrayList<>(deduplicated.values());
+        }
 
         if (tweets.isEmpty()) {
             return new ArrayList<>();
@@ -153,8 +257,25 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
                     return dto;
                 })
                 .sorted(resolveComparator(sortBy))
-                .limit(Math.max(limit, 1))
+                .limit(safeLimit)
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private List<Tweet> runDiscoveryQuery(
+            String keyword,
+            String researchArea,
+            String contentType,
+            String publicationType,
+            String status,
+            String language,
+            String normalizedSort,
+            int candidateLimit
+    ) {
+        Pageable pageable = PageRequest.of(0, Math.max(candidateLimit, 1));
+        if ("latest".equals(normalizedSort) || "newest".equals(normalizedSort)) {
+            return findDiscoveryLatest(keyword, researchArea, contentType, publicationType, status, language, pageable);
+        }
+        return findDiscoveryHotCandidates(keyword, researchArea, contentType, publicationType, status, language, pageable);
     }
 
     private static List<String> expandKeywordVariants(String keyword) {

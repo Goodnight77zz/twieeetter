@@ -404,7 +404,7 @@ public class TweetController {
     }
 
     @Caching(evict = {
-            @CacheEvict(cacheNames = "comments:list", key = "#tweetId"),
+            @CacheEvict(cacheNames = "comments:list", allEntries = true),
             @CacheEvict(cacheNames = "comments:tree", key = "#tweetId")
     })
     @PostMapping("/{tweetId}/comments")
@@ -443,7 +443,7 @@ public class TweetController {
         return "评论成功";
     }
 
-    @Cacheable(cacheNames = "comments:list", key = "#tweetId")
+    @Cacheable(cacheNames = "comments:list", key = "#tweetId + ':' + (#userId == null ? 'anon' : #userId)")
     @GetMapping("/{tweetId}/comments")
     public List<Map<String, Object>> getComments(@PathVariable Long tweetId, @RequestParam(required = false) Long userId) {
         List<Comment> comments = commentRepository.findByTweetIdOrderByCreateTimeDesc(tweetId);
@@ -487,7 +487,7 @@ public class TweetController {
     }
 
     @Caching(evict = {
-            @CacheEvict(cacheNames = "comments:list", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')"),
+            @CacheEvict(cacheNames = "comments:list", allEntries = true),
             @CacheEvict(cacheNames = "comments:tree", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')")
     })
     @PostMapping("/comments/{commentId}/accept")
@@ -526,6 +526,11 @@ public class TweetController {
         return Map.of("count", likes, "isLiked", liked);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId"),
+            @CacheEvict(cacheNames = "tweets:related", allEntries = true)
+    })
     @PostMapping("/{tweetId}/like")
     public Map<String, Object> toggleLike(@PathVariable Long tweetId, @RequestParam Long userId) {
         Tweet tweet = tweetRepository.findById(tweetId).orElseThrow();
@@ -561,7 +566,7 @@ public class TweetController {
     }
 
     @Caching(evict = {
-            @CacheEvict(cacheNames = "comments:list", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')"),
+            @CacheEvict(cacheNames = "comments:list", allEntries = true),
             @CacheEvict(cacheNames = "comments:tree", key = "#result['tweetId']", condition = "#result != null && #result.containsKey('tweetId')")
     })
     @PostMapping("/comments/{commentId}/like")
@@ -595,6 +600,14 @@ public class TweetController {
         );
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#id"),
+            @CacheEvict(cacheNames = "tweets:related", allEntries = true),
+            @CacheEvict(cacheNames = "users:stats", allEntries = true),
+            @CacheEvict(cacheNames = "users:archive", allEntries = true),
+            @CacheEvict(cacheNames = "users:interest", allEntries = true)
+    })
     @DeleteMapping("/{id}")
     public void deleteTweet(@PathVariable Long id) {
         tweetRepository.deleteById(id);

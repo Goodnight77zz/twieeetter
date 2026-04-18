@@ -38,7 +38,10 @@ public class TweetService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = "tweets:list", allEntries = true),
-            @CacheEvict(cacheNames = "tweets:detail", allEntries = true)
+            @CacheEvict(cacheNames = "tweets:detail", allEntries = true),
+            @CacheEvict(cacheNames = "users:stats", key = "#userId"),
+            @CacheEvict(cacheNames = "users:archive", key = "#userId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
     })
     public Tweet postTweetWithFile(String title,
                                    String content,
@@ -101,7 +104,9 @@ public class TweetService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = "tweets:list", allEntries = true),
-            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId")
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId"),
+            @CacheEvict(cacheNames = "users:archive", key = "#userId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
     })
     public Tweet updateTweetWithFile(Long tweetId,
                                      Long userId,
@@ -205,6 +210,7 @@ public class TweetService {
         );
     }
 
+    @Cacheable(cacheNames = "tweets:detail", key = "#tweetId", sync = true)
     public Tweet getTweetByIdCached(Long tweetId) {
         return tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("推文不存在"));

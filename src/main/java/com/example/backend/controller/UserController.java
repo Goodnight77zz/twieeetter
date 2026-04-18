@@ -108,15 +108,7 @@ public class UserController {
     // === 获取用户统计数据 ===
     @GetMapping("/{id}/stats")
     public Map<String, Long> getUserStats(@PathVariable Long id) {
-        long tweetCount = tweetRepository.countByAuthorId(id);
-        long followingCount = userRepository.countFollowing(id);
-        long followerCount = userRepository.countFollowers(id);
-
-        return Map.of(
-                "tweetCount", tweetCount,
-                "followingCount", followingCount,
-                "followerCount", followerCount
-        );
+        return userService.getUserStats(id);
     }
 
     @Cacheable(cacheNames = "users:archive", key = "#id")

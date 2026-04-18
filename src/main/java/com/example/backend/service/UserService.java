@@ -4,6 +4,7 @@ import com.example.backend.entity.User;
 import com.example.backend.entity.Friendship;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.repository.FriendshipRepository;
+import com.example.backend.repository.TweetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,6 +31,9 @@ public class UserService {
 
     @Autowired
     private FriendshipRepository friendshipRepository;
+
+    @Autowired
+    private TweetRepository tweetRepository;
 
     @Value("${file.upload.dir}")
     private String uploadDir;
@@ -59,6 +64,7 @@ public class UserService {
         return null;
     }
 
+    @Cacheable(cacheNames = "users:profile", key = "#id")
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
@@ -66,6 +72,19 @@ public class UserService {
             return userRepository.save(user);
         }
         return user;
+    }
+
+    @Cacheable(cacheNames = "users:stats", key = "#userId")
+    public Map<String, Long> getUserStats(Long userId) {
+        long authoredTweetCount = tweetRepository.countByAuthorId(userId);
+        long followingCount = userRepository.countFollowing(userId);
+        long followerCount = userRepository.countFollowers(userId);
+
+        return Map.of(
+                "tweetCount", authoredTweetCount,
+                "followingCount", followingCount,
+                "followerCount", followerCount
+        );
     }
 
     @Cacheable(cacheNames = "users:following", key = "#userId")
@@ -81,7 +100,11 @@ public class UserService {
         return friendshipRepository.existsByFollowerIdAndFollowingId(userId, targetUserId);
     }
 
-    @CacheEvict(cacheNames = "users:profile", key = "#userId")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "users:profile", key = "#userId"),
+            @CacheEvict(cacheNames = "users:archive", key = "#userId"),
+            @CacheEvict(cacheNames = "users:interest", key = "#userId")
+    })
     public User updateProfile(Long userId, String nickname, String bio, MultipartFile avatarFile) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
