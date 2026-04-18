@@ -655,9 +655,12 @@
 
             const statsRes = await fetch(`/api/users/${currentUserId}/stats`);
             const stats = await statsRes.json();
-            document.getElementById("popFollowing").innerText = stats.followingCount;
-            document.getElementById("popFollower").innerText = stats.followerCount;
-            document.getElementById("popTweets").innerText = stats.tweetCount;
+            const followingCount = Number(stats?.followingCount ?? 0);
+            const followerCount = Number(stats?.followerCount ?? 0);
+            const tweetCount = Number(stats?.tweetCount ?? 0);
+            document.getElementById("popFollowing").innerText = Number.isFinite(followingCount) ? followingCount : 0;
+            document.getElementById("popFollower").innerText = Number.isFinite(followerCount) ? followerCount : 0;
+            document.getElementById("popTweets").innerText = Number.isFinite(tweetCount) ? tweetCount : 0;
 
         } catch(e) {
             console.error("Nav load failed", e);

@@ -106,7 +106,6 @@ public class UserController {
     }
 
     // === 获取用户统计数据 ===
-    @Cacheable(cacheNames = "users:stats", key = "#id")
     @GetMapping("/{id}/stats")
     public Map<String, Long> getUserStats(@PathVariable Long id) {
         long tweetCount = tweetRepository.countByAuthorId(id);
