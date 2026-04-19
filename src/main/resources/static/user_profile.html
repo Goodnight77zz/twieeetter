@@ -1584,6 +1584,53 @@
 
     async function loadProfile() {
         try {
+            const userRes = await fetch(`/api/users/${targetUserId}`);
+            if (!userRes.ok) {
+                throw new Error(`Load profile failed: ${userRes.status} ${await userRes.text()}`);
+            }
+            const user = await userRes.json();
+            const displayName = safeText(user.nickname || user.name || user.username, 'User');
+            document.getElementById('userName').innerText = displayName;
+
+            const avatarBox = document.getElementById('avatarBox');
+            if (user.avatar) {
+                avatarBox.innerHTML = `<img src="/uploads/${user.avatar}" alt="${escapeHtml(displayName)}">`;
+            } else {
+                avatarBox.textContent = displayName.charAt(0).toUpperCase();
+            }
+            document.getElementById('userBio').innerHTML = `
+                <span class="cn">${escapeHtml(safeText(user.bio, '这位研究者暂未填写个人简介。'))}</span>
+                <span class="en">${escapeHtml(safeText(user.bio, 'This researcher has not provided a biography yet.'))}</span>
+            `;
+        } catch (e) {
+            console.error('Failed to load user profile', e);
+            document.getElementById('userName').innerText = 'User';
+        }
+
+        try {
+            const statsRes = await fetch(`/api/users/${targetUserId}/stats`);
+            if (!statsRes.ok) {
+                throw new Error(`Load stats failed: ${statsRes.status} ${await statsRes.text()}`);
+            }
+            const stats = await statsRes.json();
+            document.getElementById('followersCount').innerText = Number(stats?.followerCount ?? 0);
+            document.getElementById('followingCount').innerText = Number(stats?.followingCount ?? 0);
+        } catch (e) {
+            console.error('Failed to load user stats', e);
+            document.getElementById('followersCount').innerText = 0;
+            document.getElementById('followingCount').innerText = 0;
+        }
+
+        try {
+            renderActionButtons();
+            renderSubscriptions();
+            if (typeof applyLang === 'function') applyLang(currentLang);
+        } catch (e) {
+            console.error('Failed to render profile extras', e);
+        }
+
+        return;
+        try {
             const [userRes, statsRes] = await Promise.all([
                 fetch(`/api/users/${targetUserId}`),
                 fetch(`/api/users/${targetUserId}/stats`)
