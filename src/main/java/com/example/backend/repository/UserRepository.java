@@ -21,4 +21,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 统计我关注了多少人 (我是 follower_id)
     @Query("SELECT COUNT(f) FROM Friendship f WHERE f.follower.id = :userId")
     long countFollowing(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT
+                COALESCE((SELECT COUNT(*) FROM tweets t WHERE t.user_id = :userId), 0) AS tweet_count,
+                COALESCE((SELECT COUNT(*) FROM friendships f WHERE f.follower_id = :userId), 0) AS following_count,
+                COALESCE((SELECT COUNT(*) FROM friendships f WHERE f.following_id = :userId), 0) AS follower_count
+            """, nativeQuery = true)
+    Object[] aggregateUserStats(@Param("userId") Long userId);
 }

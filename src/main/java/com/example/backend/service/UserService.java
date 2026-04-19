@@ -1,10 +1,9 @@
 package com.example.backend.service;
 
-import com.example.backend.entity.User;
 import com.example.backend.entity.Friendship;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.entity.User;
 import com.example.backend.repository.FriendshipRepository;
-import com.example.backend.repository.TweetRepository;
+import com.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -12,7 +11,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.stream.Collectors;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -31,9 +30,6 @@ public class UserService {
 
     @Autowired
     private FriendshipRepository friendshipRepository;
-
-    @Autowired
-    private TweetRepository tweetRepository;
 
     @Value("${file.upload.dir}")
     private String uploadDir;
@@ -67,20 +63,18 @@ public class UserService {
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
-            // GET 场景不触发写库，避免读取用户信息时引入额外失败点
+            // Read path should not write DB.
             user.setEmail(DEFAULT_TEST_EMAIL);
         }
         return user;
     }
 
-    @Cacheable(cacheNames = "users:stats", key = "#userId")
+    @Cacheable(cacheNames = "users:stats", key = "#userId", sync = true)
     public Map<String, Long> getUserStats(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("用户不存在: " + userId);
-        }
-        long authoredTweetCount = tweetRepository.countByAuthorId(userId);
-        long followingCount = userRepository.countFollowing(userId);
-        long followerCount = userRepository.countFollowers(userId);
+        Object[] row = userRepository.aggregateUserStats(userId);
+        long authoredTweetCount = readCounter(row, 0);
+        long followingCount = readCounter(row, 1);
+        long followerCount = readCounter(row, 2);
 
         return Map.of(
                 "tweetCount", authoredTweetCount,
@@ -111,13 +105,19 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
-        if (bio != null) user.setBio(bio);
-        if (nickname != null && !nickname.trim().isEmpty()) user.setNickname(nickname);
+        if (bio != null) {
+            user.setBio(bio);
+        }
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            user.setNickname(nickname);
+        }
 
         if (avatarFile != null && !avatarFile.isEmpty()) {
-            String newFileName = UUID.randomUUID().toString() + "_" + avatarFile.getOriginalFilename();
+            String newFileName = UUID.randomUUID() + "_" + avatarFile.getOriginalFilename();
             File dest = new File(uploadDir + newFileName);
-            if (!dest.getParentFile().exists()) dest.getParentFile().mkdirs();
+            if (!dest.getParentFile().exists()) {
+                dest.getParentFile().mkdirs();
+            }
             avatarFile.transferTo(dest);
             user.setAvatar(newFileName);
         }
@@ -152,7 +152,6 @@ public class UserService {
         friendship.setFollower(follower);
         friendship.setFollowing(target);
         friendship.setCreateTime(LocalDateTime.now());
-
         friendshipRepository.save(friendship);
     }
 
@@ -171,4 +170,14 @@ public class UserService {
         friendshipRepository.delete(friendship);
     }
 
+    private long readCounter(Object[] row, int index) {
+        if (row == null || index < 0 || index >= row.length) {
+            return 0L;
+        }
+        Object value = row[index];
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return 0L;
+    }
 }
