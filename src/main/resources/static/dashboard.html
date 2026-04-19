@@ -418,27 +418,63 @@
     }
 
     async function initDashboard() {
-        const userRes = await fetch(`/api/users/${userId}`);
-        if (!userRes.ok) {
-            throw new Error(`Load user failed: ${userRes.status} ${await userRes.text()}`);
-        }
-        const user = await userRes.json();
-        const username = user.nickname || user.username || 'User';
         const currentLang = localStorage.getItem('appLang') || 'cn';
 
-        document.getElementById("headerName").innerText = username;
-        document.getElementById("welcomeTitle").innerText = currentLang === 'cn' ? `Hi，${username}` : `Hi, ${username}`;
-        document.getElementById("headerAvatar").src = getAvatarSrc(user, 36);
-
-        const statsRes = await fetch(`/api/users/${userId}/stats`);
-        if (!statsRes.ok) {
-            throw new Error(`Load stats failed: ${statsRes.status} ${await statsRes.text()}`);
+        try {
+            const userRes = await fetch(`/api/users/${userId}`);
+            if (!userRes.ok) {
+                throw new Error(`Load user failed: ${userRes.status} ${await userRes.text()}`);
+            }
+            const user = await userRes.json();
+            const username = user.nickname || user.username || 'User';
+            document.getElementById("headerName").innerText = username;
+            document.getElementById("welcomeTitle").innerText = currentLang === 'cn' ? `Hi，${username}` : `Hi, ${username}`;
+            document.getElementById("headerAvatar").src = getAvatarSrc(user, 36);
+        } catch (e) {
+            console.error("Dashboard user load failed", e);
         }
-        const stats = await statsRes.json();
 
-        document.getElementById("tweetCount").innerText = Number(stats?.tweetCount ?? 0);
-        document.getElementById("followerCount").innerText = Number(stats?.followerCount ?? 0);
-        document.getElementById("followingCount").innerText = Number(stats?.followingCount ?? 0);
+        let statsLoaded = false;
+        try {
+            const statsRes = await fetch(`/api/users/${userId}/stats`);
+            if (!statsRes.ok) {
+                throw new Error(`Load stats failed: ${statsRes.status} ${await statsRes.text()}`);
+            }
+            const stats = await statsRes.json();
+            document.getElementById("tweetCount").innerText = Number(stats?.tweetCount ?? 0);
+            document.getElementById("followerCount").innerText = Number(stats?.followerCount ?? 0);
+            document.getElementById("followingCount").innerText = Number(stats?.followingCount ?? 0);
+            statsLoaded = true;
+        } catch (e) {
+            console.error("Dashboard stats load failed", e);
+        }
+
+        if (!statsLoaded) {
+            let tweetCount = 0;
+            let followingCount = 0;
+            try {
+                const tweetRes = await fetch(`/api/tweets/user/${encodeURIComponent(userId)}`);
+                if (tweetRes.ok) {
+                    const tweets = await tweetRes.json();
+                    tweetCount = Array.isArray(tweets) ? tweets.length : 0;
+                }
+            } catch (e) {
+                console.error("Dashboard fallback tweet load failed", e);
+            }
+            try {
+                const followingRes = await fetch(`/api/users/${encodeURIComponent(userId)}/following`);
+                if (followingRes.ok) {
+                    const following = await followingRes.json();
+                    followingCount = Array.isArray(following) ? following.length : 0;
+                }
+            } catch (e) {
+                console.error("Dashboard fallback following load failed", e);
+            }
+
+            document.getElementById("tweetCount").innerText = tweetCount;
+            document.getElementById("followingCount").innerText = followingCount;
+            document.getElementById("followerCount").innerText = 0;
+        }
     }
 
     function logout() {
@@ -446,7 +482,9 @@
         window.location.href = "login.html";
     }
 
-    initDashboard();
+    initDashboard().catch((e) => {
+        console.error("initDashboard fatal error", e);
+    });
 </script>
 </body>
 </html>
