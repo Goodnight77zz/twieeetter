@@ -1255,7 +1255,10 @@
 
     async function loadDetail() {
         try {
-            const res = await fetch(`/api/tweets/${tweetId}/detail-dto?userId=${currentUserId}`);
+            const detailUrl = currentUserId
+                ? `/api/tweets/${tweetId}/detail-dto?userId=${encodeURIComponent(currentUserId)}`
+                : `/api/tweets/${tweetId}/detail-dto`;
+            const res = await fetch(detailUrl);
             if (!res.ok) throw new Error("Not Found");
             const data = await res.json();
             const tweet = data.tweet;
