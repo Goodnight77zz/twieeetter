@@ -214,8 +214,8 @@
                     <span id="popName" class="popover-name">User</span>
                 </div>
                 <div>
-                    <span id="popLevel" class="level-badge" style="background:#99a2aa; color:white;">
-                        <span class="cn">普通用户</span><span class="en">User</span>
+                    <span id="popLevel" class="level-badge" style="background:#6b7280; color:white;">
+                        <span class="cn">研究生</span><span class="en">Student</span>
                     </span>
                 </div>
                 <div class="popover-credit">
@@ -637,14 +637,14 @@
             document.getElementById("popReputation").innerText = score;
 
             const levelBadge = document.getElementById("popLevel");
-            let titleCn = "普通用户";
-            let titleEn = "User";
-            let bgColor = "#99a2aa";
+            let titleCn = "研究生";
+            let titleEn = "Student";
+            let bgColor = "#6b7280";
 
-            if (score >= 100) {
+            if (score >= 500) {
                 titleCn = "教授"; titleEn = "Professor"; bgColor = "#f4212e";
-            } else if (score >= 20) {
-                titleCn = "认证学者"; titleEn = "Scholar"; bgColor = "#00a1d6";
+            } else if (score >= 100) {
+                titleCn = "讲师"; titleEn = "Lecturer"; bgColor = "#00a1d6";
             }
 
             levelBadge.style.backgroundColor = bgColor;

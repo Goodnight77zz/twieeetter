@@ -222,7 +222,7 @@
 <body>
 <div class="navbar">
     <div style="display:flex; align-items:center;">
-        <a href="index.html" class="brand">开放学术交流平台</a>
+        <a href="index.html" class="brand"><span class="cn">开放学术交流平台</span><span class="en">Open Academic Platform</span></a>
         <span style="color:#999; font-size:14px;">
             <span class="cn">| 开放研究平台</span>
             <span class="en">| Open Research Platform</span>
@@ -619,9 +619,17 @@
     let currentSignalsCache = null;
     let detailSubscriptions = [];
 
+    function refreshNavbarBrandLanguage() {
+        const brand = document.querySelector('.navbar .brand');
+        if (!brand) return;
+        brand.innerHTML = '<span class="cn">开放学术交流平台</span><span class="en">Open Academic Platform</span>';
+    }
+
+    refreshNavbarBrandLanguage();
     loadDetail();
 
     window.addEventListener('languageChange', function() {
+        refreshNavbarBrandLanguage();
         const lang = localStorage.getItem('appLang') || 'zh';
         document.getElementById("commentInput").placeholder = lang === 'zh' ? "输入你的看法..." : "Enter your thoughts...";
         if (currentTweetCache) {
@@ -1682,13 +1690,23 @@
         `;
     }
 
+    function resolveAcademicTier(reputation) {
+        const score = Number(reputation || 0);
+        if (score >= 500) {
+            return { cn: '教授', en: 'Professor' };
+        }
+        if (score >= 100) {
+            return { cn: '讲师', en: 'Lecturer' };
+        }
+        return { cn: '研究生', en: 'Student' };
+    }
+
     function buildCommentBadge(comment, tweetAuthorId) {
         const badges = [];
         const typeMeta = getCommentTypeMeta(comment.commentType);
         badges.push(`<span class="c-badge type ${typeMeta.className}"><i class="fas ${typeMeta.icon}"></i><span class="cn">${typeMeta.zh}</span><span class="en">${typeMeta.en}</span></span>`);
-        if (comment.academicTitle) {
-            badges.push(`<span class="c-badge scholar ${comment.isTopScholar ? 'top' : ''}"><i class="fas ${comment.isTopScholar ? 'fa-crown' : 'fa-graduation-cap'}"></i><span>${escapeHtml(comment.academicTitle)}</span></span>`);
-        }
+        const tier = resolveAcademicTier(comment.reputation ?? comment.user?.reputation);
+        badges.push(`<span class="c-badge scholar ${comment.isTopScholar ? 'top' : ''}"><i class="fas ${comment.isTopScholar ? 'fa-crown' : 'fa-graduation-cap'}"></i><span class="cn">${escapeHtml(tier.cn)}</span><span class="en">${escapeHtml(tier.en)}</span></span>`);
         if (comment.isAcceptedByAuthor) {
             badges.push('<span class="c-badge accepted"><i class="fas fa-circle-check"></i><span class="cn">作者采纳</span><span class="en">Accepted</span></span>');
         }
