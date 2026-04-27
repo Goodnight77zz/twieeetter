@@ -189,6 +189,7 @@ public class UserController {
 
         String dominantInterest = interestAreas.isEmpty() ? "" : String.valueOf(interestAreas.get(0).get("name"));
         String profileSummary = buildInterestSummary(dominantInterest, interestAreas, subscriptions.size(), favorites.size(), publishedTweets.size());
+        String profileSummaryEn = buildInterestSummaryEn(dominantInterest, interestAreas, subscriptions.size(), favorites.size(), publishedTweets.size());
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("userId", id);
@@ -206,6 +207,7 @@ public class UserController {
         summary.put("interestSignalCount", publishedTweets.size() + favorites.size() + subscriptions.size() + followingTweets.size());
         summary.put("interestProfileReady", !interestAreas.isEmpty());
         summary.put("profileSummary", profileSummary);
+        summary.put("profileSummaryEn", profileSummaryEn);
         summary.put("signalModel", List.of("subscription", "favorite", "publish", "followed-author", "tag-affinity", "recency-boost"));
         return summary;
     }
@@ -345,6 +347,24 @@ public class UserController {
         }
         String secondary = interestAreas.size() > 1 ? String.valueOf(interestAreas.get(1).get("name")) : dominantInterest;
         return "当前兴趣画像以 " + dominantInterest + " 为核心，同时对 " + secondary + " 保持持续关注；综合了订阅、收藏、发文与关注作者线索。";
+    }
+
+    private String buildInterestSummaryEn(String dominantInterest, List<Map<String, Object>> interestAreas, int subscriptionCount, int favoriteCount, int publishCount) {
+        if (dominantInterest == null || dominantInterest.isBlank()) {
+            return "Behavior signals are still limited, so no stable dominant interest has formed yet.";
+        }
+        String secondary = interestAreas.size() > 1 ? String.valueOf(interestAreas.get(1).get("name")) : dominantInterest;
+        return "Your current interest profile is led by "
+                + dominantInterest
+                + ", with sustained attention to "
+                + secondary
+                + ". Signals are synthesized from subscriptions ("
+                + subscriptionCount
+                + "), favorites ("
+                + favoriteCount
+                + "), and publications ("
+                + publishCount
+                + ").";
     }
 
     private static class AreaSignal {

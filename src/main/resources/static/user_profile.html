@@ -707,7 +707,7 @@
 <body>
 <div class="navbar">
     <div class="nav-left">
-        <a class="brand" href="index.html">开放学术交流平台</a>
+        <a class="brand" href="index.html"><span class="cn">开放学术交流平台</span><span class="en">Open Academic Platform</span></a>
         <a href="dashboard.html" class="btn-create">
             <i class="fas fa-bolt"></i>
             <span class="cn">进入创作中心</span>
@@ -1255,7 +1255,13 @@
             ? (currentLang === 'cn' ? `发文偏好：${publishedTopAreas.join(' / ')}；模型：${signalModel.join(' / ')}` : `Publishing areas: ${publishedTopAreas.join(' / ')}; model: ${signalModel.join(' / ')}`)
             : (currentLang === 'cn' ? '暂无发文偏好数据' : 'No publishing preference data yet');
         document.getElementById('interestSummaryTitle').innerText = dominant;
-        document.getElementById('interestSummaryText').innerText = safeText(interestProfile?.profileSummary, currentLang === 'cn' ? '系统将解释兴趣领域是如何形成的' : 'The system will explain how the interest profile is formed');
+        const summaryText = currentLang === 'en'
+            ? safeText(interestProfile?.profileSummaryEn, '')
+            : safeText(interestProfile?.profileSummary, '');
+        document.getElementById('interestSummaryText').innerText = safeText(
+            summaryText,
+            currentLang === 'cn' ? '系统将解释兴趣领域是如何形成的' : 'The system will explain how the interest profile is formed'
+        );
         document.getElementById('interestDominantPill').innerHTML = interestProfile?.interestProfileReady
             ? `<span class="cn">兴趣画像：${escapeHtml(dominant)}</span><span class="en">Interest: ${escapeHtml(dominant)}</span>`
             : `<span class="cn">兴趣画像分析中</span><span class="en">Interest profile pending</span>`;
