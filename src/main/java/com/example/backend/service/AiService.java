@@ -135,7 +135,10 @@ public class AiService {
         if ("en".equals(lang)) {
             systemPrompt = "You are an academic search assistant. Analyze the user's natural language search request and convert it into a compact JSON object. " +
                     "Return JSON only, without markdown or explanation. " +
-                    "Use this schema: {\"keyword\":\"\",\"researchArea\":\"\",\"contentType\":\"\",\"publicationType\":\"\",\"status\":\"\",\"language\":\"\",\"sort\":\"latest\",\"explanation\":\"\"}. " +
+                    "Use this schema: {\"keyword\":\"\",\"keywordVariants\":[],\"researchArea\":\"\",\"contentType\":\"\",\"publicationType\":\"\",\"status\":\"\",\"language\":\"\",\"sort\":\"latest\",\"explanation\":\"\"}. " +
+                    "The keyword field should be the primary search term. keywordVariants should contain 3 to 6 high-quality related terms when possible, including abbreviations/full forms/synonyms and bilingual variants if useful. " +
+                    "If the user enters a partial word, infer the likely academic topic and complete keyword + keywordVariants accordingly. " +
+                    "keywordVariants must be a JSON string array. Remove duplicates and avoid unrelated terms. " +
                     "Allowed contentType values: paper, dataset, project, report, code. " +
                     "Allowed publicationType values: journal, conference, preprint, thesis, internal. " +
                     "Allowed status values: draft, ongoing, submitted, published. " +
@@ -145,7 +148,10 @@ public class AiService {
         } else {
             systemPrompt = "你是一名学术搜索助手。请理解用户的自然语言搜索请求，并将其转换为紧凑 JSON 对象。" +
                     "只返回 JSON，不要返回 markdown，不要解释。" +
-                    "使用如下结构：{\"keyword\":\"\",\"researchArea\":\"\",\"contentType\":\"\",\"publicationType\":\"\",\"status\":\"\",\"language\":\"\",\"sort\":\"latest\",\"explanation\":\"\"}。" +
+                    "使用如下结构：{\"keyword\":\"\",\"keywordVariants\":[],\"researchArea\":\"\",\"contentType\":\"\",\"publicationType\":\"\",\"status\":\"\",\"language\":\"\",\"sort\":\"latest\",\"explanation\":\"\"}。" +
+                    "keyword 是主关键词。keywordVariants 需要在可行时给出 3~6 个高质量相关词，包含缩写/全称/同义词，必要时补充中英文表达。" +
+                    "若用户输入不完整词（如前缀），请推断最可能的学术主题，并补全 keyword 与 keywordVariants。" +
+                    "keywordVariants 必须是 JSON 字符串数组；去重，不要包含无关词。" +
                     "contentType 可选值：paper、dataset、project、report、code。" +
                     "publicationType 可选值：journal、conference、preprint、thesis、internal。" +
                     "status 可选值：draft、ongoing、submitted、published。" +

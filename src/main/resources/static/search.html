@@ -903,14 +903,58 @@
         return `<span class="ai-search-chip"><i class="${iconClass}"></i><strong>${label}</strong>${value}</span>`;
     }
 
+    function normalizeKeywordVariants(rawVariants, primaryKeyword) {
+        const source = Array.isArray(rawVariants)
+            ? rawVariants
+            : String(rawVariants == null ? '' : rawVariants).split(/[,\n;/|，；、]+/);
+        const values = [];
+        if (primaryKeyword) {
+            values.push(primaryKeyword);
+        }
+        source.forEach(item => {
+            const text = String(item == null ? '' : item).trim();
+            if (text && text.toLowerCase() !== 'null' && text.toLowerCase() !== 'undefined') {
+                values.push(text);
+            }
+        });
+        const seen = new Set();
+        const deduped = [];
+        values.forEach(item => {
+            const key = item.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                deduped.push(item);
+            }
+        });
+        return deduped.slice(0, 8);
+    }
+
+    function parseJsonLoose(text) {
+        const raw = String(text == null ? '' : text).trim();
+        if (!raw) return null;
+        try {
+            return JSON.parse(raw);
+        } catch (_) {
+            const start = raw.indexOf('{');
+            const end = raw.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                return JSON.parse(raw.slice(start, end + 1));
+            }
+            return null;
+        }
+    }
+
     function normalizeAiIntent(raw) {
         if (!raw || typeof raw !== 'object') return null;
         const normalizeValue = value => {
             const text = String(value == null ? '' : value).trim();
             return text && text.toLowerCase() !== 'null' && text.toLowerCase() !== 'undefined' ? text : '';
         };
+        const primaryKeyword = normalizeValue(raw.keyword);
+        const keywordVariants = normalizeKeywordVariants(raw.keywordVariants, primaryKeyword);
         const intent = {
-            keyword: normalizeValue(raw.keyword),
+            keyword: primaryKeyword || (keywordVariants[0] || ''),
+            keywordVariants,
             researchArea: normalizeValue(raw.researchArea),
             contentType: normalizeValue(raw.contentType),
             publicationType: normalizeValue(raw.publicationType),
@@ -929,6 +973,13 @@
         if (!card || !summary || !chips || !intent || currentSearchType !== 'post') return;
         const chipItems = [];
         if (intent.keyword) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '关键词' : 'Keyword', intent.keyword, 'fas fa-key')); 
+        if (Array.isArray(intent.keywordVariants) && intent.keywordVariants.length > 1) {
+            chipItems.push(createAiSearchChip(
+                currentLang === 'cn' ? '扩展关键词' : 'Keyword Expansion',
+                intent.keywordVariants.join(' / '),
+                'fas fa-wand-magic-sparkles'
+            ));
+        }
         if (intent.researchArea) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '研究领域' : 'Research Area', intent.researchArea, 'fas fa-flask'));
         if (intent.contentType) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '内容类型' : 'Content Type', intent.contentType, 'fas fa-layer-group'));
         if (intent.publicationType) chipItems.push(createAiSearchChip(currentLang === 'cn' ? '成果形式' : 'Work Format', intent.publicationType, 'fas fa-book-open'));
@@ -976,7 +1027,10 @@
             });
             const data = await res.json();
             const result = String(data.result || '').trim();
-            const parsed = JSON.parse(result);
+            const parsed = parseJsonLoose(result);
+            if (!parsed) {
+                throw new Error('AI returned invalid JSON');
+            }
             applyAiSearchIntent(parsed);
             setAiSearchStatus(currentLang === 'cn' ? 'AI 条件解析完成，已自动执行搜索' : 'AI filters parsed successfully. Search executed automatically.');
             await search();
@@ -1035,13 +1089,31 @@
                 renderUserResults(users);
             } else {
                 await Promise.all([loadMySubscriptions(), fetchInterestProfile()]);
-                const res = await fetch(buildPostSearchUrl(keyword));
-                const data = await res.json();
-                const posts = Array.isArray(data)
-                    ? data.map(normalizePostItem).filter(Boolean)
-                    : [];
+                const candidateKeywords = normalizeKeywordVariants(
+                    aiSearchIntent && Array.isArray(aiSearchIntent.keywordVariants) ? aiSearchIntent.keywordVariants : [],
+                    keyword
+                );
+                const queryKeywords = candidateKeywords.length ? candidateKeywords : [''];
+                const responses = await Promise.all(
+                    queryKeywords.map(term =>
+                        fetch(buildPostSearchUrl(term))
+                            .then(res => res.json())
+                            .catch(() => [])
+                    )
+                );
+                const merged = new Map();
+                responses.forEach(list => {
+                    if (!Array.isArray(list)) return;
+                    list.map(normalizePostItem).filter(Boolean).forEach(item => {
+                        const uniqueKey = item.id || item.tweetId || item.postId || `${item.userId || ''}_${item.title || ''}_${item.createdAt || ''}`;
+                        if (!merged.has(uniqueKey)) {
+                            merged.set(uniqueKey, item);
+                        }
+                    });
+                });
+                const posts = Array.from(merged.values());
                 lastPostResults = posts;
-                renderActiveFilterSummary(keyword);
+                renderActiveFilterSummary(queryKeywords.filter(Boolean).join(' / ') || keyword);
                 renderRecommendationBanner();
                 renderPostResults(getProcessedPosts(posts));
             }
