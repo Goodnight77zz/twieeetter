@@ -69,6 +69,11 @@ public class RatingService {
         result.put("s3", 0.0);
         result.put("s4", 0.0);
         result.put("s5", 0.0);
+        result.put("expertS1", 0.0);
+        result.put("expertS2", 0.0);
+        result.put("expertS3", 0.0);
+        result.put("expertS4", 0.0);
+        result.put("expertS5", 0.0);
         result.put("expertCount", 0);
         result.put("expertScore", 0.0);
         result.put("ratingCount", 0);
@@ -80,6 +85,7 @@ public class RatingService {
 
         int expertCount = 0;
         double expertTotalScore = 0;
+        double expertSum1 = 0, expertSum2 = 0, expertSum3 = 0, expertSum4 = 0, expertSum5 = 0;
 
         for (TweetRating r : ratings) {
             double weight = r.getUser().getWeight();
@@ -95,6 +101,11 @@ public class RatingService {
             if (r.getUser().getReputation() >= 20) {
                 expertCount++;
                 expertTotalScore += avgOfThisUser;
+                expertSum1 += safeInt(r.getScore1());
+                expertSum2 += safeInt(r.getScore2());
+                expertSum3 += safeInt(r.getScore3());
+                expertSum4 += safeInt(r.getScore4());
+                expertSum5 += safeInt(r.getScore5());
             }
         }
 
@@ -108,6 +119,13 @@ public class RatingService {
 
         result.put("expertCount", expertCount);
         result.put("expertScore", expertCount > 0 ? Math.round(expertTotalScore / expertCount * 10.0) / 10.0 : 0.0);
+        if (expertCount > 0) {
+            result.put("expertS1", Math.round(expertSum1 / expertCount * 10.0) / 10.0);
+            result.put("expertS2", Math.round(expertSum2 / expertCount * 10.0) / 10.0);
+            result.put("expertS3", Math.round(expertSum3 / expertCount * 10.0) / 10.0);
+            result.put("expertS4", Math.round(expertSum4 / expertCount * 10.0) / 10.0);
+            result.put("expertS5", Math.round(expertSum5 / expertCount * 10.0) / 10.0);
+        }
         result.put("ratingCount", ratings.size());
 
         return result;
@@ -310,6 +328,11 @@ public class RatingService {
         radar.put("s3", roundOneDecimal(aggregate.s3));
         radar.put("s4", roundOneDecimal(aggregate.s4));
         radar.put("s5", roundOneDecimal(aggregate.s5));
+        radar.put("expertS1", 0.0);
+        radar.put("expertS2", 0.0);
+        radar.put("expertS3", 0.0);
+        radar.put("expertS4", 0.0);
+        radar.put("expertS5", 0.0);
         radar.put("expertCount", expertCount);
         radar.put("expertScore", expertCount > 0 ? roundOneDecimal(expertScore) : 0.0);
         radar.put("ratingCount", ratingCount);

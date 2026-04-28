@@ -1315,7 +1315,7 @@
                 publicSignalPanel.style.display = "none";
                 renderAuthorImprovementPanel(signals, radar, trustExplanation);
                 if (radar) {
-                    renderRadarChart(radar.s1, radar.s2, radar.s3, radar.s4, radar.s5);
+                    renderRadarChart(radar);
                     document.getElementById("dispExpertCount").innerText = radar.expertCount || 0;
                     document.getElementById("dispExpertScore").innerText = Number(radar.expertScore || 0).toFixed(1);
                 }
@@ -1397,27 +1397,55 @@
         }
     }
 
-    function renderRadarChart(s1, s2, s3, s4, s5) {
+    function renderRadarChart(radar) {
         const ctx = document.getElementById('radarChart').getContext('2d');
         const currentLang = localStorage.getItem('appLang') || 'zh';
         const isEn = currentLang === 'en';
+        const overall = [
+            Number(radar?.s1 || 0),
+            Number(radar?.s2 || 0),
+            Number(radar?.s3 || 0),
+            Number(radar?.s4 || 0),
+            Number(radar?.s5 || 0)
+        ];
+        const expert = [
+            Number(radar?.expertS1 || 0),
+            Number(radar?.expertS2 || 0),
+            Number(radar?.expertS3 || 0),
+            Number(radar?.expertS4 || 0),
+            Number(radar?.expertS5 || 0)
+        ];
+        const expertCount = Number(radar?.expertCount || 0);
         if (myRadarChart) myRadarChart.destroy();
+        const datasets = [{
+            label: isEn ? 'Overall Average' : '全体平均',
+            data: overall,
+            backgroundColor: 'rgba(29, 161, 242, 0.2)',
+            borderColor: '#1da1f2',
+            pointBackgroundColor: '#1da1f2',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#1da1f2'
+        }];
+        if (expertCount > 0) {
+            datasets.push({
+                label: isEn ? 'Expert Average' : '专家均分',
+                data: expert,
+                backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                borderColor: '#f59e0b',
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#f59e0b'
+            });
+        }
         myRadarChart = new Chart(ctx, {
             type: 'radar',
             data: {
                 labels: isEn
                     ? ['Innovation', 'Method Rigor', 'Evidence Strength', 'Reproducibility', 'Application & Reach']
                     : ['创新性', '方法严谨性', '证据充分性', '可复现性', '应用/传播价值'],
-                datasets: [{
-                    label: isEn ? 'Rating Distribution' : '评分分布',
-                    data: [s1, s2, s3, s4, s5],
-                    backgroundColor: 'rgba(29, 161, 242, 0.2)',
-                    borderColor: '#1da1f2',
-                    pointBackgroundColor: '#1da1f2',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#1da1f2'
-                }]
+                datasets
             },
             options: {
                 maintainAspectRatio: false,
