@@ -1,5 +1,43 @@
 // 通用 - 语言切换+拖拽功能封装
 (function() {
+    const pageName = window.location.pathname.split('/').pop() || 'index.html';
+    const publicPages = new Set(['login.html', 'register.html']);
+    const shouldGuardSession = !publicPages.has(pageName);
+
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async function(input, init) {
+        const options = Object.assign({ credentials: 'same-origin' }, init || {});
+        const response = await nativeFetch(input, options);
+        const url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+        const isApiRequest = String(url).includes('/api/');
+        const isAuthRequest = String(url).includes('/api/auth/');
+        if (shouldGuardSession && isApiRequest && !isAuthRequest && response.status === 401) {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('username');
+            const next = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+            window.location.href = `login.html?next=${next}`;
+        }
+        return response;
+    };
+
+    async function ensureBackendSession() {
+        if (!shouldGuardSession) return;
+        if (!localStorage.getItem('userId')) return;
+        try {
+            const response = await nativeFetch('/api/auth/me', { credentials: 'same-origin' });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.message !== 'success') {
+                localStorage.removeItem('userId');
+                localStorage.removeItem('username');
+                const next = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+                window.location.href = `login.html?next=${next}`;
+            }
+        } catch (error) {
+            console.error('Session check failed', error);
+        }
+    }
+
+    ensureBackendSession();
     // 1. 状态初始化
     let currentLang = localStorage.getItem('appLang') || 'cn'; // 默认中文
 
