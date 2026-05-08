@@ -116,6 +116,14 @@
         }
         .sort-btn:hover { border-color: #7dd3fc; background: #f8fbff; color: #0369a1; }
         .sort-btn.active { background: linear-gradient(90deg, #0ea5e9, #2563eb); color: white; border-color: transparent; box-shadow: 0 5px 14px rgba(37,99,235,0.18); }
+        .feed-load-status {
+            text-align: center; padding: 18px; color: #64748b; font-size: 13px;
+            background: #fff; border: 1px solid #e5edf5; border-radius: 14px; margin-top: 8px;
+        }
+        .feed-load-status button {
+            border: none; border-radius: 999px; padding: 8px 16px; cursor: pointer;
+            background: linear-gradient(90deg, #0ea5e9, #2563eb); color: #fff; font-weight: 700;
+        }
 
         .tweet-card { background: white; border-radius: 16px; padding: 22px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer; position: relative; border: 1px solid #eef2f7; }
         .tweet-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
@@ -311,6 +319,7 @@
             <span class="en">Loading...</span>
         </div>
     </div>
+    <div id="feedLoadStatus" class="feed-load-status" style="display:none;"></div>
 </div>
 
 <div class="lang-selector" id="langSelector">
@@ -346,6 +355,10 @@
     let currentFeedSort = 'latest';
     let mySubscriptions = [];
     let interestProfile = null;
+    const FEED_PAGE_SIZE = 20;
+    let feedOffset = 0;
+    let feedHasMore = true;
+    let feedLoading = false;
 
     loadNavData();
     fetchPersonalizationProfile().then(fetchFeed);
@@ -354,7 +367,16 @@
     window.addEventListener('languageChange', function() {
         renderPersonalizationBanner();
         renderFeed();
+        renderFeedLoadStatus();
         loadNavData();
+    });
+
+    window.addEventListener('scroll', function() {
+        if (!feedHasMore || feedLoading) return;
+        const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 260;
+        if (nearBottom) {
+            fetchFeed(false);
+        }
     });
 
     function normalizeSubscriptionValue(value) {
@@ -759,19 +781,56 @@
         return tags.slice(0, 3);
     }
 
-    async function fetchFeed() {
+    function renderFeedLoadStatus() {
+        const status = document.getElementById("feedLoadStatus");
+        if (!status) return;
+        const currentLang = localStorage.getItem('appLang') || 'zh';
+        const isCn = currentLang === 'zh' || currentLang === 'cn';
+        if (feedLoading) {
+            status.style.display = "block";
+            status.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isCn ? '正在加载更多研究成果...' : 'Loading more research works...'}`;
+            return;
+        }
+        if (globalTweets.length === 0) {
+            status.style.display = "none";
+            return;
+        }
+        status.style.display = "block";
+        if (feedHasMore) {
+            status.innerHTML = `<button onclick="fetchFeed(false)">${isCn ? '加载下一批' : 'Load next batch'}</button>`;
+        } else {
+            status.innerHTML = isCn ? '已加载全部研究成果' : 'All research works loaded';
+        }
+    }
+
+    async function fetchFeed(reset = true) {
         const container = document.getElementById("feedContainer");
+        if (feedLoading) return;
         try {
+            feedLoading = true;
+            renderFeedLoadStatus();
+            if (reset) {
+                feedOffset = 0;
+                feedHasMore = true;
+                globalTweets = [];
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;"><span class="cn">加载中...</span><span class="en">Loading...</span></div>`;
+            }
             await loadMySubscriptions();
-            const res = await fetch(`/api/tweets?sort=${encodeURIComponent(currentFeedSort)}&limit=50`);
+            const res = await fetch(`/api/tweets?sort=${encodeURIComponent(currentFeedSort)}&limit=${FEED_PAGE_SIZE}&offset=${feedOffset}`);
             const data = await res.json();
-            globalTweets = Array.isArray(data)
+            const pageItems = Array.isArray(data)
                 ? data.map(normalizeFeedItem).filter(Boolean)
                 : [];
+            globalTweets = reset ? pageItems : globalTweets.concat(pageItems);
+            feedOffset += pageItems.length;
+            feedHasMore = pageItems.length === FEED_PAGE_SIZE;
             renderFeed();
         } catch(e) {
             console.error(e);
             container.innerHTML = `<div style="text-align:center; padding:40px; color:red;">Load Failed</div>`;
+        } finally {
+            feedLoading = false;
+            renderFeedLoadStatus();
         }
     }
 
@@ -843,7 +902,7 @@
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-sort') === sortType);
         });
-        fetchFeed();
+        fetchFeed(true);
     }
 
     function renderFeed() {
@@ -1026,7 +1085,7 @@
             renderFeed();
         } catch (e) {
             alert("Network error");
-            fetchFeed();
+            fetchFeed(true);
         }
     }
 
@@ -1072,7 +1131,7 @@
             const msg = await res.text();
             if (msg.includes("成功") || msg.includes("success")) {
                 alert((lang === 'zh' || lang === 'cn') ? "删除成功" : "Deleted successfully");
-                fetchFeed();
+                fetchFeed(true);
             } else {
                 alert(msg);
             }

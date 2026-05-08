@@ -161,10 +161,10 @@ public class TweetService {
 
     @Cacheable(
             cacheNames = "tweets:list",
-            key = "'all:' + (#sort == null ? 'latest' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 50 : #limit)",
+            key = "'all:' + (#sort == null ? 'latest' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 50 : #limit) + ':' + (#offset == null ? 0 : #offset)",
             sync = true
     )
-    public List<Map<String, Object>> getAllTweetDtos(String sort, Integer limit, RatingService ratingService,
+    public List<Map<String, Object>> getAllTweetDtos(String sort, Integer limit, Integer offset, RatingService ratingService,
                                                      com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
                                                      com.example.backend.repository.CommentRepository commentRepository) {
         return tweetRepository.findDiscoveryDtos(
@@ -176,6 +176,7 @@ public class TweetService {
                 null,
                 sort == null ? "latest" : sort.trim().toLowerCase(),
                 limit == null ? 50 : limit,
+                offset == null ? 0 : offset,
                 ratingService,
                 tweetLikeRepository,
                 commentRepository
@@ -184,10 +185,10 @@ public class TweetService {
 
     @Cacheable(
             cacheNames = "tweets:list",
-            key = "'discovery:' + (#sort == null ? 'hot' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 8 : #limit)",
+            key = "'discovery:' + (#sort == null ? 'hot' : #sort.trim().toLowerCase()) + ':' + (#limit == null ? 8 : #limit) + ':' + (#offset == null ? 0 : #offset)",
             sync = true
     )
-    public List<Map<String, Object>> getDiscoveryFeedDtos(String sort, Integer limit, RatingService ratingService,
+    public List<Map<String, Object>> getDiscoveryFeedDtos(String sort, Integer limit, Integer offset, RatingService ratingService,
                                                           com.example.backend.repository.TweetLikeRepository tweetLikeRepository,
                                                           com.example.backend.repository.CommentRepository commentRepository) {
         return tweetRepository.findDiscoveryDtos(
@@ -199,6 +200,7 @@ public class TweetService {
                 null,
                 sort == null ? "hot" : sort.trim().toLowerCase(),
                 limit == null ? 8 : limit,
+                offset == null ? 0 : offset,
                 ratingService,
                 tweetLikeRepository,
                 commentRepository
@@ -312,6 +314,22 @@ public class TweetService {
     @CacheEvict(cacheNames = "tweets:list", allEntries = true)
     public void rebuildSearchIndex() {
         meiliSearchService.indexAll(tweetRepository.findAll());
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "tweets:list", allEntries = true),
+            @CacheEvict(cacheNames = "tweets:detail", key = "#tweetId")
+    })
+    public void deleteTweet(Long tweetId, Long userId) {
+        Tweet tweet = tweetRepository.findById(tweetId)
+                .orElseThrow(() -> new RuntimeException("研究成果不存在"));
+
+        if (tweet.getAuthor() == null || !tweet.getAuthor().getId().equals(userId)) {
+            throw new RuntimeException("无权删除他人的研究成果");
+        }
+
+        deleteExistingFile(tweet);
+        tweetRepository.delete(tweet);
     }
 
     private long safeIncrement(Long value) {

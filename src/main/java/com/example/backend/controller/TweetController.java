@@ -181,7 +181,8 @@ public class TweetController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String language,
             @RequestParam(required = false, defaultValue = "latest") String sort,
-            @RequestParam(required = false, defaultValue = "50") Integer limit
+            @RequestParam(required = false, defaultValue = "50") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset
     ) {
         String normalizedKeyword = normalizeNullableText(keyword);
         String normalizedResearchArea = normalizeNullableText(researchArea);
@@ -191,6 +192,7 @@ public class TweetController {
         String normalizedLanguage = normalizeNullableText(language);
         String normalizedSort = normalizeSort(sort);
         int safeLimit = limit == null || limit < 1 ? 50 : limit;
+        int safeOffset = offset == null || offset < 0 ? 0 : offset;
 
         if (meiliSearchService.isEnabled()) {
             try {
@@ -201,10 +203,10 @@ public class TweetController {
                         normalizedPublicationType,
                         normalizedStatus,
                         normalizedLanguage,
-                        safeLimit
+                        safeLimit + safeOffset
                 );
                 if (!ids.isEmpty()) {
-                    log.info("Search path=MEILISEARCH keyword='{}' ids={} limit={}", normalizedKeyword, ids, safeLimit);
+                    log.info("Search path=MEILISEARCH keyword='{}' ids={} limit={} offset={}", normalizedKeyword, ids, safeLimit, safeOffset);
                     Map<Long, Tweet> tweetMap = tweetRepository.findAllById(ids).stream()
                             .collect(Collectors.toMap(Tweet::getId, tweet -> tweet));
                     return ids.stream()
@@ -212,15 +214,16 @@ public class TweetController {
                             .filter(java.util.Objects::nonNull)
                             .map(this::toSearchDto)
                             .sorted(buildSearchComparator(normalizedSort))
+                            .skip(safeOffset)
                             .limit(safeLimit)
                             .toList();
                 }
-                log.info("Search path=DB_FALLBACK reason=meilisearch_empty keyword='{}' limit={}", normalizedKeyword, safeLimit);
+                log.info("Search path=DB_FALLBACK reason=meilisearch_empty keyword='{}' limit={} offset={}", normalizedKeyword, safeLimit, safeOffset);
             } catch (Exception e) {
-                log.warn("Search path=DB_FALLBACK reason=meilisearch_exception keyword='{}' limit={} message={}", normalizedKeyword, safeLimit, e.getMessage());
+                log.warn("Search path=DB_FALLBACK reason=meilisearch_exception keyword='{}' limit={} offset={} message={}", normalizedKeyword, safeLimit, safeOffset, e.getMessage());
             }
         } else {
-            log.info("Search path=DB_FALLBACK reason=meilisearch_disabled keyword='{}' limit={}", normalizedKeyword, safeLimit);
+            log.info("Search path=DB_FALLBACK reason=meilisearch_disabled keyword='{}' limit={} offset={}", normalizedKeyword, safeLimit, safeOffset);
         }
 
         return tweetRepository.findDiscoveryDtos(
@@ -232,6 +235,7 @@ public class TweetController {
                 normalizedLanguage,
                 normalizedSort,
                 safeLimit,
+                safeOffset,
                 ratingService,
                 tweetLikeRepository,
                 commentRepository
@@ -250,11 +254,13 @@ public class TweetController {
     @GetMapping("/discovery")
     public List<Map<String, Object>> getDiscoveryFeed(
             @RequestParam(required = false, defaultValue = "hot") String sort,
-            @RequestParam(required = false, defaultValue = "8") Integer limit
+            @RequestParam(required = false, defaultValue = "8") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset
     ) {
         return tweetService.getDiscoveryFeedDtos(
                 normalizeText(sort),
                 limit == null ? 8 : limit,
+                offset == null || offset < 0 ? 0 : offset,
                 ratingService,
                 tweetLikeRepository,
                 commentRepository
@@ -264,11 +270,13 @@ public class TweetController {
     @GetMapping
     public List<Map<String, Object>> getAllTweets(
             @RequestParam(required = false, defaultValue = "latest") String sort,
-            @RequestParam(required = false, defaultValue = "50") Integer limit
+            @RequestParam(required = false, defaultValue = "50") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset
     ) {
         return tweetService.getAllTweetDtos(
                 normalizeText(sort),
                 limit == null ? 50 : limit,
+                offset == null || offset < 0 ? 0 : offset,
                 ratingService,
                 tweetLikeRepository,
                 commentRepository
@@ -596,8 +604,13 @@ public class TweetController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTweet(@PathVariable Long id) {
-        tweetRepository.deleteById(id);
+    public String deleteTweet(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            tweetService.deleteTweet(id, userId);
+            return "鍒犻櫎鎴愬姛";
+        } catch (Exception e) {
+            return "鍒犻櫎澶辫触: " + e.getMessage();
+        }
     }
 
     private Map<String, Object> buildSignalMutationResponse(Tweet tweet, String field, Long value) {

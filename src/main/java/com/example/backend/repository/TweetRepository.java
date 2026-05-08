@@ -103,6 +103,7 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
             String language,
             String sortBy,
             int limit,
+            int offset,
             com.example.backend.service.RatingService ratingService,
             TweetLikeRepository tweetLikeRepository,
             CommentRepository commentRepository
@@ -153,6 +154,7 @@ public interface TweetRepository extends JpaRepository<Tweet, Long> {
                     return dto;
                 })
                 .sorted(resolveComparator(sortBy))
+                .skip(Math.max(offset, 0))
                 .limit(Math.max(limit, 1))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

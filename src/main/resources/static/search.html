@@ -123,6 +123,16 @@
         .trust-tag.info { background: #f5f9ff; color: #2563eb; border-color: #bfdbfe; }
         .trust-tag.good { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
         .trust-tag.neutral { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+        .pagination-bar { display: none; align-items: center; justify-content: center; gap: 8px; margin: 18px 0 4px; flex-wrap: wrap; }
+        .pagination-bar.active { display: flex; }
+        .page-btn {
+            border: 1px solid #d0d5dd; background: #fff; color: #344054; min-width: 38px;
+            padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 700;
+        }
+        .page-btn:hover:not(:disabled) { background: #f8fafc; border-color: #98a2b3; }
+        .page-btn.active { background: #1da1f2; border-color: #1da1f2; color: #fff; }
+        .page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .page-info { color: #667085; font-size: 13px; font-weight: 700; padding: 0 6px; }
         @media (max-width: 900px) {
             .filters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -253,6 +263,7 @@
             <div class="empty-subtext"><span class="cn">搜索用户，或搜索标题、关键词、机构、DOI 等研究信息</span><span class="en">Search users, or search titles, keywords, institutions, DOI and more</span></div>
         </div>
     </div>
+    <div class="pagination-bar" id="paginationBar"></div>
 </div>
 
 <div class="lang-selector" id="langSelector">
@@ -277,13 +288,17 @@
     let lastPostResults = [];
     let currentPostSort = 'latest';
     let aiSearchIntent = null;
+    const POST_PAGE_SIZE = 10;
+    let currentPostPage = 1;
+    let postHasNextPage = false;
 
-    function buildPostSearchUrl(keyword) {
+    function buildPostSearchUrl(keyword, page = currentPostPage) {
         const filters = getActiveFilters();
         const params = new URLSearchParams();
         params.set('keyword', keyword || '');
         params.set('sort', currentPostSort === 'recommended' ? 'latest' : currentPostSort);
-        params.set('limit', '50');
+        params.set('limit', String(POST_PAGE_SIZE));
+        params.set('offset', String((Math.max(page, 1) - 1) * POST_PAGE_SIZE));
         if (filters.researchArea) params.set('researchArea', filters.researchArea);
         if (filters.contentType) params.set('contentType', filters.contentType);
         if (filters.publicationType) params.set('publicationType', filters.publicationType);
@@ -710,6 +725,8 @@
             document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
             this.classList.add('active');
             currentSearchType = this.getAttribute('data-type');
+            currentPostPage = 1;
+            postHasNextPage = false;
             document.getElementById('filtersPanel').classList.toggle('active', currentSearchType === 'post');
             document.getElementById('aiSearchBtn').style.display = currentSearchType === 'post' ? 'inline-flex' : 'none';
             const summary = document.getElementById('activeFilterSummary');
@@ -722,6 +739,7 @@
                 renderAiSearchCard(aiSearchIntent);
             }
             renderRecommendationBanner();
+            renderPagination();
             updateInputPlaceholderAndHint();
             const resultList = document.getElementById('resultList');
             resultList.innerHTML = `
@@ -1042,15 +1060,20 @@
 
     function setPostSort(sortType) {
         currentPostSort = sortType;
+        currentPostPage = 1;
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-sort') === sortType);
         });
         renderRecommendationBanner();
+        if (currentSearchType === 'post' && document.getElementById("keyword").value.trim()) {
+            search();
+        }
     }
 
     document.querySelectorAll('#filtersPanel select').forEach(select => {
         select.addEventListener('change', () => {
             if (currentSearchType === 'post') {
+                currentPostPage = 1;
                 search();
             }
         });
@@ -1070,8 +1093,41 @@
         }
         renderRecommendationBanner();
         if (currentSearchType === 'post') {
+            currentPostPage = 1;
             search();
         }
+    }
+
+    function changePostPage(page) {
+        if (page < 1 || page === currentPostPage) return;
+        if (page > currentPostPage && !postHasNextPage) return;
+        currentPostPage = page;
+        search();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderPagination() {
+        const bar = document.getElementById('paginationBar');
+        if (!bar) return;
+        if (currentSearchType !== 'post' || lastPostResults.length === 0) {
+            bar.classList.remove('active');
+            bar.innerHTML = '';
+            return;
+        }
+        const isCn = currentLang === 'cn';
+        const pages = [];
+        const start = Math.max(1, currentPostPage - 2);
+        const end = currentPostPage + (postHasNextPage ? 2 : 0);
+        for (let p = start; p <= end; p++) {
+            pages.push(`<button class="page-btn ${p === currentPostPage ? 'active' : ''}" onclick="changePostPage(${p})">${p}</button>`);
+        }
+        bar.classList.add('active');
+        bar.innerHTML = `
+            <button class="page-btn" ${currentPostPage <= 1 ? 'disabled' : ''} onclick="changePostPage(${currentPostPage - 1})">${isCn ? '上一页' : 'Prev'}</button>
+            ${pages.join('')}
+            <button class="page-btn" ${!postHasNextPage ? 'disabled' : ''} onclick="changePostPage(${currentPostPage + 1})">${isCn ? '下一页' : 'Next'}</button>
+            <span class="page-info">${isCn ? `第 ${currentPostPage} 页` : `Page ${currentPostPage}`}</span>
+        `;
     }
 
     async function search() {
@@ -1096,7 +1152,7 @@
                 const queryKeywords = candidateKeywords.length ? candidateKeywords : [''];
                 const responses = await Promise.all(
                     queryKeywords.map(term =>
-                        fetch(buildPostSearchUrl(term))
+                        fetch(buildPostSearchUrl(term, currentPostPage))
                             .then(res => res.json())
                             .catch(() => [])
                     )
@@ -1112,14 +1168,18 @@
                     });
                 });
                 const posts = Array.from(merged.values());
+                postHasNextPage = posts.length >= POST_PAGE_SIZE;
                 lastPostResults = posts;
                 renderActiveFilterSummary(queryKeywords.filter(Boolean).join(' / ') || keyword);
                 renderRecommendationBanner();
                 renderPostResults(getProcessedPosts(posts));
+                renderPagination();
             }
         } catch (e) {
             resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div><div class="empty-text">${currentLang === 'cn' ? '搜索失败，请重试' : 'Search failed, please try again'}</div></div>`;
             console.error('Search error:', e);
+            postHasNextPage = false;
+            renderPagination();
         }
     }
 
@@ -1131,6 +1191,7 @@
         }
         clearAiSearchCard();
         renderRecommendationBanner();
+        renderPagination();
         const noResultTip = currentLang === 'cn' ? '没有找到相关用户' : 'No related users found';
         if (users.length === 0) {
             resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-user-slash"></i></div><div class="empty-text">${noResultTip}</div></div>`;
@@ -1160,6 +1221,7 @@
         const noResultTip = currentLang === 'cn' ? '没有找到相关研究成果' : 'No related research works found';
         if (posts.length === 0) {
             resultList.innerHTML = `<div class="result-empty"><div class="empty-icon"><i class="fas fa-file-alt"></i></div><div class="empty-text">${noResultTip}</div><div class="empty-subtext">${currentLang === 'cn' ? '尝试更换关键词，或减少筛选条件' : 'Try another keyword or reduce filter constraints'}</div></div>`;
+            renderPagination();
             return;
         }
         let html = '';
@@ -1230,6 +1292,7 @@
             `;
         });
         resultList.innerHTML = html;
+        renderPagination();
     }
 
     async function follow(userId) {
