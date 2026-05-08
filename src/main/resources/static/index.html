@@ -359,6 +359,7 @@
     let feedOffset = 0;
     let feedHasMore = true;
     let feedLoading = false;
+    let feedObserver = null;
 
     loadNavData();
     fetchPersonalizationProfile().then(fetchFeed);
@@ -372,12 +373,31 @@
     });
 
     window.addEventListener('scroll', function() {
-        if (!feedHasMore || feedLoading) return;
-        const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 260;
-        if (nearBottom) {
+        maybeLoadMoreFeed();
+    }, { passive: true });
+
+    function maybeLoadMoreFeed() {
+        if (!feedHasMore || feedLoading || globalTweets.length === 0) return;
+        const status = document.getElementById("feedLoadStatus");
+        const statusTop = status ? status.getBoundingClientRect().top : document.documentElement.scrollHeight;
+        const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 420;
+        const statusVisible = statusTop <= window.innerHeight + 180;
+        if (nearBottom || statusVisible) {
             fetchFeed(false);
         }
-    });
+    }
+
+    function setupFeedObserver() {
+        const status = document.getElementById("feedLoadStatus");
+        if (!status || !('IntersectionObserver' in window)) return;
+        if (feedObserver) feedObserver.disconnect();
+        feedObserver = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) {
+                maybeLoadMoreFeed();
+            }
+        }, { root: null, rootMargin: '240px 0px', threshold: 0 });
+        feedObserver.observe(status);
+    }
 
     function normalizeSubscriptionValue(value) {
         return String(value || '').trim().toLowerCase();
@@ -801,6 +821,7 @@
         } else {
             status.innerHTML = isCn ? '已加载全部研究成果' : 'All research works loaded';
         }
+        setupFeedObserver();
     }
 
     async function fetchFeed(reset = true) {
@@ -825,6 +846,7 @@
             feedOffset += pageItems.length;
             feedHasMore = pageItems.length === FEED_PAGE_SIZE;
             renderFeed();
+            setTimeout(maybeLoadMoreFeed, 80);
         } catch(e) {
             console.error(e);
             container.innerHTML = `<div style="text-align:center; padding:40px; color:red;">Load Failed</div>`;
