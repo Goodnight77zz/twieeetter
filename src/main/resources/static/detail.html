@@ -332,7 +332,7 @@
         }
         .c-author-row { gap: 6px; }
         .c-name {
-            color: #fb7299;
+            color: #1d4ed8;
             font-size: 14px;
             font-weight: 700;
         }
@@ -353,18 +353,31 @@
         }
         .c-badge i { display: none; }
         .c-badge.type,
-        .c-badge.reply,
-        .c-badge.scholar { display: none; }
+        .c-badge.reply { display: none; }
+        .c-badge.scholar {
+            display: inline-flex;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .c-badge.scholar.top {
+            display: inline-flex;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
         .c-badge.author {
             display: inline-flex;
-            background: #ff6699;
+            background: #2563eb;
             color: #fff;
         }
-        .c-badge.accepted,
+        .c-badge.accepted {
+            display: inline-flex;
+            background: #ecfdf5;
+            color: #047857;
+        }
         .c-badge.featured {
             display: inline-flex;
-            background: #fff1f5;
-            color: #fb7299;
+            background: #fffbeb;
+            color: #b45309;
         }
         .c-priority-note,
         .c-scholar-note { display: none; }
