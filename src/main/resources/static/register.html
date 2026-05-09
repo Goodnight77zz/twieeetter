@@ -2,46 +2,86 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>
-        <span class="cn">注册 - Twieeetter</span>
-        <span class="en">Register - Twieeetter</span>
-    </title>
-    <!-- 引入通用语言组件CSS -->
-    <link rel="stylesheet" href="common/lang-component.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Twieeetter</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; }
-        h2 { text-align: center; color: #1da1f2; }
-        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 100%; padding: 10px; background-color: #1da1f2; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #0d8ddb; }
-        .link { text-align: center; margin-top: 15px; font-size: 14px; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #eff4fa;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .layout-container {
+            display: flex;
+            width: 1000px;
+            max-width: 90%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .left-panel { flex: 1; color: #333; }
+        .left-title { font-size: 38px; font-weight: bold; margin-bottom: 20px; color: #1da1f2; letter-spacing: 1px; }
+        .left-title span { color: #000; }
+        .left-desc { font-size: 16px; line-height: 2; color: #555; margin-bottom: 40px; }
+
+        .css-monitor {
+            width: 220px; height: 160px; background: linear-gradient(135deg, #cde3f7, #a4cff0); border-radius: 12px;
+            border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.05); position: relative;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; text-align: center; padding: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .css-monitor::after { content: ''; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 80px; height: 20px; background: #fff; border-radius: 0 0 40px 40px; box-shadow: 0 5px 10px rgba(0,0,0,0.02); }
+        .css-monitor::before { content: '○ ○ ○'; position: absolute; bottom: 5px; font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.8); }
+
+        .right-panel {
+            width: 360px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 40px 30px; box-sizing: border-box; border: 1px solid #f0f0f0;
+        }
+
+        .form-title { text-align: center; font-size: 20px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .form-subtitle { text-align: center; font-size: 13px; color: #888; margin-bottom: 25px; }
+
+        .input-group { margin-bottom: 20px; }
+        input { width: 100%; padding: 14px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
+        input:focus { border-color: #1da1f2; outline: none; }
+
+        .error-message { color: #e0245e; font-size: 13px; text-align: center; margin-bottom: 15px; min-height: 18px; }
+
+        button.btn-primary { width: 100%; padding: 14px; background-color: #1da1f2; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button.btn-primary:hover { background-color: #1a91da; }
+        button.btn-primary:disabled { background-color: #9cd1f0; cursor: not-allowed; }
+
+        .form-footer { display: flex; justify-content: center; margin-top: 20px; font-size: 13px; }
+        .form-footer a { color: #1da1f2; text-decoration: none; margin-left: 5px;}
+        .form-footer a:hover { text-decoration: underline; }
+
+        .copyright { position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #999; }
+
+        .lang-selector { position: fixed; top: 30px; right: 30px; z-index: 9999; padding: 5px; border-radius: 8px; left: auto; bottom: auto; }
+        .lang-selector.dragging { opacity: 0.9; cursor: grabbing; }
+        .lang-trigger { width: 44px; height: 44px; border-radius: 50%; background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; }
+        .lang-trigger:hover { transform: scale(1.05); }
+        .lang-trigger svg { width: 22px; height: 22px; color: #1da1f2; }
+        .lang-dropdown { margin-top: 10px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; width: 120px; border: 1px solid #f0f0f0; }
+        .lang-selector.active .lang-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .lang-option { padding: 12px 16px; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; color: #555; }
+        .lang-option:hover { background-color: #f5f8fa; color: #1da1f2; }
+        .lang-option.active { color: #1da1f2; font-weight: 600; }
+
+        .en { display: none; }
+
+        @media (max-width: 800px) {
+            .layout-container { flex-direction: column; justify-content: center; }
+            .left-panel { display: none; }
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>
-        <span class="cn">加入 Twieeetter</span>
-        <span class="en">Join Twieeetter</span>
-    </h2>
-    <input type="text" id="username" placeholder="用户名" data-placeholder-en="Username">
-    <input type="password" id="password" placeholder="密码" data-placeholder-en="Password">
-    <input type="email" id="email" placeholder="邮箱" data-placeholder-en="Email">
-    <button onclick="doRegister()">
-        <span class="cn">注 册</span>
-        <span class="en">Register</span>
-    </button>
-    <div class="link">
-        <span class="cn">已有账号？</span>
-        <span class="en">Already have an account?</span>
-        <a href="login.html">
-            <span class="cn">去登录</span>
-            <span class="en">Go to Login</span>
-        </a>
-    </div>
-</div>
 
-<!-- 通用语言切换组件HTML -->
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -49,113 +89,169 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option" id="langCn" onclick="switchLang('cn')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            中文
-        </button>
-        <button class="lang-option" id="langEn" onclick="switchLang('en')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            English
-        </button>
+        <button class="lang-option active" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" onclick="switchLang('en')">English</button>
     </div>
 </div>
 
-<!-- 引入通用语言组件JS -->
-<script src="common/lang-component.js"></script>
+<div class="layout-container">
+    <div class="left-panel">
+        <div class="left-title">
+            <span class="cn">加入我们，<span>开放共享！</span></span>
+            <span class="en">Join us, <span>Open & Share!</span></span>
+        </div>
+        <div class="left-desc">
+            <span class="cn">
+                立即注册，建立你的专属学术档案。<br>
+                与全球研究者一起参与文献讨论与评价。<br>
+                “你的每一个发现，都推动着科学的进步”
+            </span>
+            <span class="en">
+                Register now to build your academic profile.<br>
+                Join global researchers in literature discussion.<br>
+                "Every discovery drives science forward."
+            </span>
+        </div>
+
+        <div class="css-monitor">
+            <span class="cn">Connect the<br>Academic World.</span>
+            <span class="en">Connect the<br>Academic World.</span>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="form-title">
+            <span class="cn">注册新账号</span>
+            <span class="en">Create Account</span>
+        </div>
+        <div class="form-subtitle">
+            <span class="cn">填写基本信息即可快速加入社区。</span>
+            <span class="en">Fill in basic info to join the community.</span>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="username" placeholder="用户名" data-placeholder-en="Username" required>
+        </div>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="邮箱" data-placeholder-en="Email Address" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="设置密码" data-placeholder-en="Password" required>
+        </div>
+
+        <div class="error-message" id="errorMsg"></div>
+
+        <button onclick="doRegister()" id="regBtn" class="btn-primary">
+            <span class="cn">立即注册</span>
+            <span class="en">Sign Up Now</span>
+        </button>
+
+        <div class="form-footer">
+            <span class="cn">已有账号？</span><span class="en">Already have an account?</span>
+            <a href="login.html"><span class="cn">直接登录</span><span class="en">Log in</span></a>
+        </div>
+    </div>
+</div>
+
+<div class="copyright">
+    <span class="cn">关于 Twieeetter | 服务条款 | 隐私政策 | 帮助中心 <br> Copyright © 2026 Academic Research Labs. All Rights Reserved.</span>
+    <span class="en">About Twieeetter | Terms | Privacy | Help <br> Copyright © 2026 Academic Research Labs. All Rights Reserved.</span>
+</div>
 
 <script>
-    // 当前语言状态
-    let currentLang = localStorage.getItem('appLang') || 'cn';
+    let currentLang = 'cn';
+    const langSelector = document.getElementById('langSelector');
+    const langTrigger = document.getElementById('langTrigger');
 
-    // 监听语言切换事件，更新页面文本
-    window.addEventListener('languageChange', function() {
-        currentLang = localStorage.getItem('appLang') || 'cn';
-        updateFormText();
-    });
+    langTrigger.addEventListener('click', () => { langSelector.classList.toggle('active'); });
+    document.addEventListener('click', (e) => { if (!langSelector.contains(e.target)) langSelector.classList.remove('active'); });
 
-    // 更新表单文本（语言切换时调用）
-    function updateFormText() {
-        // 用户名输入框
-        const usernameInput = document.getElementById("username");
-        usernameInput.placeholder = currentLang === 'cn' ?
-            usernameInput.getAttribute("placeholder") :
-            usernameInput.getAttribute("data-placeholder-en");
-
-        // 密码输入框
-        const passwordInput = document.getElementById("password");
-        passwordInput.placeholder = currentLang === 'cn' ?
-            passwordInput.getAttribute("placeholder") :
-            passwordInput.getAttribute("data-placeholder-en");
-
-        // 邮箱输入框
-        const emailInput = document.getElementById("email");
-        emailInput.placeholder = currentLang === 'cn' ?
-            emailInput.getAttribute("placeholder") :
-            emailInput.getAttribute("data-placeholder-en");
-
-        // 注册按钮
-        const registerBtn = document.querySelector("button");
-        registerBtn.innerHTML = `
-            <span class="cn">注 册</span>
-            <span class="en">Register</span>
-        `;
-
-        // 已有账号提示
-        const linkText = document.querySelector(".link");
-        linkText.innerHTML = `
-            <span class="cn">已有账号？</span>
-            <span class="en">Already have an account?</span>
-            <a href="login.html">
-                <span class="cn">去登录</span>
-                <span class="en">Go to Login</span>
-            </a>
-        `;
+    function switchLang(lang) {
+        const cnTexts = document.querySelectorAll('.cn');
+        const enTexts = document.querySelectorAll('.en');
+        if (lang === 'cn') {
+            cnTexts.forEach(text => text.style.display = '');
+            enTexts.forEach(text => text.style.display = 'none');
+            document.getElementById('username').placeholder = '用户名';
+            document.getElementById('email').placeholder = '邮箱';
+            document.getElementById('password').placeholder = '设置密码';
+        } else if (lang === 'en') {
+            cnTexts.forEach(text => text.style.display = 'none');
+            enTexts.forEach(text => text.style.display = '');
+            document.getElementById('username').placeholder = document.getElementById('username').getAttribute('data-placeholder-en');
+            document.getElementById('email').placeholder = document.getElementById('email').getAttribute('data-placeholder-en');
+            document.getElementById('password').placeholder = document.getElementById('password').getAttribute('data-placeholder-en');
+        }
+        currentLang = lang;
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.classList.toggle('active', opt.onclick.toString().includes(`switchLang('${lang}')`));
+        });
+        langSelector.classList.remove('active');
     }
+
+    switchLang('cn');
 
     async function doRegister() {
-        const username = document.getElementById("username").value;
+        const username = document.getElementById("username").value.trim();
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
-        const email = document.getElementById("email").value;
+        const errorMsg = document.getElementById("errorMsg");
+        const regBtn = document.getElementById("regBtn");
 
-        // 输入校验提示（双语言）
-        let emptyTip = "";
-        if (!username.trim()) {
-            emptyTip = currentLang === 'cn' ? "请输入用户名！" : "Please enter username!";
-        } else if (!password.trim()) {
-            emptyTip = currentLang === 'cn' ? "请输入密码！" : "Please enter password!";
-        } else if (!email.trim()) {
-            emptyTip = currentLang === 'cn' ? "请输入邮箱！" : "Please enter email!";
-        }
-
-        if (emptyTip) {
-            alert(emptyTip);
+        if (!username || !email || !password) {
+            errorMsg.textContent = currentLang === 'cn' ? '请填写完整的注册信息' : 'Please fill out all fields';
             return;
         }
+        errorMsg.textContent = "";
+        regBtn.disabled = true;
+        regBtn.textContent = '...';
 
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email })
-        });
-
-        const result = await response.text();
-        const successText = currentLang === 'cn' ? '成功' : 'success';
-        const successAlert = currentLang === 'cn' ? '注册成功，请登录！' : 'Registration successful, please log in!';
-
-        if (result.includes(successText)) {
-            alert(successAlert);
-            window.location.href = "login.html";
-        } else {
-            alert(result);
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const data = await response.json();
+            if (data.message === "success") {
+                alert(currentLang === 'cn' ? '注册成功！请登录' : 'Registration successful! Please login.');
+                window.location.href = "login.html";
+            } else {
+                errorMsg.textContent = data.message || (currentLang === 'cn' ? '注册失败，用户名可能已存在' : 'Registration failed');
+                regBtn.disabled = false;
+                regBtn.innerHTML = currentLang === 'cn' ? '<span class="cn">立即注册</span>' : '<span class="en">Sign Up Now</span>';
+            }
+        } catch (error) {
+            errorMsg.textContent = currentLang === 'cn' ? '网络错误，请稍后重试' : 'Network error. Please try again';
+            regBtn.disabled = false;
+            regBtn.innerHTML = currentLang === 'cn' ? '<span class="cn">立即注册</span>' : '<span class="en">Sign Up Now</span>';
         }
     }
 
-    // 初始化表单文本（根据当前语言）
-    updateFormText();
+    document.addEventListener('keydown', function(event) { if (event.key === 'Enter') doRegister(); });
+
+    let isDragging = false, pressStartTime, startX, startY, offsetX, offsetY;
+    langSelector.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.lang-option')) return;
+        pressStartTime = Date.now();
+        const rect = langSelector.getBoundingClientRect();
+        startX = e.clientX; startY = e.clientY;
+        offsetX = startX - rect.left; offsetY = startY - rect.top;
+    });
+    document.addEventListener('mousemove', function(e) {
+        if (!pressStartTime || isDragging) {
+            if (isDragging) {
+                let newLeft = Math.max(10, Math.min(window.innerWidth - langSelector.offsetWidth - 10, e.clientX - offsetX));
+                let newTop = Math.max(10, Math.min(window.innerHeight - langSelector.offsetHeight - 10, e.clientY - offsetY));
+                langSelector.style.left = `${newLeft}px`; langSelector.style.top = `${newTop}px`;
+                langSelector.style.right = 'auto'; langSelector.style.bottom = 'auto';
+            }
+            return;
+        }
+        if (Date.now() - pressStartTime > 250) { isDragging = true; langSelector.classList.add('dragging'); langSelector.classList.remove('active'); }
+    });
+    function resetDrag() { pressStartTime = null; setTimeout(() => isDragging = false, 50); langSelector.classList.remove('dragging'); }
+    document.addEventListener('mouseup', resetDrag); document.addEventListener('mouseleave', resetDrag);
 </script>
 </body>
 </html>

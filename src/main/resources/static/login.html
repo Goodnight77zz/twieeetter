@@ -2,227 +2,213 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 - Twieeetter</title>
     <style>
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f2f5;
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #eff4fa; /* QQ邮箱经典的极浅灰蓝色背景 */
             margin: 0;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            width: 300px;
-            transition: transform 0.2s;
-            position: relative;
-            overflow: hidden;
+
+        .layout-container {
+            display: flex;
+            width: 1000px;
+            max-width: 90%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
         }
-        .card:hover {
-            transform: translateY(-2px);
+
+        /* 左侧介绍与纯CSS图形区 */
+        .left-panel {
+            flex: 1;
+            color: #333;
         }
-        .main-title {
-            text-align: center;
+
+        .left-title {
+            font-size: 38px;
+            font-weight: bold;
+            margin-bottom: 20px;
             color: #1da1f2;
-            margin-bottom: 25px;
-            font-weight: 700;
-            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        .left-title span { color: #000; }
+
+        .left-desc {
+            font-size: 16px;
+            line-height: 2;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        /* 纯 CSS 绘制的复古小电脑（替代本地图片） */
+        .css-monitor {
+            width: 220px;
+            height: 160px;
+            background: linear-gradient(135deg, #cde3f7, #a4cff0);
+            border-radius: 12px;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             position: relative;
-            z-index: 2;
-        }
-        .bg-title {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1, 1.8);
-            transform-origin: center;
-            font-size: 72px;
-            font-weight: 900;
-            color: rgba(29, 161, 242, 0.08);
-            z-index: 1;
-            user-select: none;
-            white-space: nowrap;
-            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
             text-align: center;
+            padding: 10px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
+        .css-monitor::after {
+            content: '';
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 20px;
+            background: #fff;
+            border-radius: 0 0 40px 40px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.02);
+        }
+        .css-monitor::before {
+            content: '○ ○ ○';
+            position: absolute;
+            bottom: 5px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* 右侧白色登录卡片 */
+        .right-panel {
+            width: 360px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 40px 30px;
+            box-sizing: border-box;
+            border: 1px solid #f0f0f0;
+        }
+
+        .form-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 25px;
+        }
+
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
+
         input {
             width: 100%;
-            padding: 12px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 14px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
             font-size: 14px;
-            transition: border 0.2s, box-shadow 0.2s;
-            position: relative;
-            z-index: 2;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
         }
+
         input:focus {
             border-color: #1da1f2;
-            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
             outline: none;
         }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-            position: relative;
-            z-index: 2;
-        }
-        button:hover {
-            background-color: #0d8ddb;
-        }
-        button:disabled {
-            background-color: #a5d8ff;
-            cursor: not-allowed;
-        }
-        .link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #657786;
-            position: relative;
-            z-index: 2;
-        }
-        .link a {
-            color: #1da1f2;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .link a:hover {
-            text-decoration: underline;
-        }
+
         .error-message {
             color: #e0245e;
             font-size: 13px;
             text-align: center;
-            margin: 10px 0;
+            margin-bottom: 15px;
             min-height: 18px;
-            position: relative;
-            z-index: 2;
-        }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
-        /* 语言选择器样式（核心：明确定位和拖拽反馈） */
-        .lang-selector {
-            position: fixed;
-            top: 50%;
-            right: 20px;
-            z-index: 9999; /* 确保不被遮挡 */
-            padding: 5px;
-            border-radius: 8px;
-            /* 关键：初始位置用top/right，拖拽后用left/top覆盖 */
-            left: auto;
-            bottom: auto;
-        }
-        /* 拖拽时的视觉反馈（必加，让你知道正在拖拽） */
-        .lang-selector.dragging {
-            opacity: 0.9;
-            box-shadow: 0 4px 16px rgba(29, 161, 242, 0.3);
-            cursor: grabbing;
-        }
-        /* 原有语言选择器样式完全保留 */
-        .lang-trigger {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0;
-        }
-        .lang-trigger:hover {
-            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
-            transform: scale(1.05);
-        }
-        .lang-trigger svg {
-            width: 24px;
-            height: 24px;
-            color: #1da1f2;
-        }
-        .lang-dropdown {
-            margin-top: 10px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            overflow: hidden;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(10px);
-            transition: all 0.2s ease;
-            width: 120px;
-        }
-        .lang-selector.active .lang-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .lang-option {
-            padding: 12px 16px;
-            border: none;
-            background: transparent;
+        button.btn-primary {
             width: 100%;
-            text-align: left;
+            padding: 14px;
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #333;
-        }
-        .lang-option:hover {
-            background-color: #f5f8fa;
-        }
-        .lang-option.active {
-            color: #1da1f2;
-            font-weight: 500;
-        }
-        .lang-option svg {
-            width: 16px;
-            height: 16px;
+            transition: background 0.2s;
         }
 
-        /* 隐藏英文文本（默认显示中文） */
-        .en {
-            display: none;
+        button.btn-primary:hover {
+            background-color: #1a91da;
+        }
+
+        button.btn-primary:disabled {
+            background-color: #9cd1f0;
+            cursor: not-allowed;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .form-footer a {
+            color: #555;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            color: #1da1f2;
+        }
+
+        .copyright {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 语言选择器 */
+        .lang-selector { position: fixed; top: 30px; right: 30px; z-index: 9999; padding: 5px; border-radius: 8px; left: auto; bottom: auto; }
+        .lang-selector.dragging { opacity: 0.9; cursor: grabbing; }
+        .lang-trigger { width: 44px; height: 44px; border-radius: 50%; background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; }
+        .lang-trigger:hover { transform: scale(1.05); }
+        .lang-trigger svg { width: 22px; height: 22px; color: #1da1f2; }
+        .lang-dropdown { margin-top: 10px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; width: 120px; border: 1px solid #f0f0f0; }
+        .lang-selector.active .lang-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .lang-option { padding: 12px 16px; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; color: #555; }
+        .lang-option:hover { background-color: #f5f8fa; color: #1da1f2; }
+        .lang-option.active { color: #1da1f2; font-weight: 600; }
+
+        .en { display: none; }
+
+        @media (max-width: 800px) {
+            .layout-container { flex-direction: column; justify-content: center; }
+            .left-panel { display: none; }
         }
     </style>
 </head>
 <body>
-<!-- 语言选择器（结构不变） -->
+
 <div class="lang-selector" id="langSelector">
     <button class="lang-trigger" id="langTrigger">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -230,123 +216,119 @@
         </svg>
     </button>
     <div class="lang-dropdown">
-        <button class="lang-option active" onclick="switchLang('cn')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            中文
-        </button>
-        <button class="lang-option" onclick="switchLang('en')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            English
-        </button>
+        <button class="lang-option active" onclick="switchLang('cn')">中文</button>
+        <button class="lang-option" onclick="switchLang('en')">English</button>
     </div>
 </div>
 
-<!-- 登录卡片（完全不变） -->
-<div class="card">
-    <div class="bg-title">Twieeetter</div>
-    <h2 class="main-title">
-        <span class="cn">登录</span>
-        <span class="en">Login</span>
-    </h2>
+<div class="layout-container">
+    <!-- 左侧文案与CSS图形 -->
+    <div class="left-panel">
+        <div class="left-title">
+            <span class="cn">Twieeetter，<span>开放学术！</span></span>
+            <span class="en">Twieeetter, <span>Open Science!</span></span>
+        </div>
+        <div class="left-desc">
+            <span class="cn">
+                探索低门槛发布、持续反馈与个性化推荐。<br>
+                在这里，每一份阶段性成果都值得被看见与探讨。<br>
+                “越过封闭的壁垒，走向开放的科研世界”
+            </span>
+            <span class="en">
+                Explore low-barrier publishing, feedback, and recommendations.<br>
+                Every research output deserves to be seen and discussed.<br>
+                "Beyond closed walls, towards an open academic world."
+            </span>
+        </div>
 
-    <div class="input-group">
-        <input type="text" id="username"
-               placeholder="用户名"
-               data-placeholder-en="Username"
-               required>
+        <!-- CSS画的复古小电脑 -->
+        <div class="css-monitor">
+            <span class="cn">Connect the<br>Academic World.</span>
+            <span class="en">Connect the<br>Academic World.</span>
+        </div>
     </div>
 
-    <div class="input-group">
-        <input type="password" id="password"
-               placeholder="密码"
-               data-placeholder-en="Password"
-               required>
+    <!-- 右侧登录框 -->
+    <div class="right-panel">
+        <div class="form-title">
+            <span class="cn">账号登录</span>
+            <span class="en">Account Login</span>
+        </div>
+        <div class="form-subtitle">
+            <span class="cn">推荐使用学术邮箱登录，保护科研成果。</span>
+            <span class="en">Login with your academic account.</span>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="username" placeholder="账号/邮箱" data-placeholder-en="Username / Email" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="密码" data-placeholder-en="Password" required>
+        </div>
+
+        <div class="error-message" id="errorMsg"></div>
+
+        <button onclick="doLogin()" id="loginBtn" class="btn-primary">
+            <span class="cn">登录</span>
+            <span class="en">Log In</span>
+        </button>
+
+        <div class="form-footer">
+            <a href="#"><span class="cn">找回密码</span><span class="en">Forgot Password?</span></a>
+            <a href="register.html"><span class="cn">注册账号</span><span class="en">Register</span></a>
+        </div>
     </div>
+</div>
 
-    <div class="error-message" id="errorMsg"></div>
-
-    <button onclick="doLogin()" id="loginBtn">
-        <span class="cn">登 录</span>
-        <span class="en">Login</span>
-    </button>
-
-    <div class="link">
-        <span class="cn">还没有账号？</span>
-        <span class="en">Don't have an account?</span>
-        <a href="register.html">
-            <span class="cn">去注册</span>
-            <span class="en">Register</span>
-        </a>
-    </div>
+<div class="copyright">
+    <span class="cn">关于 Twieeetter | 服务条款 | 隐私政策 | 帮助中心 <br> Copyright © 2026 Academic Research Labs. All Rights Reserved.</span>
+    <span class="en">About Twieeetter | Terms | Privacy | Help <br> Copyright © 2026 Academic Research Labs. All Rights Reserved.</span>
 </div>
 
 <script>
-    // 原有逻辑完全保留
     let currentLang = 'cn';
     const langSelector = document.getElementById('langSelector');
     const langTrigger = document.getElementById('langTrigger');
 
-    // 语言选择器展开/收起（保留原有功能）
-    langTrigger.addEventListener('click', () => {
-        langSelector.classList.toggle('active');
-    });
-    document.addEventListener('click', (e) => {
-        if (!langSelector.contains(e.target)) {
-            langSelector.classList.remove('active');
-        }
-    });
+    langTrigger.addEventListener('click', () => { langSelector.classList.toggle('active'); });
+    document.addEventListener('click', (e) => { if (!langSelector.contains(e.target)) langSelector.classList.remove('active'); });
 
-    // 语言切换（保留原有功能）
     function switchLang(lang) {
         const cnTexts = document.querySelectorAll('.cn');
         const enTexts = document.querySelectorAll('.en');
-
         if (lang === 'cn') {
-            cnTexts.forEach(text => text.style.display = 'inline');
+            cnTexts.forEach(text => text.style.display = '');
             enTexts.forEach(text => text.style.display = 'none');
-            document.getElementById('username').placeholder = '用户名';
+            document.getElementById('username').placeholder = '账号/邮箱';
             document.getElementById('password').placeholder = '密码';
         } else if (lang === 'en') {
             cnTexts.forEach(text => text.style.display = 'none');
-            enTexts.forEach(text => text.style.display = 'inline');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            usernameInput.placeholder = usernameInput.getAttribute('data-placeholder-en');
-            passwordInput.placeholder = passwordInput.getAttribute('data-placeholder-en');
+            enTexts.forEach(text => text.style.display = '');
+            document.getElementById('username').placeholder = document.getElementById('username').getAttribute('data-placeholder-en');
+            document.getElementById('password').placeholder = document.getElementById('password').getAttribute('data-placeholder-en');
         }
-
         currentLang = lang;
-
-        const langOptions = document.querySelectorAll('.lang-option');
-        langOptions.forEach(option => {
-            option.classList.toggle('active', option.onclick.toString().includes(`switchLang('${lang}')`));
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.classList.toggle('active', opt.onclick.toString().includes(`switchLang('${lang}')`));
         });
         langSelector.classList.remove('active');
     }
 
-    // 登录逻辑（保留原有功能）
+    switchLang('cn');
+
     async function doLogin() {
         const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value;
         const errorMsg = document.getElementById("errorMsg");
         const loginBtn = document.getElementById("loginBtn");
 
-        if (!username) {
-            errorMsg.textContent = currentLang === 'cn' ? '请输入用户名' : 'Please enter username';
-            return;
-        }
-        if (!password) {
-            errorMsg.textContent = currentLang === 'cn' ? '请输入密码' : 'Please enter password';
+        if (!username || !password) {
+            errorMsg.textContent = currentLang === 'cn' ? '请输入完整的账号和密码' : 'Please enter username and password';
             return;
         }
         errorMsg.textContent = "";
-
         loginBtn.disabled = true;
-        loginBtn.innerHTML = '<div class="loader"></div>';
+        loginBtn.textContent = '...';
 
         try {
             const response = await fetch('/api/auth/login', {
@@ -354,112 +336,48 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
-
             const data = await response.json();
-
             if (data.message === "success") {
-                alert(currentLang === 'cn' ? '登录成功！即将跳转到首页' : 'Login successful! Redirecting to homepage');
                 localStorage.setItem("userId", data.userId);
                 localStorage.setItem("username", data.username);
                 window.location.href = "index.html";
             } else {
-                errorMsg.textContent = currentLang === 'cn' ? '登录失败，用户名或密码错误' : 'Login failed. Invalid username or password';
+                errorMsg.textContent = currentLang === 'cn' ? '登录失败，账号或密码错误' : 'Login failed. Invalid credentials';
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = '<span class="cn">登 录</span><span class="en">Login</span>';
+                loginBtn.innerHTML = currentLang === 'cn' ? '<span class="cn">登录</span>' : '<span class="en">Log In</span>';
             }
         } catch (error) {
-            errorMsg.textContent = currentLang === 'cn' ? '网络错误，请稍后重试' : 'Network error. Please try again later';
+            errorMsg.textContent = currentLang === 'cn' ? '网络错误，请稍后重试' : 'Network error. Please try again';
             loginBtn.disabled = false;
-            loginBtn.innerHTML = '<span class="cn">登 录</span><span class="en">Login</span>';
-            console.error("登录请求失败:", error);
+            loginBtn.innerHTML = currentLang === 'cn' ? '<span class="cn">登录</span>' : '<span class="en">Log In</span>';
         }
     }
 
-    // 回车键登录（保留原有功能）
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            doLogin();
-        }
-    });
+    document.addEventListener('keydown', function(event) { if (event.key === 'Enter') doLogin(); });
 
-    // --------------- 最终修复：长按拖拽逻辑（极简+高效） ---------------
-    let isDragging = false;
-    let pressStartTime; // 记录按下时间
-    let startX, startY;
-    let offsetX, offsetY;
-
-    // 1. 鼠标按下：记录开始时间和初始位置
+    // 拖拽逻辑
+    let isDragging = false, pressStartTime, startX, startY, offsetX, offsetY;
     langSelector.addEventListener('mousedown', function(e) {
-        // 排除点击语言选项时触发拖拽
         if (e.target.closest('.lang-option')) return;
-
-        pressStartTime = Date.now(); // 记录按下时间
+        pressStartTime = Date.now();
         const rect = langSelector.getBoundingClientRect();
-        startX = e.clientX;
-        startY = e.clientY;
-        offsetX = startX - rect.left; // 鼠标在组件内的X偏移
-        offsetY = startY - rect.top;  // 鼠标在组件内的Y偏移
+        startX = e.clientX; startY = e.clientY;
+        offsetX = startX - rect.left; offsetY = startY - rect.top;
     });
-
-    // 2. 鼠标移动：判断是否长按，是则触发拖拽
     document.addEventListener('mousemove', function(e) {
-        // 未按下鼠标 或 已在拖拽中，直接返回
         if (!pressStartTime || isDragging) {
-            // 已在拖拽中，更新位置
             if (isDragging) {
-                updateDragPosition(e);
+                let newLeft = Math.max(10, Math.min(window.innerWidth - langSelector.offsetWidth - 10, e.clientX - offsetX));
+                let newTop = Math.max(10, Math.min(window.innerHeight - langSelector.offsetHeight - 10, e.clientY - offsetY));
+                langSelector.style.left = `${newLeft}px`; langSelector.style.top = `${newTop}px`;
+                langSelector.style.right = 'auto'; langSelector.style.bottom = 'auto';
             }
             return;
         }
-
-        // 计算按下时长（超过250ms视为长按）
-        const pressDuration = Date.now() - pressStartTime;
-        if (pressDuration > 250) {
-            isDragging = true;
-            langSelector.classList.add('dragging');
-            langSelector.classList.remove('active'); // 拖拽时隐藏下拉菜单
-            updateDragPosition(e); // 立即更新位置
-        }
+        if (Date.now() - pressStartTime > 250) { isDragging = true; langSelector.classList.add('dragging'); langSelector.classList.remove('active'); }
     });
-
-    // 3. 更新拖拽位置（独立函数，避免重复代码）
-    function updateDragPosition(e) {
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const compWidth = langSelector.offsetWidth;
-        const compHeight = langSelector.offsetHeight;
-
-        // 计算新位置（减去偏移量，避免组件跳变）
-        let newLeft = e.clientX - offsetX;
-        let newTop = e.clientY - offsetY;
-
-        // 边界限制：留10px边距，不超出屏幕
-        newLeft = Math.max(10, Math.min(windowWidth - compWidth - 10, newLeft));
-        newTop = Math.max(10, Math.min(windowHeight - compHeight - 10, newTop));
-
-        // 直接用left/top定位，无偏移问题
-        langSelector.style.left = `${newLeft}px`;
-        langSelector.style.top = `${newTop}px`;
-        // 覆盖初始的right/top，避免冲突
-        langSelector.style.right = 'auto';
-        langSelector.style.bottom = 'auto';
-    }
-
-    // 4. 鼠标松开/离开：重置状态
-    function resetDrag() {
-        pressStartTime = null;
-        isDragging = false;
-        langSelector.classList.remove('dragging');
-    }
-    document.addEventListener('mouseup', resetDrag);
-    document.addEventListener('mouseleave', resetDrag);
-
-    // 5. 修复：点击触发按钮时不干扰拖拽判断
-    langTrigger.addEventListener('mousedown', function(e) {
-        // 允许长按触发拖拽，短按触发点击（不阻止冒泡）
-        // 这里仅确保点击时不影响拖拽逻辑
-        e.stopPropagation = false;
-    });
+    function resetDrag() { pressStartTime = null; setTimeout(() => isDragging = false, 50); langSelector.classList.remove('dragging'); }
+    document.addEventListener('mouseup', resetDrag); document.addEventListener('mouseleave', resetDrag);
 </script>
 </body>
 </html>
