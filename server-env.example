@@ -1,0 +1,26 @@
+# Copy this file to /root/twieeetter.env on the server.
+# Do not commit the real /root/twieeetter.env file.
+
+SPRING_PROFILES_ACTIVE=prod
+SERVER_PORT=8080
+FILE_UPLOAD_DIR=/root/fyp_uploads/
+
+DB_URL=jdbc:mysql://localhost:3306/twieeetter_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8&allowPublicKeyRetrieval=true
+DB_USERNAME=root
+DB_PASSWORD=replace_with_your_mysql_password
+
+DEEPSEEK_API_KEY=replace_with_your_deepseek_api_key
+
+MAIL_USERNAME=replace_with_your_mail_account
+MAIL_PASSWORD=replace_with_your_mail_authorization_code
+MAIL_FROM=replace_with_your_mail_account
+
+APP_BASE_URL=http://replace_with_your_server_ip:8080
+APP_DIGEST_CRON=0 0 8 * * ?
+
+MEILISEARCH_ENABLED=false
+MEILISEARCH_HOST=http://127.0.0.1:7700
+MEILISEARCH_API_KEY=
+MEILISEARCH_INDEX=tweets
+
+APP_DEFAULT_USER_EMAIL=demo@example.com
