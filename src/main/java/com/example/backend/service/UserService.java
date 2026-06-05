@@ -22,7 +22,8 @@ import java.util.UUID;
 @Service
 public class UserService {
 
-    private static final String DEFAULT_TEST_EMAIL = "1747607922@qq.com";
+    @Value("${app.default-user-email:demo@example.com}")
+    private String defaultUserEmail;
 
     @Autowired
     private UserRepository userRepository;
@@ -42,7 +43,7 @@ public class UserService {
             user.setNickname(user.getUsername());
         }
         if (user.getEmail() == null || user.getEmail().isBlank()) {
-            user.setEmail(DEFAULT_TEST_EMAIL);
+            user.setEmail(defaultUserEmail);
         }
         return userRepository.save(user);
     }
@@ -51,7 +52,7 @@ public class UserService {
         User user = userRepository.findByUsername(username);
         if (user != null && user.getPassword().equals(password)) {
             if (user.getEmail() == null || user.getEmail().isBlank()) {
-                user.setEmail(DEFAULT_TEST_EMAIL);
+                user.setEmail(defaultUserEmail);
                 userRepository.save(user);
             }
             return user;
@@ -62,7 +63,7 @@ public class UserService {
     public User getUserById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null && (user.getEmail() == null || user.getEmail().isBlank())) {
-            user.setEmail(DEFAULT_TEST_EMAIL);
+            user.setEmail(defaultUserEmail);
             return userRepository.save(user);
         }
         return user;
