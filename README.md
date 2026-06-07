@@ -9,6 +9,13 @@
 - 在线演示：http://39.105.193.95:8080/login.html
 - GitHub 分支：https://github.com/Goodnight77zz/twieeetter/tree/FYP1
 
+测试账号：
+
+- 用户名：student1
+- 密码：123456
+
+说明：演示环境仅用于功能体验，数据可能不定期清理，请勿上传敏感文件。
+
 ## 技术栈
 
 - 后端：Java 17，Spring Boot，Spring MVC，Spring Data JPA
