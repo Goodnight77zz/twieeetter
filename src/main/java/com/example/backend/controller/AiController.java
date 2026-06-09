@@ -4,6 +4,7 @@ import com.example.backend.entity.Tweet;
 import com.example.backend.repository.TweetRepository;
 import com.example.backend.service.AiService;
 import com.example.backend.service.FileService;
+import com.example.backend.service.RagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,8 @@ public class AiController {
     private FileService fileService;
     @Autowired
     private AiService aiService;
+    @Autowired
+    private RagService ragService;
 
     @PostMapping("/{task}/{tweetId}")
     public Map<String, String> runAiTask(
@@ -82,5 +85,19 @@ public class AiController {
     ) {
         String aiResponse = aiService.parseSearchIntent(query, lang);
         return Map.of("result", aiResponse, "task", "search-helper");
+    }
+
+    @PostMapping("/rag/index/{tweetId}")
+    public Map<String, Object> indexTweetForRag(@PathVariable Long tweetId) {
+        return ragService.indexTweet(tweetId);
+    }
+
+    @PostMapping("/rag/ask/{tweetId}")
+    public Map<String, Object> askTweetWithRag(
+            @PathVariable Long tweetId,
+            @RequestParam String question,
+            @RequestParam(defaultValue = "zh") String lang
+    ) {
+        return ragService.askTweet(tweetId, question, lang);
     }
 }

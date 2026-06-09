@@ -162,6 +162,20 @@ public class AiService {
         return callAiWithPrompt(systemPrompt, query == null ? "" : query);
     }
 
+    public String answerWithRagContext(String question, String context, String lang) {
+        String systemPrompt;
+        if ("en".equals(lang)) {
+            systemPrompt = "You are an academic paper Q&A assistant. Answer the user's question only based on the provided retrieved paper excerpts. "
+                    + "If the excerpts are insufficient, say that the current material is insufficient. Keep the answer concise and cite excerpt numbers when useful.";
+        } else {
+            systemPrompt = "You are an academic paper Q&A assistant. Answer in Chinese. Use only the retrieved paper excerpts provided by the system. "
+                    + "If the excerpts are insufficient, clearly say that the current material is insufficient. Keep the answer concise and cite excerpt numbers when useful.";
+        }
+        String source = "Retrieved paper excerpts:\n" + (context == null ? "" : context)
+                + "\n\nUser question:\n" + (question == null ? "" : question);
+        return callAiWithPrompt(systemPrompt, source);
+    }
+
     private String buildPublishSource(String title, String content) {
         return "标题:\n" + (title == null ? "" : title) + "\n\n摘要/内容:\n" + (content == null ? "" : content);
     }
