@@ -93,8 +93,11 @@ public class AiController {
     }
 
     @PostMapping("/rag/index/all")
-    public Map<String, Object> indexAllTweetsForRag() {
-        return ragService.indexAllTweets();
+    public Map<String, Object> indexAllTweetsForRag(
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "true") boolean skipIndexed
+    ) {
+        return ragService.indexAllTweets(limit, skipIndexed);
     }
 
     @PostMapping("/rag/ask/{tweetId}")

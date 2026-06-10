@@ -86,14 +86,25 @@ public class RagService {
         return Map.of("tweetId", tweetId, "chunks", chunks.size(), "message", "RAG index created");
     }
 
-    public Map<String, Object> indexAllTweets() {
+    public Map<String, Object> indexAllTweets(int limit, boolean skipIndexed) {
         ensureEnabled();
         List<Tweet> tweets = tweetRepository.findAllByOrderByCreateTimeDesc();
         List<Map<String, Object>> failed = new ArrayList<>();
         int indexed = 0;
         int chunks = 0;
+        int skipped = 0;
+        int scanned = 0;
+        int safeLimit = Math.max(1, Math.min(limit, 50));
 
         for (Tweet tweet : tweets) {
+            scanned++;
+            if (skipIndexed && hasIndexedChunks(tweet.getId())) {
+                skipped++;
+                continue;
+            }
+            if (indexed >= safeLimit) {
+                break;
+            }
             try {
                 Map<String, Object> result = indexTweet(tweet.getId());
                 indexed++;
@@ -113,8 +124,13 @@ public class RagService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("message", "RAG index-all finished");
         result.put("total", tweets.size());
+        result.put("scanned", scanned);
         result.put("indexed", indexed);
+        result.put("skipped", skipped);
         result.put("chunks", chunks);
+        result.put("limit", safeLimit);
+        result.put("skipIndexed", skipIndexed);
+        result.put("hasMore", scanned < tweets.size());
         result.put("failed", failed);
         return result;
     }
