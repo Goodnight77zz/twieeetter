@@ -14,7 +14,7 @@
         .back-link { color: #555; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .main-layout { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; max-width: 1500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .left-panel { flex: 2.1; background: white; border-radius: 16px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-y: auto; }
-        .right-panel { flex: 1; background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; }
+        .right-panel { flex: 1; background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #1da1f2; position: sticky; top: 80px; max-height: calc(100vh - 105px); align-self: flex-start; }
         .header { border-bottom: 1px solid #eee; padding-bottom: 18px; margin-bottom: 18px; }
         .title-area { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
         .title-label { background: #eefaff; color: #00a1d6; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
@@ -463,12 +463,30 @@
         .ai-lang-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; flex: 1; }
         .ai-btn { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; flex: 1; }
         .ai-result-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155; border: 1px dashed #cbd5e1; min-height: 300px; }
+        .rag-chat-panel { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
+        .rag-chat-title { font-size: 14px; font-weight: 900; color: #1e3a8a; display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+        .rag-chat-desc { color: #64748b; font-size: 12px; line-height: 1.6; margin-bottom: 10px; }
+        .rag-chat-box { display: flex; flex-direction: column; gap: 9px; }
+        .rag-question-input { width: 100%; min-height: 72px; resize: vertical; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 14px; padding: 11px 12px; outline: none; font-size: 13px; line-height: 1.5; font-family: inherit; background: #fff; }
+        .rag-question-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18); }
+        .rag-chat-actions { display: flex; gap: 8px; align-items: center; }
+        .rag-ask-btn { flex: 1; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 900; color: #fff; cursor: pointer; background: linear-gradient(90deg, #0f766e, #2563eb); box-shadow: 0 8px 18px rgba(37,99,235,.14); }
+        .rag-index-btn { border: 1px solid #bfdbfe; border-radius: 999px; padding: 9px 12px; font-weight: 800; color: #1d4ed8; background: #eff6ff; cursor: pointer; }
+        .rag-ask-btn:disabled, .rag-index-btn:disabled { opacity: .65; cursor: not-allowed; box-shadow: none; }
+        .rag-status { min-height: 18px; color: #64748b; font-size: 12px; line-height: 1.5; }
+        .rag-answer-card { margin-top: 10px; border: 1px solid #dbeafe; border-radius: 14px; background: #ffffff; padding: 12px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04); }
+        .rag-answer-label { font-size: 12px; color: #1d4ed8; font-weight: 900; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .rag-answer-body { color: #1e293b; font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+        .rag-references { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .rag-reference { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 10px; padding: 9px; color: #475569; font-size: 12px; line-height: 1.6; }
+        .rag-reference strong { color: #0f172a; }
         .loader { display: none; text-align: center; margin-top: 50px; }
         .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 992px) {
             .main-layout { flex-direction: column; gap: 15px; padding: 15px; }
             .left-panel, .right-panel { flex: none; width: 100%; padding: 20px; }
+            .right-panel { position: static; max-height: none; }
             .metadata-grid { grid-template-columns: 1fr; }
             .related-grid { grid-template-columns: 1fr; }
             iframe { height: 500px !important; }
@@ -849,6 +867,22 @@
             <div class="loader" id="loader">
                 <div class="spinner"></div>
                 <div style="margin-top:15px; color:#6366f1;"><span class="cn">AI 正在分析...<br>(约15-30秒)</span><span class="en">AI analyzing...<br>(approx 15-30s)</span></div>
+            </div>
+        </div>
+        <div class="rag-chat-panel">
+            <div class="rag-chat-title"><i class="fas fa-comments"></i><span class="cn">基于本文提问</span><span class="en">Ask This Work</span></div>
+            <div class="rag-chat-desc">
+                <span class="cn">使用 RAG 从当前成果内容中检索相关片段，再由 AI 基于原文回答。</span>
+                <span class="en">RAG retrieves relevant excerpts from this work before generating an answer.</span>
+            </div>
+            <div class="rag-chat-box">
+                <textarea id="ragQuestionInput" class="rag-question-input" placeholder="例如：这篇成果的主要创新点是什么？" data-placeholder-en="Example: What is the main contribution of this work?"></textarea>
+                <div class="rag-chat-actions">
+                    <button id="ragAskBtn" class="rag-ask-btn" onclick="askRagQuestion()"><span class="cn">发送问题</span><span class="en">Ask</span></button>
+                    <button id="ragIndexBtn" class="rag-index-btn" onclick="indexCurrentTweetForRag()"><span class="cn">重建索引</span><span class="en">Reindex</span></button>
+                </div>
+                <div id="ragStatus" class="rag-status"></div>
+                <div id="ragAnswer"></div>
             </div>
         </div>
     </div>
@@ -2272,6 +2306,94 @@
         } catch (e) {
             loader.style.display = 'none';
             aiOutput.innerHTML = '<div style="color:#ef4444;">AI analysis failed.</div>';
+        }
+    }
+
+    function setRagStatus(message, isError = false) {
+        const status = document.getElementById('ragStatus');
+        if (!status) return;
+        status.textContent = message || '';
+        status.style.color = isError ? '#dc2626' : '#64748b';
+    }
+
+    function setRagButtonsDisabled(disabled) {
+        const askBtn = document.getElementById('ragAskBtn');
+        const indexBtn = document.getElementById('ragIndexBtn');
+        if (askBtn) askBtn.disabled = disabled;
+        if (indexBtn) indexBtn.disabled = disabled;
+    }
+
+    async function indexCurrentTweetForRag() {
+        setRagButtonsDisabled(true);
+        setRagStatus('正在建立本文 RAG 索引，请稍候...');
+        try {
+            const res = await fetch(`/api/ai/rag/index/${tweetId}`, { method: 'POST' });
+            const text = await res.text();
+            if (!res.ok) throw new Error(text || 'RAG index failed');
+            const data = JSON.parse(text);
+            setRagStatus(`索引完成：已生成 ${data.chunks || 0} 个文本片段。`);
+            return data;
+        } catch (error) {
+            console.error(error);
+            setRagStatus('索引失败，请检查服务端 RAG 配置或稍后重试。', true);
+            throw error;
+        } finally {
+            setRagButtonsDisabled(false);
+        }
+    }
+
+    function renderRagAnswer(data) {
+        const container = document.getElementById('ragAnswer');
+        if (!container) return;
+        const answer = escapeHtml(data.answer || 'AI 未返回回答。');
+        const references = Array.isArray(data.references) ? data.references : [];
+        const referenceHtml = references.length
+            ? `<div class="rag-references">${references.map((item, index) => {
+                const score = Number(item.score || 0).toFixed(3);
+                const content = escapeHtml(item.content || '');
+                return `<div class="rag-reference"><strong>Excerpt ${index + 1} · score ${score}</strong><br>${content}</div>`;
+            }).join('')}</div>`
+            : '';
+        container.innerHTML = `
+            <div class="rag-answer-card">
+                <div class="rag-answer-label"><i class="fas fa-wand-magic-sparkles"></i>RAG Answer</div>
+                <div class="rag-answer-body">${answer}</div>
+                ${referenceHtml}
+            </div>
+        `;
+    }
+
+    async function askRagQuestion(retried = false) {
+        const input = document.getElementById('ragQuestionInput');
+        const question = input ? input.value.trim() : '';
+        if (!question) {
+            setRagStatus('请先输入一个问题。', true);
+            return;
+        }
+
+        setRagButtonsDisabled(true);
+        setRagStatus('正在检索相关片段并生成回答...');
+        try {
+            const lang = document.getElementById('aiLangSelect')?.value || 'zh';
+            const res = await fetch(`/api/ai/rag/ask/${tweetId}?lang=${encodeURIComponent(lang)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ question })
+            });
+            const data = await res.json();
+            const noIndex = data.answer && data.answer.includes('尚未建立 RAG 索引');
+            if (noIndex && !retried) {
+                setRagStatus('本文尚未建立索引，正在自动建立索引后重试...');
+                await indexCurrentTweetForRag();
+                return askRagQuestion(true);
+            }
+            renderRagAnswer(data);
+            setRagStatus('回答已生成。');
+        } catch (error) {
+            console.error(error);
+            setRagStatus('RAG 问答失败，请稍后重试。', true);
+        } finally {
+            setRagButtonsDisabled(false);
         }
     }
 </script>
