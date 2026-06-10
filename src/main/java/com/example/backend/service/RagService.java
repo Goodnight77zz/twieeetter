@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Tweet;
 import com.example.backend.repository.TweetRepository;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -27,11 +28,12 @@ public class RagService {
     private static final int TOP_K = 5;
     private static final int SIMILAR_LIMIT = 5;
     private static final int SIMILAR_QUERY_TEXT_LIMIT = 6000;
+    private static final int DOCUMENT_TEXT_LIMIT = 5000;
 
     private final TweetRepository tweetRepository;
     private final FileService fileService;
     private final AiService aiService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = createRestTemplate();
 
     @Value("${rag.enabled:false}")
     private boolean ragEnabled;
@@ -63,6 +65,13 @@ public class RagService {
         this.aiService = aiService;
     }
 
+    private static RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(30000);
+        return new RestTemplate(factory);
+    }
+
     public Map<String, Object> indexTweet(Long tweetId) {
         ensureEnabled();
         Tweet tweet = tweetRepository.findById(tweetId)
@@ -91,27 +100,28 @@ public class RagService {
         List<Tweet> tweets = tweetRepository.findAllByOrderByCreateTimeDesc();
         List<Map<String, Object>> failed = new ArrayList<>();
         int indexed = 0;
-        int chunks = 0;
         int skipped = 0;
         int scanned = 0;
         int safeLimit = Math.max(1, Math.min(limit, 50));
 
+        try {
+            ensureDocumentTable();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to prepare semantic document index table", e);
+        }
+
         for (Tweet tweet : tweets) {
             scanned++;
-            if (skipIndexed && hasIndexedChunks(tweet.getId())) {
-                skipped++;
-                continue;
-            }
             if (indexed >= safeLimit) {
                 break;
             }
             try {
-                Map<String, Object> result = indexTweet(tweet.getId());
-                indexed++;
-                Object chunkCount = result.get("chunks");
-                if (chunkCount instanceof Number number) {
-                    chunks += number.intValue();
+                if (skipIndexed && hasIndexedDocument(tweet.getId())) {
+                    skipped++;
+                    continue;
                 }
+                indexTweetDocument(tweet);
+                indexed++;
             } catch (Exception e) {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("tweetId", tweet.getId());
@@ -127,7 +137,7 @@ public class RagService {
         result.put("scanned", scanned);
         result.put("indexed", indexed);
         result.put("skipped", skipped);
-        result.put("chunks", chunks);
+        result.put("documents", indexed);
         result.put("limit", safeLimit);
         result.put("skipIndexed", skipIndexed);
         result.put("hasMore", scanned < tweets.size());
@@ -167,16 +177,21 @@ public class RagService {
         Tweet tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new RuntimeException("Tweet not found: " + tweetId));
 
-        if (!hasIndexedChunks(tweetId)) {
-            indexTweet(tweetId);
+        try {
+            ensureDocumentTable();
+            if (!hasIndexedDocument(tweetId)) {
+                indexTweetDocument(tweet);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to prepare semantic document index", e);
         }
 
-        String sourceText = buildTweetText(tweet);
+        String sourceText = buildTweetDocumentText(tweet);
         String queryText = sourceText.length() > SIMILAR_QUERY_TEXT_LIMIT
                 ? sourceText.substring(0, SIMILAR_QUERY_TEXT_LIMIT)
                 : sourceText;
         float[] queryEmbedding = createEmbedding(queryText);
-        List<Map<String, Object>> matches = searchSimilarTweetChunks(tweetId, queryEmbedding, SIMILAR_LIMIT);
+        List<Map<String, Object>> matches = searchSimilarDocuments(tweetId, queryEmbedding, SIMILAR_LIMIT);
 
         List<Long> ids = matches.stream()
                 .map(item -> item.get("tweetId"))
@@ -196,7 +211,6 @@ public class RagService {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("tweet", relatedTweet);
             item.put("score", match.get("score"));
-            item.put("matchedChunkIndex", match.get("chunkIndex"));
             item.put("matchedExcerpt", match.get("content"));
             recommendations.add(item);
         }
@@ -239,6 +253,26 @@ public class RagService {
         }
 
         return normalizeText(builder.toString());
+    }
+
+    private String buildTweetDocumentText(Tweet tweet) {
+        StringBuilder builder = new StringBuilder();
+        appendField(builder, "Title", tweet.getTitle());
+        appendField(builder, "Abstract", tweet.getContent());
+        appendField(builder, "Authors", tweet.getAuthors());
+        appendField(builder, "Institution", tweet.getInstitution());
+        appendField(builder, "Research area", tweet.getResearchArea());
+        appendField(builder, "Keywords", tweet.getKeywords());
+        appendField(builder, "Tags", tweet.getTags());
+        appendField(builder, "Publication type", tweet.getPublicationType());
+        appendField(builder, "Content type", tweet.getContentType());
+        appendField(builder, "References", tweet.getReferencesText());
+
+        String text = normalizeText(builder.toString());
+        if (text.length() > DOCUMENT_TEXT_LIMIT) {
+            return text.substring(0, DOCUMENT_TEXT_LIMIT);
+        }
+        return text;
     }
 
     private void appendField(StringBuilder builder, String name, String value) {
@@ -308,6 +342,61 @@ public class RagService {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to check RAG chunks", e);
+        }
+    }
+
+    private void ensureDocumentTable() throws SQLException {
+        String createTableSql = "CREATE TABLE IF NOT EXISTS rag_documents ("
+                + "tweet_id BIGINT PRIMARY KEY, "
+                + "content TEXT NOT NULL, "
+                + "embedding vector(" + embeddingDimension + "), "
+                + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + ")";
+        String createIndexSql = "CREATE INDEX IF NOT EXISTS rag_documents_embedding_idx "
+                + "ON rag_documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)";
+        try (Connection connection = openConnection();
+             PreparedStatement createTable = connection.prepareStatement(createTableSql);
+             PreparedStatement createIndex = connection.prepareStatement(createIndexSql)) {
+            createTable.executeUpdate();
+            createIndex.executeUpdate();
+        }
+    }
+
+    private boolean hasIndexedDocument(Long tweetId) {
+        String sql = "SELECT COUNT(*) FROM rag_documents WHERE tweet_id = ?";
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, tweetId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getLong(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to check semantic document index", e);
+        }
+    }
+
+    private void indexTweetDocument(Tweet tweet) {
+        String content = buildTweetDocumentText(tweet);
+        if (content.isBlank()) {
+            throw new RuntimeException("No indexable document text found");
+        }
+        float[] embedding = createEmbedding(content);
+        String sql = """
+                INSERT INTO rag_documents (tweet_id, content, embedding, updated_at)
+                VALUES (?, ?, CAST(? AS vector), CURRENT_TIMESTAMP)
+                ON CONFLICT (tweet_id) DO UPDATE SET
+                    content = EXCLUDED.content,
+                    embedding = EXCLUDED.embedding,
+                    updated_at = CURRENT_TIMESTAMP
+                """;
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, tweet.getId());
+            statement.setString(2, content);
+            statement.setString(3, toVectorLiteral(embedding));
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to write semantic document index", e);
         }
     }
 
@@ -384,6 +473,38 @@ public class RagService {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to search semantic related tweets", e);
+        }
+        return matches;
+    }
+
+    private List<Map<String, Object>> searchSimilarDocuments(Long tweetId, float[] queryEmbedding, int limit) {
+        String vector = toVectorLiteral(queryEmbedding);
+        String sql = """
+                SELECT tweet_id, content, 1 - (embedding <=> CAST(? AS vector)) AS score
+                FROM rag_documents
+                WHERE tweet_id <> ?
+                ORDER BY embedding <=> CAST(? AS vector)
+                LIMIT ?
+                """;
+
+        List<Map<String, Object>> matches = new ArrayList<>();
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, vector);
+            statement.setLong(2, tweetId);
+            statement.setString(3, vector);
+            statement.setInt(4, limit);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("tweetId", resultSet.getLong("tweet_id"));
+                    item.put("content", resultSet.getString("content"));
+                    item.put("score", resultSet.getDouble("score"));
+                    matches.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to search semantic document index", e);
         }
         return matches;
     }
