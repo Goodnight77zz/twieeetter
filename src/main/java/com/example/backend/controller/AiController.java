@@ -92,7 +92,7 @@ public class AiController {
         return ragService.indexTweet(tweetId);
     }
 
-    @PostMapping("/rag/index-all")
+    @PostMapping("/rag/index/all")
     public Map<String, Object> indexAllTweetsForRag() {
         return ragService.indexAllTweets();
     }
