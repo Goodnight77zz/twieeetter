@@ -462,7 +462,21 @@
         .ai-controls { display: flex; gap: 10px; width: 100%; }
         .ai-lang-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; flex: 1; }
         .ai-btn { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; flex: 1; }
-        .ai-result-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155; border: 1px dashed #cbd5e1; min-height: 300px; }
+        .ai-tool-btn { background: linear-gradient(90deg, #0f766e, #2563eb); color: white; border: none; padding: 10px 16px; border-radius: 999px; cursor: pointer; font-weight: 900; flex: 1; box-shadow: 0 8px 18px rgba(37,99,235,.14); }
+        .ai-tool-btn.secondary { flex: 0 0 auto; border: 1px solid #bfdbfe; color: #1d4ed8; background: #eff6ff; box-shadow: none; }
+        .ai-tool-btn:disabled { opacity: .65; cursor: not-allowed; box-shadow: none; }
+        .ai-result-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 15px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #334155; border: 1px dashed #cbd5e1; min-height: 300px; max-height: 460px; }
+        .ai-empty-state { color:#94a3b8; text-align:center; margin-top:40px; }
+        .ai-tool-card { border: 1px solid #dbeafe; border-radius: 14px; background: #ffffff; padding: 14px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04); margin-bottom: 10px; }
+        .ai-tool-label { font-size: 13px; color: #1d4ed8; font-weight: 900; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .ai-tool-body { color: #1e293b; font-size: 14px; line-height: 1.75; white-space: pre-wrap; }
+        .ai-tool-meta { margin-top: 8px; color: #64748b; font-size: 12px; }
+        .ai-related-list { display: flex; flex-direction: column; gap: 10px; }
+        .ai-related-item { border: 1px solid #e2e8f0; background: #fff; border-radius: 12px; padding: 12px; }
+        .ai-related-title { display: block; color: #172554; font-size: 14px; font-weight: 900; line-height: 1.5; text-decoration: none; }
+        .ai-related-title:hover { color: #2563eb; }
+        .ai-related-meta { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; color: #64748b; font-size: 12px; }
+        .ai-related-summary { margin-top: 8px; color: #475569; font-size: 12px; line-height: 1.6; }
         .rag-chat-panel { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
         .rag-chat-title { font-size: 14px; font-weight: 900; color: #1e3a8a; display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
         .rag-chat-desc { color: #64748b; font-size: 12px; line-height: 1.6; margin-bottom: 10px; }
@@ -855,34 +869,29 @@
                     <option value="zh">🇨🇳 中文模式 (Chinese)</option>
                     <option value="en">🇺🇸 English Mode</option>
                 </select>
-                <button id="aiBtn" class="ai-btn" onclick="startAiTask('review')"><span class="cn">✨ AI评审</span><span class="en">✨ Review</span></button>
-            </div>
-            <div class="ai-controls" style="margin-top:-4px;">
-                <button class="ai-btn" style="background:linear-gradient(90deg,#0ea5e9,#2563eb);" onclick="startAiTask('summary')"><span class="cn">🧠 AI导读</span><span class="en">🧠 Summary</span></button>
-                <button class="ai-btn" style="background:linear-gradient(90deg,#10b981,#059669);" onclick="startAiTask('discussion')"><span class="cn">💬 讨论引导</span><span class="en">💬 Discuss</span></button>
+                <button id="similarToolBtn" class="ai-tool-btn secondary" onclick="recommendSimilarWorks()"><span class="cn">推荐相似成果</span><span class="en">Similar Works</span></button>
             </div>
         </div>
         <div class="ai-result-box" id="aiOutput">
-            <p style="color:#94a3b8; text-align:center; margin-top:40px;"><span class="cn">你可以让 AI 从三个场景辅助当前研究：<br>生成评审意见、提炼导读摘要、生成讨论切入点。</span><span class="en">You can ask AI to support this research in three scenarios:<br>reviewing the work, generating a reading summary, and suggesting discussion angles.</span></p>
+            <p class="ai-empty-state"><span class="cn">你可以直接提问，例如：<br>这篇成果的主要创新点是什么？<br>帮我推荐几个相似内容的文章。</span><span class="en">Ask naturally, for example:<br>What is the main contribution of this work?<br>Recommend several similar works.</span></p>
             <div class="loader" id="loader">
                 <div class="spinner"></div>
-                <div style="margin-top:15px; color:#6366f1;"><span class="cn">AI 正在分析...<br>(约15-30秒)</span><span class="en">AI analyzing...<br>(approx 15-30s)</span></div>
+                <div style="margin-top:15px; color:#6366f1;"><span class="cn">AI 正在调用工具...</span><span class="en">AI is calling a tool...</span></div>
             </div>
         </div>
         <div class="rag-chat-panel">
-            <div class="rag-chat-title"><i class="fas fa-comments"></i><span class="cn">基于本文提问</span><span class="en">Ask This Work</span></div>
+            <div class="rag-chat-title"><i class="fas fa-comments"></i><span class="cn">自然语言工具调用</span><span class="en">Natural Language Tool Calling</span></div>
             <div class="rag-chat-desc">
-                <span class="cn">使用 RAG 从当前成果内容中检索相关片段，再由 AI 基于原文回答。</span>
-                <span class="en">RAG retrieves relevant excerpts from this work before generating an answer.</span>
+                <span class="cn">系统会根据问题自动选择 RAG 问答或相似成果推荐工具。</span>
+                <span class="en">The assistant routes your request to RAG Q&A or similar-work recommendation.</span>
             </div>
             <div class="rag-chat-box">
-                <textarea id="ragQuestionInput" class="rag-question-input" placeholder="例如：这篇成果的主要创新点是什么？" data-placeholder-en="Example: What is the main contribution of this work?"></textarea>
+                <textarea id="ragQuestionInput" class="rag-question-input" placeholder="例如：这篇成果的主要创新点是什么？或：推荐几个相似内容的文章。" data-placeholder-en="Example: What is the main contribution of this work? Or recommend similar works."></textarea>
                 <div class="rag-chat-actions">
-                    <button id="ragAskBtn" class="rag-ask-btn" onclick="askRagQuestion()"><span class="cn">发送问题</span><span class="en">Ask</span></button>
+                    <button id="ragAskBtn" class="rag-ask-btn" onclick="callResearchAssistant()"><span class="cn">发送</span><span class="en">Send</span></button>
                     <button id="ragIndexBtn" class="rag-index-btn" onclick="indexCurrentTweetForRag()"><span class="cn">重建索引</span><span class="en">Reindex</span></button>
                 </div>
                 <div id="ragStatus" class="rag-status"></div>
-                <div id="ragAnswer"></div>
             </div>
         </div>
     </div>
@@ -2290,22 +2299,55 @@
         }
     }
 
-    async function startAiTask(task) {
+    function getAssistantLang() {
+        return document.getElementById('aiLangSelect')?.value || 'zh';
+    }
+
+    function setAiOutputLoading(message) {
         const aiOutput = document.getElementById('aiOutput');
-        const loader = document.getElementById('loader');
-        loader.style.display = 'block';
-        aiOutput.querySelector('p')?.remove();
+        if (!aiOutput) return;
+        aiOutput.innerHTML = `
+            <div class="loader" style="display:block;">
+                <div class="spinner"></div>
+                <div style="margin-top:15px; color:#6366f1;">${escapeHtml(message || 'AI 正在调用工具...')}</div>
+            </div>
+        `;
+    }
+
+    function renderAiOutput(title, bodyHtml, metaText = '') {
+        const aiOutput = document.getElementById('aiOutput');
+        if (!aiOutput) return;
+        aiOutput.innerHTML = `
+            <div class="ai-tool-card">
+                <div class="ai-tool-label"><i class="fas fa-wand-magic-sparkles"></i>${title}</div>
+                <div class="ai-tool-body">${bodyHtml}</div>
+                ${metaText ? `<div class="ai-tool-meta">${escapeHtml(metaText)}</div>` : ''}
+            </div>
+        `;
+    }
+
+    function renderAiOutputError(message) {
+        renderAiOutput('Tool Call Failed', `<span style="color:#ef4444;">${escapeHtml(message)}</span>`);
+    }
+
+    function chooseAssistantTool(message) {
+        const text = (message || '').toLowerCase();
+        if (/相似|相关|推荐|类似|similar|related|recommend/.test(text)) {
+            return 'recommend_similar_works';
+        }
+        return 'rag_qa';
+    }
+
+    async function startAiTask(task) {
+        setAiOutputLoading('AI 正在分析...');
         try {
-            const lang = document.getElementById('aiLangSelect').value;
-            const res = await fetch(`/api/ai/${task}/${tweetId}?lang=${lang}`, {
-                method: 'POST'
-            });
+            const lang = getAssistantLang();
+            const res = await fetch(`/api/ai/${task}/${tweetId}?lang=${lang}`, { method: 'POST' });
             const data = await res.json();
-            loader.style.display = 'none';
-            aiOutput.innerHTML = `<div style="white-space: pre-wrap;">${data.result || 'AI 未返回内容 / No AI response'}</div>`;
+            renderAiOutput('AI Result', data.result || 'AI 未返回内容 / No AI response');
         } catch (e) {
-            loader.style.display = 'none';
-            aiOutput.innerHTML = '<div style="color:#ef4444;">AI analysis failed.</div>';
+            console.error(e);
+            renderAiOutputError('AI analysis failed.');
         }
     }
 
@@ -2319,8 +2361,10 @@
     function setRagButtonsDisabled(disabled) {
         const askBtn = document.getElementById('ragAskBtn');
         const indexBtn = document.getElementById('ragIndexBtn');
+        const similarBtn = document.getElementById('similarToolBtn');
         if (askBtn) askBtn.disabled = disabled;
         if (indexBtn) indexBtn.disabled = disabled;
+        if (similarBtn) similarBtn.disabled = disabled;
     }
 
     async function indexCurrentTweetForRag() {
@@ -2343,8 +2387,6 @@
     }
 
     function renderRagAnswer(data) {
-        const container = document.getElementById('ragAnswer');
-        if (!container) return;
         const answer = escapeHtml(data.answer || 'AI 未返回回答。');
         const references = Array.isArray(data.references) ? data.references : [];
         const referenceHtml = references.length
@@ -2354,13 +2396,7 @@
                 return `<div class="rag-reference"><strong>Excerpt ${index + 1} · score ${score}</strong><br>${content}</div>`;
             }).join('')}</div>`
             : '';
-        container.innerHTML = `
-            <div class="rag-answer-card">
-                <div class="rag-answer-label"><i class="fas fa-wand-magic-sparkles"></i>RAG Answer</div>
-                <div class="rag-answer-body">${answer}</div>
-                ${referenceHtml}
-            </div>
-        `;
+        renderAiOutput('RAG Answer', `<div class="rag-answer-body">${answer}</div>${referenceHtml}`, 'Tool called: rag_qa');
     }
 
     async function askRagQuestion(retried = false) {
@@ -2373,8 +2409,9 @@
 
         setRagButtonsDisabled(true);
         setRagStatus('正在检索相关片段并生成回答...');
+        setAiOutputLoading('Tool calling: rag_qa，正在检索本文相关片段...');
         try {
-            const lang = document.getElementById('aiLangSelect')?.value || 'zh';
+            const lang = getAssistantLang();
             const res = await fetch(`/api/ai/rag/ask/${tweetId}?lang=${encodeURIComponent(lang)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -2392,9 +2429,81 @@
         } catch (error) {
             console.error(error);
             setRagStatus('RAG 问答失败，请稍后重试。', true);
+            renderAiOutputError('RAG 问答失败，请稍后重试。');
         } finally {
             setRagButtonsDisabled(false);
         }
+    }
+
+    function renderSimilarWorks(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            renderAiOutput(
+                'Similar Works',
+                '<span class="cn">暂时没有找到足够相似的成果。可以继续完善关键词、研究领域或标签后再试。</span><span class="en">No similar works were found yet.</span>',
+                'Tool called: recommend_similar_works'
+            );
+            return;
+        }
+
+        const html = `
+            <div class="ai-related-list">
+                ${items.slice(0, 5).map((tweet, index) => {
+                    const title = escapeHtml(tweet.title || `Related Work ${index + 1}`);
+                    const area = escapeHtml(tweet.researchArea || 'Unknown area');
+                    const type = escapeHtml(tweet.contentType || 'work');
+                    const author = escapeHtml(tweet.authors || tweet.author?.username || 'Unknown author');
+                    const summary = escapeHtml(getRelatedSummary(tweet));
+                    return `
+                        <div class="ai-related-item">
+                            <a class="ai-related-title" href="detail.html?id=${tweet.id}">${index + 1}. ${title}</a>
+                            <div class="ai-related-meta">
+                                <span><i class="fas fa-flask"></i> ${area}</span>
+                                <span><i class="fas fa-layer-group"></i> ${type}</span>
+                                <span><i class="fas fa-user"></i> ${author}</span>
+                            </div>
+                            <div class="ai-related-summary">${summary}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        renderAiOutput('Recommended Similar Works', html, 'Tool called: recommend_similar_works');
+    }
+
+    async function recommendSimilarWorks() {
+        setRagButtonsDisabled(true);
+        setRagStatus('正在调用相似成果推荐工具...');
+        setAiOutputLoading('Tool calling: recommend_similar_works，正在匹配相似成果...');
+        try {
+            const res = await fetch(`/api/tweets/${tweetId}/related`);
+            if (!res.ok) throw new Error('Failed to load similar works');
+            const items = await res.json();
+            renderSimilarWorks(items);
+            setRagStatus('相似成果推荐已生成。');
+        } catch (error) {
+            console.error(error);
+            setRagStatus('相似成果推荐失败，请稍后重试。', true);
+            renderAiOutputError('相似成果推荐失败，请稍后重试。');
+        } finally {
+            setRagButtonsDisabled(false);
+        }
+    }
+
+    async function callResearchAssistant() {
+        const input = document.getElementById('ragQuestionInput');
+        const message = input ? input.value.trim() : '';
+        if (!message) {
+            setRagStatus('请先输入一个问题或指令。', true);
+            return;
+        }
+
+        const toolName = chooseAssistantTool(message);
+        setRagStatus(`已选择工具：${toolName}`);
+        if (toolName === 'recommend_similar_works') {
+            await recommendSimilarWorks();
+            return;
+        }
+        await askRagQuestion(false);
     }
 </script>
 </body>
