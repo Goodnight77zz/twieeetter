@@ -12,10 +12,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 public class RagService {
@@ -23,6 +25,8 @@ public class RagService {
     private static final int CHUNK_SIZE = 1600;
     private static final int CHUNK_OVERLAP = 200;
     private static final int TOP_K = 5;
+    private static final int SIMILAR_LIMIT = 5;
+    private static final int SIMILAR_QUERY_TEXT_LIMIT = 6000;
 
     private final TweetRepository tweetRepository;
     private final FileService fileService;
@@ -82,6 +86,39 @@ public class RagService {
         return Map.of("tweetId", tweetId, "chunks", chunks.size(), "message", "RAG index created");
     }
 
+    public Map<String, Object> indexAllTweets() {
+        ensureEnabled();
+        List<Tweet> tweets = tweetRepository.findAllByOrderByCreateTimeDesc();
+        List<Map<String, Object>> failed = new ArrayList<>();
+        int indexed = 0;
+        int chunks = 0;
+
+        for (Tweet tweet : tweets) {
+            try {
+                Map<String, Object> result = indexTweet(tweet.getId());
+                indexed++;
+                Object chunkCount = result.get("chunks");
+                if (chunkCount instanceof Number number) {
+                    chunks += number.intValue();
+                }
+            } catch (Exception e) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("tweetId", tweet.getId());
+                item.put("title", tweet.getTitle());
+                item.put("error", e.getMessage());
+                failed.add(item);
+            }
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("message", "RAG index-all finished");
+        result.put("total", tweets.size());
+        result.put("indexed", indexed);
+        result.put("chunks", chunks);
+        result.put("failed", failed);
+        return result;
+    }
+
     public Map<String, Object> askTweet(Long tweetId, String question, String lang) {
         ensureEnabled();
         if (question == null || question.trim().isEmpty()) {
@@ -107,6 +144,52 @@ public class RagService {
                 "answer", answer,
                 "references", matches
         );
+    }
+
+    public Map<String, Object> recommendSimilarTweets(Long tweetId) {
+        ensureEnabled();
+        Tweet tweet = tweetRepository.findById(tweetId)
+                .orElseThrow(() -> new RuntimeException("Tweet not found: " + tweetId));
+
+        if (!hasIndexedChunks(tweetId)) {
+            indexTweet(tweetId);
+        }
+
+        String sourceText = buildTweetText(tweet);
+        String queryText = sourceText.length() > SIMILAR_QUERY_TEXT_LIMIT
+                ? sourceText.substring(0, SIMILAR_QUERY_TEXT_LIMIT)
+                : sourceText;
+        float[] queryEmbedding = createEmbedding(queryText);
+        List<Map<String, Object>> matches = searchSimilarTweetChunks(tweetId, queryEmbedding, SIMILAR_LIMIT);
+
+        List<Long> ids = matches.stream()
+                .map(item -> item.get("tweetId"))
+                .filter(Long.class::isInstance)
+                .map(Long.class::cast)
+                .collect(Collectors.toList());
+        Map<Long, Tweet> tweetsById = tweetRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Tweet::getId, item -> item));
+
+        List<Map<String, Object>> recommendations = new ArrayList<>();
+        for (Map<String, Object> match : matches) {
+            Long relatedTweetId = (Long) match.get("tweetId");
+            Tweet relatedTweet = tweetsById.get(relatedTweetId);
+            if (relatedTweet == null) {
+                continue;
+            }
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("tweet", relatedTweet);
+            item.put("score", match.get("score"));
+            item.put("matchedChunkIndex", match.get("chunkIndex"));
+            item.put("matchedExcerpt", match.get("content"));
+            recommendations.add(item);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("tweetId", tweetId);
+        result.put("tool", "semantic_related_works");
+        result.put("recommendations", recommendations);
+        return result;
     }
 
     private void ensureEnabled() {
@@ -199,6 +282,19 @@ public class RagService {
         }
     }
 
+    private boolean hasIndexedChunks(Long tweetId) {
+        String sql = "SELECT COUNT(*) FROM rag_chunks WHERE tweet_id = ?";
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, tweetId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getLong(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to check RAG chunks", e);
+        }
+    }
+
     private List<Map<String, Object>> searchChunks(Long tweetId, float[] queryEmbedding, int limit) {
         String vector = toVectorLiteral(queryEmbedding);
         String sql = """
@@ -227,6 +323,51 @@ public class RagService {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to search RAG chunks", e);
+        }
+        return matches;
+    }
+
+    private List<Map<String, Object>> searchSimilarTweetChunks(Long tweetId, float[] queryEmbedding, int limit) {
+        String vector = toVectorLiteral(queryEmbedding);
+        String sql = """
+                WITH ranked AS (
+                    SELECT tweet_id,
+                           chunk_index,
+                           content,
+                           1 - (embedding <=> CAST(? AS vector)) AS score,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY tweet_id
+                               ORDER BY embedding <=> CAST(? AS vector)
+                           ) AS rn
+                    FROM rag_chunks
+                    WHERE tweet_id <> ?
+                )
+                SELECT tweet_id, chunk_index, content, score
+                FROM ranked
+                WHERE rn = 1
+                ORDER BY score DESC
+                LIMIT ?
+                """;
+
+        List<Map<String, Object>> matches = new ArrayList<>();
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, vector);
+            statement.setString(2, vector);
+            statement.setLong(3, tweetId);
+            statement.setInt(4, limit);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("tweetId", resultSet.getLong("tweet_id"));
+                    item.put("chunkIndex", resultSet.getInt("chunk_index"));
+                    item.put("content", resultSet.getString("content"));
+                    item.put("score", resultSet.getDouble("score"));
+                    matches.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to search semantic related tweets", e);
         }
         return matches;
     }

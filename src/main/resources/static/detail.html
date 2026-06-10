@@ -882,8 +882,8 @@
         <div class="rag-chat-panel">
             <div class="rag-chat-title"><i class="fas fa-comments"></i><span class="cn">自然语言工具调用</span><span class="en">Natural Language Tool Calling</span></div>
             <div class="rag-chat-desc">
-                <span class="cn">系统会根据问题自动选择 RAG 问答或相似成果推荐工具。</span>
-                <span class="en">The assistant routes your request to RAG Q&A or similar-work recommendation.</span>
+            <span class="cn">系统会根据问题自动选择 RAG 问答或跨成果语义推荐工具。</span>
+            <span class="en">The assistant routes your request to RAG Q&A or cross-work semantic recommendation.</span>
             </div>
             <div class="rag-chat-box">
                 <textarea id="ragQuestionInput" class="rag-question-input" placeholder="例如：这篇成果的主要创新点是什么？或：推荐几个相似内容的文章。" data-placeholder-en="Example: What is the main contribution of this work? Or recommend similar works."></textarea>
@@ -2333,7 +2333,7 @@
     function chooseAssistantTool(message) {
         const text = (message || '').toLowerCase();
         if (/相似|相关|推荐|类似|similar|related|recommend/.test(text)) {
-            return 'recommend_similar_works';
+            return 'semantic_related_works';
         }
         return 'rag_qa';
     }
@@ -2440,19 +2440,22 @@
             renderAiOutput(
                 'Similar Works',
                 '<span class="cn">暂时没有找到足够相似的成果。可以继续完善关键词、研究领域或标签后再试。</span><span class="en">No similar works were found yet.</span>',
-                'Tool called: recommend_similar_works'
+                'Tool called: semantic_related_works'
             );
             return;
         }
 
         const html = `
             <div class="ai-related-list">
-                ${items.slice(0, 5).map((tweet, index) => {
+                ${items.slice(0, 5).map((entry, index) => {
+                    const tweet = entry.tweet || entry;
                     const title = escapeHtml(tweet.title || `Related Work ${index + 1}`);
                     const area = escapeHtml(tweet.researchArea || 'Unknown area');
                     const type = escapeHtml(tweet.contentType || 'work');
                     const author = escapeHtml(tweet.authors || tweet.author?.username || 'Unknown author');
                     const summary = escapeHtml(getRelatedSummary(tweet));
+                    const score = entry.score !== undefined ? Number(entry.score).toFixed(3) : '';
+                    const excerpt = entry.matchedExcerpt ? escapeHtml(entry.matchedExcerpt) : '';
                     return `
                         <div class="ai-related-item">
                             <a class="ai-related-title" href="detail.html?id=${tweet.id}">${index + 1}. ${title}</a>
@@ -2460,30 +2463,42 @@
                                 <span><i class="fas fa-flask"></i> ${area}</span>
                                 <span><i class="fas fa-layer-group"></i> ${type}</span>
                                 <span><i class="fas fa-user"></i> ${author}</span>
+                                ${score ? `<span><i class="fas fa-vector-square"></i> semantic score ${score}</span>` : ''}
                             </div>
                             <div class="ai-related-summary">${summary}</div>
+                            ${excerpt ? `<div class="rag-reference" style="margin-top:8px;"><strong>Matched excerpt</strong><br>${excerpt}</div>` : ''}
                         </div>
                     `;
                 }).join('')}
             </div>
         `;
-        renderAiOutput('Recommended Similar Works', html, 'Tool called: recommend_similar_works');
+        renderAiOutput('Semantic Similar Works', html, 'Tool called: semantic_related_works');
     }
 
     async function recommendSimilarWorks() {
         setRagButtonsDisabled(true);
-        setRagStatus('正在调用相似成果推荐工具...');
-        setAiOutputLoading('Tool calling: recommend_similar_works，正在匹配相似成果...');
+        setRagStatus('正在调用跨成果语义推荐工具...');
+        setAiOutputLoading('Tool calling: semantic_related_works，正在通过向量检索匹配相似成果...');
         try {
-            const res = await fetch(`/api/tweets/${tweetId}/related`);
-            if (!res.ok) throw new Error('Failed to load similar works');
-            const items = await res.json();
+            const res = await fetch(`/api/ai/rag/semantic-related/${tweetId}`);
+            if (!res.ok) throw new Error('Semantic recommendation failed');
+            const data = await res.json();
+            const items = Array.isArray(data.recommendations) ? data.recommendations : [];
             renderSimilarWorks(items);
-            setRagStatus('相似成果推荐已生成。');
+            setRagStatus('语义相似成果推荐已生成。');
         } catch (error) {
-            console.error(error);
-            setRagStatus('相似成果推荐失败，请稍后重试。', true);
-            renderAiOutputError('相似成果推荐失败，请稍后重试。');
+            console.warn('Semantic recommendation failed, fallback to field-based related works.', error);
+            try {
+                const fallbackRes = await fetch(`/api/tweets/${tweetId}/related`);
+                if (!fallbackRes.ok) throw new Error('Fallback recommendation failed');
+                const items = await fallbackRes.json();
+                renderSimilarWorks(items);
+                setRagStatus('语义推荐暂不可用，已使用字段匹配推荐兜底。');
+            } catch (fallbackError) {
+                console.error(fallbackError);
+                setRagStatus('相似成果推荐失败，请稍后重试。', true);
+                renderAiOutputError('相似成果推荐失败，请稍后重试。');
+            }
         } finally {
             setRagButtonsDisabled(false);
         }
@@ -2499,7 +2514,7 @@
 
         const toolName = chooseAssistantTool(message);
         setRagStatus(`已选择工具：${toolName}`);
-        if (toolName === 'recommend_similar_works') {
+        if (toolName === 'semantic_related_works') {
             await recommendSimilarWorks();
             return;
         }

@@ -92,6 +92,11 @@ public class AiController {
         return ragService.indexTweet(tweetId);
     }
 
+    @PostMapping("/rag/index-all")
+    public Map<String, Object> indexAllTweetsForRag() {
+        return ragService.indexAllTweets();
+    }
+
     @PostMapping("/rag/ask/{tweetId}")
     public Map<String, Object> askTweetWithRag(
             @PathVariable Long tweetId,
@@ -99,5 +104,10 @@ public class AiController {
             @RequestParam(defaultValue = "zh") String lang
     ) {
         return ragService.askTweet(tweetId, question, lang);
+    }
+
+    @GetMapping("/rag/semantic-related/{tweetId}")
+    public Map<String, Object> getSemanticRelatedTweets(@PathVariable Long tweetId) {
+        return ragService.recommendSimilarTweets(tweetId);
     }
 }
