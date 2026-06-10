@@ -352,13 +352,9 @@ public class RagService {
                 + "embedding vector(" + embeddingDimension + "), "
                 + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ")";
-        String createIndexSql = "CREATE INDEX IF NOT EXISTS rag_documents_embedding_idx "
-                + "ON rag_documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)";
         try (Connection connection = openConnection();
-             PreparedStatement createTable = connection.prepareStatement(createTableSql);
-             PreparedStatement createIndex = connection.prepareStatement(createIndexSql)) {
+             PreparedStatement createTable = connection.prepareStatement(createTableSql)) {
             createTable.executeUpdate();
-            createIndex.executeUpdate();
         }
     }
 
